@@ -1,8 +1,9 @@
 # WTF.v1
 The Firewall Analyzer is a tool designed to connect to firewalls and perform a comprehensive analysis of their configurations. It checks for misconfigurations, ensures compliance, and optimizes rules. At the moment only Cisco ASA is supported.
 
-![Logo](login2.jpg)
-
+<div align="center">
+  <img src="login2.jpg" alt="Logo"/>
+</div>
 # ciscoconfparse2
 
 [![git commits][41]][42] [![Version][2]][3] [![Downloads][6]][7] [![License][8]][9] [![Hatch project][68]][69]
