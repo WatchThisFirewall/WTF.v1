@@ -19,9 +19,9 @@ The tool is based on Python 3.11 and the package is composed by three containers
 - The Job Scheduler (python:3.11-slim)
 
 
-# How Does it Works
+# How Does it Work
 It connects to a device and retrive the output from the following commands
-```python
+```
 term page 0
 show ver
 show run access-group
@@ -42,88 +42,59 @@ It elaborate the output and produce several reports, below the summary report fo
 </div>
 
 ## Recommendations
-We strongly suggest you to configure your tacacs or radius server in order to grant this tool the minimum required priveileges, therefore granting it unique credentials for login
+> [!CAUTION]
+We strongly recommend configuring your TACACS or RADIUS server to grant this tool only the minimum required privileges, ensuring it uses unique credentials for login.
 
+## Bottlenecks
+> [!CAUTION]
+The web server used is Django's runserver. While we acknowledge its limitations, it is intended for use on a private network and is sufficient for this purpose.  
+We strongly discourage using it on a public network.
 
-# How Does it Works
-You can generate the list of EBGP peers pretty quickly with this script:
+# How Do I get Started?
+somting
 
-```python
-from ciscoconfparse2 import CiscoConfParse
-
-parse = CiscoConfParse('/path/to/config/file')   # Or read directly from a list of strings
-
-# Get all neighbor configuration branches
-branches = parse.find_object_branches(('router bgp',
-                                       'neighbor',
-                                       'remote-as'))
-
-# Get the local BGP ASN
-bgp_cmd = branches[0][0]
-local_asn = bgp_cmd.split()[-1]
-
-# Find EBGP neighbors for any number of peers
-for branch in branches:
-    neighbor_addr = branch[1].split()[-1]
-    remote_asn = branch[2].split()[-1]
-    if local_asn != remote_asn:
-        print("EBGP NEIGHBOR", neighbor_addr)
+# Dependencies
 ```
-
-When you run that, you'll see:
-
-```none
-$ python example.py
-EBGP NEIGHBOR 10.0.0.37
-EBGP NEIGHBOR 10.0.0.34
-$
+asgiref==3.8.1
+bcrypt==4.2.0
+cffi==1.17.0
+cryptography==43.0.0
+Django==4.2.15
+django-background-tasks==1.2.8
+et-xmlfile==1.1.0
+future==1.0.0
+greenlet==3.0.3
+netmiko==4.4.0
+ntc_templates==6.0.0
+numpy==1.23.5
+openpyxl==3.1.5
+pandas==1.5.3
+paramiko==3.4.1
+psycopg2==2.9.9
+pycparser==2.22
+PyNaCl==1.5.0
+pyserial==3.5
+python-dateutil==2.9.0.post0
+pytz==2024.1
+PyYAML==6.0.2
+scp==0.15.0
+six==1.16.0
+SQLAlchemy==2.0.32
+psycopg2-binary==2.9.5
+sqlparse==0.5.1
+tabulate==0.9.0
+textfsm==1.1.3
+typing_extensions==4.12.2
+tzdata==2024.1
 ```
-
-There is a lot more possible; see the [tutorial](http://www.pennington.net/py/ciscoconfparse2/tutorial.html).
-
-
-
-# Docs, Installation, and Dependencies
-
-- The latest copy of the docs are [archived on the web][15]
-
-## Installation and Downloads
-
--   Use `pip` for Python3.x\... :
-
-        python -m pip install ciscoconfparse2
-
-## Dependencies
-
-- [Python 3](https://python.org/)
-- [attrs](https://github.com/python-attrs/attrs)
-- [passlib](https://github.com/glic3rinu/passlib)
-- [tomlkit](https://github.com/sdispater/tomlkit)
-- [dnspython](https://github.com/rthalley/dnspython)
-- [`hier_config`](https://github.com/netdevops/hier_config)
-- [`PyYAML`](https://github.com/yaml/pyyaml)
-- [`pyparsing`](https://github.com/pyparsing/pyparsing)
-- [typeguard](https://github.com/agronholm/typeguard)
-- [loguru](https://github.com/Delgan/loguru)
-
-
 ## Pre-requisites
-
 [The ciscoconfparse2 python package][3] requires Python versions 3.7+.
-
 Type-hinting (work-in-progress) targets Python3.9+ due to the need for `tuple[str, ...]` hints.
 
 ## What is the pythonic way of handling script credentials?
 
 1. Never hard-code credentials
 2. Use [python-dotenv](https://github.com/theskumar/python-dotenv)
-
-# Other Resources
-
-- [Dive into Python3](http://www.diveintopython3.net/) is a good way to learn Python
-- [Team CYMRU][30] has a [Secure IOS Template][29], which is especially useful for external-facing routers / switches
-- [Cisco\'s Guide to hardening IOS devices][31]
-- [Center for Internet Security Benchmarks][32] (An email address, cookies, and javascript are required)
 
 # License
 
