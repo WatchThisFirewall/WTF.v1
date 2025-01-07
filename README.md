@@ -217,13 +217,9 @@ I will not. however, if it's truly a problem for your company, there are commerc
   - [reddit/r/networking][36]
   - [NetworkEngineering.se][23]
 
-# License and Copyright
+# License
 
-[ciscoconfparse2][3] is licensed [GPLv3][21]
-
-- Copyright (C) 2023-2024 David Michael Pennington
-
-The word \"Cisco\" is a registered trademark of [Cisco Systems][27].
+Code released under the [GNU GPLv3]([https://pages.github.com/](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE)) License
 
 # Author
 
