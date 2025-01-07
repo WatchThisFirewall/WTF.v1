@@ -13,60 +13,24 @@ The Firewall Analyzer is a tool designed to connect to firewalls and perform a c
 # What is WatchThisFirewall
 WatchThisFirewall is a firewall assessment tool, it is a specialized software solution that thoroughly analyzes firewall configurations, policies, and performance to enhance security and ensure compliance with industry standards. It identifies unused, redundant, or misconfigured rules and access control lists (ACLs), highlighting potential vulnerabilities and inefficiencies. By optimizing firewall settings, the tool ensures better traffic flow, resource utilization, and overall security posture. Additionally, it generates detailed reports with actionable recommendations, simplifying remediation and ongoing firewall management, and helping administrators maintain a secure, well-structured network with ease.
 
-## Summary
-
-[ciscoconfparse2][17] is similar to an advanced grep and diff that
-handles **multi-vendor network configuration files** (such as those from
-Arista, Cisco, F5, Juniper, Palo Alto, etc); it is the next generation of
-[ciscoconfparse][64], which was the primary development package
-from 2007 until 2023.
-
-## A ciscoconfparse2 example
-
-Assume you have a bunch of interfaces in a configuration.  How do you find which ones are shutdown?
-
-One way is manually reading the whole Cisco IOS-XE configuration.  Another option is [ciscoconfparse2][17]
-
+# How Does it Works
+It connects to a device and retrive the output from the following commands
 ```python
->>> from ciscoconfparse2 import CiscoConfParse
->>>
->>> parse = CiscoConfParse('/path/to/config/file')
->>> intf_cmds = parse.find_parent_objects(['interface', 'shutdown'])
->>>
->>> shut_intf_names = [" ".join(cmd.split()[1:]) for cmd in intf_cmds]
->>>
->>> shut_intf_names
-['GigabitEthernet1/5', 'TenGigabitEthernet2/2', 'TenGigabitEthernet2/3']
->>>
+term page 0
+show ver
+show run access-group
+show nameif
+show interface
+show capture
+show running-config
+show route
+show access-list
+show nat detail
+show crypto ipsec sa entry (Under Developement)
+show clock (When Testing The Connection)
 ```
 
 
-## Another ciscoconfparse2 example
-
-Assume you have this IOS-XR bgp configuration:
-
-```none
-router bgp 65534
-  bgp router-id 10.0.0.100
-  address-family ipv4 unicast
-  !
-  neighbor 10.0.0.37
-    remote-as 64000
-    route-policy EBGP_IN in
-    route-policy EBGP_OUT out
-  !
-  neighbor 10.0.0.1
-    remote-as 65534
-    update-source Loopback0
-    route-policy MANGLE_IN in
-    route-policy MANGLE_OUT out
-      next-hop-self
-  !
-  neighbor 10.0.0.34
-    remote-as 64000
-    route-policy EBGP_IN in
-    route-policy EBGP_OUT out
-```
 
 You can generate the list of EBGP peers pretty quickly with this script:
 
