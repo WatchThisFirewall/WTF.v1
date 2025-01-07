@@ -87,21 +87,11 @@ textfsm==1.1.3
 typing_extensions==4.12.2
 tzdata==2024.1
 ```
-## Pre-requisites
-[The ciscoconfparse2 python package][3] requires Python versions 3.7+.
-Type-hinting (work-in-progress) targets Python3.9+ due to the need for `tuple[str, ...]` hints.
-
-## What is the pythonic way of handling script credentials?
-
-1. Never hard-code credentials
-2. Use [python-dotenv](https://github.com/theskumar/python-dotenv)
-
+# Supported Network Device
+- Cisco ASA
 # License
-
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
-
 # Author
-
 [ciscoconfparse2][3] was written by [David Michael Pennington][25].
 
 
