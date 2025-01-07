@@ -36,7 +36,7 @@ show crypto ipsec sa entry (Under Development)
 show clock (When Testing The Connection)
 ```
 
-It elaborate the output and produce several reports, below the summary report for each device
+It elaborate the output and produce several reports. Below the summary report for each device
 <div align="center">
   <img src="IMAGES/summary.jpg" alt="Summary"/>
 </div>
