@@ -11,7 +11,13 @@ The Firewall Analyzer is a tool designed to connect to firewalls and perform a c
 [![SonarCloud][51]][52] [![SonarCloud Maintainability Rating][53]][54] [![SonarCloud Lines of Code][55]][56] [![SonarCloud Bugs][59]][60] [![SonarCloud Code Smells][57]][58] [![SonarCloud Tech Debt][61]][62]
 
 # What is WatchThisFirewall
-WatchThisFirewall is a firewall assessment tool, it is a specialized software solution that thoroughly analyzes firewall configurations, policies, and performance to enhance security and ensure compliance with industry standards. It identifies unused, redundant, or misconfigured rules and access control lists (ACLs), highlighting potential vulnerabilities and inefficiencies. By optimizing firewall settings, the tool ensures better traffic flow, resource utilization, and overall security posture. Additionally, it generates detailed reports with actionable recommendations, simplifying remediation and ongoing firewall management, and helping administrators maintain a secure, well-structured network with ease.
+WatchThisFirewall is a firewall assessment tool, it is a specialized software solution that thoroughly analyzes firewall configurations, policies, and performance to enhance security and ensure compliance with industry standards. It identifies unused, redundant, or misconfigured rules and access control lists (ACLs), highlighting potential vulnerabilities and inefficiencies. By optimizing firewall settings, the tool ensures better traffic flow, resource utilization, and overall security posture. Additionally, it generates detailed reports with actionable recommendations, simplifying remediation and ongoing firewall management, and helping administrators maintain a secure, well-structured network with ease.  
+  
+The tool is based on Python 3.11 and the package is composed by three containers:
+- The Database (postgres:14-alpine)
+- The Django Engine (python:3.11-slim)
+- The Job Scheduler (python:3.11-slim)
+
 
 # How Does it Works
 It connects to a device and retrive the output from the following commands
@@ -26,12 +32,20 @@ show running-config
 show route
 show access-list
 show nat detail
-show crypto ipsec sa entry (Under Developement)
+show crypto ipsec sa entry (Under Development)
 show clock (When Testing The Connection)
 ```
 
+It elaborate the output and produce several reports, below the summary report for each device
+<div align="center">
+  <img src="IMAGES/summary.jpg" alt="Summary"/>
+</div>
+
+## Recommendations
+We strongly suggest you to configure your tacacs or radius server in order to grant this tool the minimum required priveileges, therefore granting it unique credentials for login
 
 
+# How Does it Works
 You can generate the list of EBGP peers pretty quickly with this script:
 
 ```python
@@ -67,64 +81,7 @@ $
 
 There is a lot more possible; see the [tutorial](http://www.pennington.net/py/ciscoconfparse2/tutorial.html).
 
-## CLI Tool
 
-[ciscoconfparse2][17] distributes a [CLI tool][67] that will diff and grep various
-network configuration or text files.
-
-## API Examples
-
-The API examples are [documented on the web][70]
-
-
-# Why
-
-[ciscoconfparse2][17] is a [Python][10] library
-that helps you quickly search for questions like these in your
-router / switch / firewall / load-balancer / wireless text
-configurations:
-
-- What interfaces are shutdown?
-- Which interfaces are in trunk mode?
-- What address and subnet mask is assigned to each interface?
-- Which interfaces are missing a critical command?
-- Is this configuration missing a standard config line?
-
-It can help you:
-
-- Audit existing router / switch / firewall / wlc configurations
-- Modify existing configurations
-- Build new configurations
-
-Speaking generally, the library examines a text network config and breaks
-it into a set of linked parent / child relationships. You can perform
-complex queries about these relationships.
-
-[![Cisco IOS config: Parent / child][11]][11]
-
-## What changed in ciscoconfparse2?
-
-In late 2023, I started a rewrite because [ciscoconfparse][64] is too large 
-and has some defaults that I wish it didn't have.  I froze
-[ciscoconfparse][64] PYPI releases at [version 1.9.41][65]; there will be no
-more [ciscoconfparse][64] PYPI releases.
-
-What do you do?  Upgrade to [ciscoconfparse2][17]!
-
-Here's why, it:
-
-- Includes a handy [CLI command][67] (including greps for mac addresses and IPv4 / IPv6 subnets)
-- Streamlines the API towards a simpler user interface.
-- Removes legacy and flawed methods from the original (this could be a breaking change for old scripts).
-- Adds string methods to `BaseCfgLine()` objects
-- Defaults `ignore_blank_lines=False` (this could be a breaking change for old scripts).
-- Is better at handling multiple-child-level configurations (such as IOS XR and JunOS)
-- Can search for parents and children using an *arbitrary list of ancestors*
-- Adds the concept of change commits; this is a config-modification safety feature that [ciscoconfparse][64] lacks
-- Adds an `auto_commit` keyword, which defaults True
-- Documents much more of the API
-- Intentionally requires a different import statement to minimize confusion between the original and [ciscoconfparse2][17]
-- Vasly improves Cisco IOS diffs
 
 # Docs, Installation, and Dependencies
 
@@ -167,20 +124,6 @@ Type-hinting (work-in-progress) targets Python3.9+ due to the need for `tuple[st
 - [Team CYMRU][30] has a [Secure IOS Template][29], which is especially useful for external-facing routers / switches
 - [Cisco\'s Guide to hardening IOS devices][31]
 - [Center for Internet Security Benchmarks][32] (An email address, cookies, and javascript are required)
-
-## Are you releasing licensing besides GPLv3?
-
-I will not. however, if it's truly a problem for your company, there are commercial solutions available (to include purchasing the project, or hiring me).
-
-## Bug Tracker and Support
-
-- Please report any suggestions, bug reports, or annoyances with a [github bug report][24].
-- If you\'re having problems with general python issues, consider searching for a solution on [Stack Overflow][33].  If you can\'t find a solution for your problem or need more help, you can [ask on Stack Overflow][34] or [reddit/r/Python][39].
-- If you\'re having problems with your Cisco devices, you can contact:
-  - [Cisco TAC][28]
-  - [reddit/r/Cisco][35]
-  - [reddit/r/networking][36]
-  - [NetworkEngineering.se][23]
 
 # License
 
