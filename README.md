@@ -219,7 +219,7 @@ I will not. however, if it's truly a problem for your company, there are commerc
 
 # License
 
-Code released under the [GNU GPLv3]([https://pages.github.com/](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE)) License
+Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
 
 # Author
 
