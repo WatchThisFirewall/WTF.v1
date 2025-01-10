@@ -94,7 +94,7 @@ tzdata==2024.1
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
 # Author
 [ciscoconfparse2][3] was written by [David Michael Pennington][25].
-```watch-this-firewall_at_gmail.com'.replace('_at_','@').replace('-','')```
+```'watch-this-firewall_at_gmail.com'.replace('_at_','@').replace('-','')```
 
 
 
