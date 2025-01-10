@@ -1,5 +1,5 @@
 # WTF.v1
-The Firewall Analyzer is a tool designed to connect to firewalls and perform a comprehensive analysis of their configurations. It checks for misconfigurations, ensures compliance, and optimizes rules. At the moment only Cisco ASA is supported.
+WatchThisFirewall is a firewall assessment tool designed to connect to firewalls and perform a comprehensive analysis of their configurations. It checks for misconfigurations, ensures compliance, and optimizes rules. At the moment only Cisco ASA is supported.
 
 <div align="center">
   <img src="IMAGES/login2.jpg" alt="Logo"/>
@@ -94,6 +94,7 @@ tzdata==2024.1
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
 # Author
 [ciscoconfparse2][3] was written by [David Michael Pennington][25].
+```watch-this-firewall_at_gmail.com'.replace('_at_','@').replace('-','')```
 
 
 
