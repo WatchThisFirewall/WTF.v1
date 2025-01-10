@@ -51,8 +51,10 @@ The web server used is Django's runserver. While we acknowledge its limitations,
 We strongly discourage using it on a public network.
 
 # How Do I get Started?
-## Prerequisites
-Install and run the [Docker Desktop](https://www.docker.com/) package that suits your environement.
+## 1. Prerequisites
+Before starting, ensure the [Docker Desktop](https://www.docker.com/) package that suits your environment is installed on your system.
+## 2. Pull the Docker Image
+Use the pull command ```docker pull <image_name>:<tag>``` to download the Docker image.
 
 # Dependencies
 ```
