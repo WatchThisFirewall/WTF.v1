@@ -4,7 +4,6 @@ WatchThisFirewall is a firewall assessment tool designed to connect to firewalls
 <div align="center">
   <img src="IMAGES/login2.jpg" alt="Logo"/>
 </div>
-# ciscoconfparse2
 
 [![git commits][41]][42] [![Version][2]][3] [![Downloads][6]][7] [![License][8]][9] [![Hatch project][68]][69]
 
@@ -44,11 +43,6 @@ It elaborate the output and produce several reports. Below the summary report fo
 ## Recommendations
 > [!CAUTION]
 We strongly recommend configuring your TACACS or RADIUS server to grant this tool only the minimum required privileges, ensuring it uses unique credentials for login.
-
-## Bottlenecks
-> [!CAUTION]
-The web server used is Django's runserver. While we acknowledge its limitations, it is intended for use on a private network and is sufficient for this purpose.  
-We strongly discourage using it on a public network.
 
 # How Do I get Started?
 ## 1. Prerequisites
