@@ -40,9 +40,10 @@ It elaborate the output and produce several reports. Below the summary report fo
 <div align="center">
   <img src="IMAGES/summary.jpg" alt="Summary"/>
 </div>
-By looking at the 
+<br>
+Settings can be easily costomized according to the specific network guide lines
 <div align="center">
-  <img src="IMAGES/Settings.jpg" alt="Settings"/>
+  <img src="IMAGES/Settings2.jpg" alt="Settings"/>
 </div>
 
 ## Recommendations
