@@ -42,8 +42,7 @@ It elaborate the output and produce several reports. Below the summary report fo
 </div>
 By looking at the 
 <div align="center">
-  ![Settings](https://github.com/user-attachments/assets/fd7a61b8-eeb3-4f0f-ab4c-44cabb83840f)
-
+  <img src="IMAGES/Settings.jpg" alt="Settings"/>
 </div>
 
 ## Recommendations
