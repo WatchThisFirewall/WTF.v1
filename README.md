@@ -4,13 +4,14 @@ WatchThisFirewall is a firewall assessment tool designed to connect to firewalls
 <div align="center">
   <img src="IMAGES/login2.jpg" alt="Logo"/>
 </div>
+<br>
 
 [![git commits][41]][42] [![Version][2]][3] [![Downloads][6]][7] [![License][8]][9] [![Hatch project][68]][69]
 
-[![SonarCloud][51]][52] [![SonarCloud Maintainability Rating][53]][54] [![SonarCloud Lines of Code][55]][56] [![SonarCloud Bugs][59]][60] [![SonarCloud Code Smells][57]][58] [![SonarCloud Tech Debt][61]][62]
 
 # What is WatchThisFirewall
-WatchThisFirewall is a firewall assessment tool, it is a specialized software solution that thoroughly analyzes firewall configurations, policies, and performance to enhance security and ensure compliance with industry standards. It identifies unused, redundant, or misconfigured rules and access control lists (ACLs), highlighting potential vulnerabilities and inefficiencies. By optimizing firewall settings, the tool ensures better traffic flow, resource utilization, and overall security posture. Additionally, it generates detailed reports with actionable recommendations, simplifying remediation and ongoing firewall management helping administrators maintain a secure, well-structured network with ease.  
+WatchThisFirewall is a firewall assessment tool, it is a specialized software solution that thoroughly analyzes firewall configurations, policies, and performance to enhance security and ensure compliance with industry standards. It identifies unused, redundant, or misconfigured objects, NAT rules and access control lists (ACLs), highlighting potential vulnerabilities and inefficiencies.  
+By optimizing firewall settings, the tool ensures better traffic flow, resource utilization, and overall security posture. Additionally, it generates detailed reports with actionable recommendations, simplifying remediation and ongoing firewall management helping administrators maintain a secure, well-structured network with ease.  
   
 The tool is based on Python 3.11 and the package is composed by three containers:
 - The Database (postgres:14-alpine)
@@ -38,6 +39,11 @@ show clock (When Testing The Connection)
 It elaborate the output and produce several reports. Below the summary report for each device
 <div align="center">
   <img src="IMAGES/summary.jpg" alt="Summary"/>
+</div>
+By looking at the 
+<div align="center">
+  ![Settings](https://github.com/user-attachments/assets/fd7a61b8-eeb3-4f0f-ab4c-44cabb83840f)
+
 </div>
 
 ## Recommendations
@@ -82,7 +88,7 @@ sqlparse==0.5.1
 tabulate==0.9.0
 textfsm==1.1.3
 typing_extensions==4.12.2
-tzdata==2024.1
+tzdata==2024.1  
 ```
 # Supported Network Device
 - Cisco ASA
@@ -90,7 +96,7 @@ tzdata==2024.1
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
 # Author
 [ciscoconfparse2][3] was written by [David Michael Pennington][25].
-```'watch-this-firewall_at_gmail.com'.replace('_at_','@').replace('-','')```
+```"watch-this-firewall_at_gmail.com"    .replace('_at_','@').replace('-','')```
 
 
 
