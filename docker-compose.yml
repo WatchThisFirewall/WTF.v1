@@ -1,0 +1,63 @@
+name: wtf_on_docker_1
+
+services:
+    
+    wtf:
+        #image: my_wtf_image
+        build: .    # This tells Docker Compose to build the Docker image from the current directory
+        container_name: my_wtf_container
+        # command: /bin/bash -c " sleep 10 && 
+        #                         python manage.py makemigrations && 
+        #                         python manage.py migrate && 
+        #                         python manage.py createsuperuser --noinput && 
+        #                         python manage.py runserver 0.0.0.0:8000"
+        command: /bin/bash -c " sleep 10 && 
+                                python manage.py makemigrations && 
+                                python manage.py migrate && 
+                                python manage.py runserver 0.0.0.0:8000"                                
+        ports: 
+            - 8001:8000
+        restart: unless-stopped
+        volumes:
+            - wtf_data:/wtf_app
+        environment:
+            - DEBUG=True
+            - DJANGO_SUPERUSER_USERNAME=django_admin
+            - DJANGO_SUPERUSER_PASSWORD=django_admin_pwd
+            - DJANGO_SUPERUSER_EMAIL=admin@example.com
+            - DJANGO_ENV=docker
+        depends_on:
+            - db_postgres
+            
+    tasks:
+        build: .
+        #command: /bin/bash -c "sleep 20 && python manage.py makemigrations && python manage.py migrate && python manage.py process_tasks"
+        command: /bin/bash -c "sleep 30 && python manage.py process_tasks"
+        container_name: my_tasks_container
+        volumes:
+            - wtf_data:/wtf_app
+        environment:
+            - DEBUG=True
+            - DJANGO_ENV=docker
+        depends_on:
+            - wtf
+        restart: unless-stopped
+      
+    db_postgres:
+        image: postgres:14-alpine
+        container_name: my_postgres_container
+        ports: 
+            - 5433:5432
+        environment:
+            POSTGRES_DB: ASA_Check_v3              # Name of the default database
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+        #restart: always
+        restart: unless-stopped
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        command: postgres -c listen_addresses='*' #for opening the container from outside
+            
+volumes:
+    postgres_data:
+    wtf_data:

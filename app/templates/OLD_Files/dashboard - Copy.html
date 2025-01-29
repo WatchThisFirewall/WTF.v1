@@ -1,0 +1,1451 @@
+{% extends 'tplt_base.html' %}
+
+
+
+{% block MainContent %}
+{% load static %}
+
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                {{ FW_NAME }}  ({{ This_Device.Last_Check }})
+            </h1>
+            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50"></i> 
+                Generate Report
+            </a>
+        </div>
+
+
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+
+
+
+        <!-- Content Row -->
+
+        <div class="row">
+
+            <!-- Area Chart -->
+            <div class="col">
+                <div class="card shadow mb-4">
+                    <!-- Card Header - Dropdown -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">Configuration Length History</h6>
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                                aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Dropdown Header:</div>
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <div class="chart-area">
+                            <canvas id="myAreaChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <!--==============================================================================================-->
+        <div class="card shadow mb-4">
+            <div class="card-body" >
+                <!-- Content Row -->
+                <h1 class="h3 mb-2 text-gray-800">Config</h1>
+                <div class="row">
+
+                    <!-- Config Lines Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'confdiff' FW_NAME %}" class="custom-card">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Config Lines (*)
+                                        </div>
+                                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                            <table>
+                                                <tr>
+                                                    <th>Total:&nbsp;&nbsp;&nbsp;</th>
+                                                    <th>{{ This_Device.Config_Total_Lines }}</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>Added:&nbsp;&nbsp;&nbsp;</th>
+                                                    <th>{{ This_Device.Config_Diff_Added_Lines }}</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>Removed:&nbsp;&nbsp;&nbsp;</th>
+                                                    <th>{{ This_Device.Config_Diff_Remvd_Lines }}</th>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+                    <!-- Ranges Check Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'config_range' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Max_Range_IP < 16 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Max_Range_IP < 256 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Max_Range_IP < 65536 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Ranges (*)
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Max IP Span:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.Max_Range_IP }}</th>
+                                        </tr>
+                                        <tr>
+                                            <th>Max Port Span:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.Max_Range_Port }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>                        
+
+
+                    
+                    
+                </div>
+            </div>
+        </div>
+        <!--==============================================================================================-->
+
+
+
+
+
+
+
+
+
+        <!--==============================================================================================-->
+        <div class="card shadow mb-4">
+            <div class="card-body" >
+                <!-- Content Row -->
+                <h1 class="h3 mb-2 text-gray-800">Objects</h1>
+                <div class="row">
+
+
+
+                    <!-- Object Network Not Applied Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'objnet_not_applied' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_OBJ_NET_Unapplied < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_OBJ_NET_Unapplied < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_OBJ_NET_Unapplied < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Obj Net :: Not Applied (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_OBJ_NET_Unapplied}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_OBJ_NET_Unapplied}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_OBJ_NET_Unapplied < 8 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                            <!--<i class="fas fa-check fa-2x text-success"></i>-->
+                                        {%  elif This_Device.Prct_OBJ_NET_Unapplied < 24 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                            <!--<i class="fas fa-frown fa-2x text-warning"></i>-->
+                                        {%  elif This_Device.Prct_OBJ_NET_Unapplied < 50 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                            <!--<i class="fas fa-exclamation-triangle fa-2x text-orange"></i>-->
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                            <!--<i class="fas fa-angry fa-2x text-danger"></i>-->
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Object Network Items:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_NET_Declared }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Not Applied:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_NET_Unapplied }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+
+
+
+                    <!-- Object-Group Network Not Applied Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'objgrpnet_not_applied' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_OBJ_GRP_NET_Unapplied < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_GRP_NET_Unapplied < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_GRP_NET_Unapplied < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Obj-Grp Net :: Not Applied (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_OBJ_GRP_NET_Unapplied}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_OBJ_GRP_NET_Unapplied}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                    {% if This_Device.Prct_N_OBJ_GRP_NET_Unapplied < 8 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_GRP_NET_Unapplied < 24 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_GRP_NET_Unapplied < 50 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                    {%  else %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                    {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Obj-Grp Network Items:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_GRP_NET_Declared }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Not Applied:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_GRP_NET_Unapplied }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+
+
+
+                    <!-- Object Service Not Applied Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'objsvc_not_applied' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_OBJ_SVC_Unapplied < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_SVC_Unapplied < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_SVC_Unapplied < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Obj Svc :: Not Applied (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_OBJ_SVC_Unapplied}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_OBJ_SVC_Unapplied}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                    {% if This_Device.Prct_N_OBJ_SVC_Unapplied < 8 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_SVC_Unapplied < 24 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_SVC_Unapplied < 50 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                    {%  else %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                    {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Object Service Items:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_SVC_Declared }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Not Applied:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_SVC_Unapplied }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+
+
+
+                    <!-- Object-Group Service Not Applied Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'objgrpsvc_not_applied' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_OBJ_GRP_SVC_Unapplied < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_GRP_SVC_Unapplied < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_GRP_SVC_Unapplied < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Obj-Grp Svc :: Not Applied (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_OBJ_GRP_SVC_Unapplied}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_OBJ_GRP_SVC_Unapplied}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                    {% if This_Device.Prct_N_OBJ_GRP_SVC_Unapplied < 8 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_GRP_SVC_Unapplied < 24 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_GRP_SVC_Unapplied < 50 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                    {%  else %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                    {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Obj-Grp Service Items:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_GRP_SVC_Declared }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Not Applied:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_GRP_SVC_Unapplied }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+
+
+             
+
+
+                    <!-- Object NetworkDuplicated Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'nologacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_OBJ_NET_Duplicated < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_NET_Duplicated < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_OBJ_NET_Duplicated < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Obj Net :: Duplicated
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_OBJ_NET_Duplicated}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_OBJ_NET_Duplicated}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                <div class="col-auto">
+                                    {% if This_Device.Prct_N_OBJ_NET_Duplicated < 8 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_NET_Duplicated < 24 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                    {%  elif This_Device.Prct_N_OBJ_NET_Duplicated < 50 %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                    {%  else %}
+                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                    {% endif %}
+                                    <!--
+                                    {% if This_Device.Prct_N_OBJ_NET_Duplicated < 8 %}
+                                        <i class="fas fa-check fa-2x text-success"></i>
+                                    {%  elif This_Device.Prct_N_OBJ_NET_Duplicated < 24 %}
+                                        <i class="fas fa-frown fa-2x text-warning"></i>
+                                    {%  elif This_Device.Prct_N_OBJ_NET_Duplicated < 50 %}
+                                        <i class="fas fa-exclamation-triangle fa-2x text-orange"></i>
+                                    {%  else %}
+                                        <i class="fas fa-angry fa-2x text-danger"></i>
+                                    {% endif %}
+                                    -->
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Obj Net Items:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_NET_Declared }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Duplicated:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_OBJ_NET_Duplicated }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>            
+
+
+
+                    
+                    <!-- Tasks Card Example -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <div class="card border-left-info shadow h-100 py-2">
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                            Tasks
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    50%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-info" role="progressbar" style="width: 50%" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        <i class="fas fa-clipboard-list fa-2x text-gray-300"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    
+                    
+                </div>
+            </div>
+        </div>
+        <!--==============================================================================================-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!--==============================================================================================-->
+        <div class="card shadow mb-4">
+            <div class="card-body" >
+                <!-- Content Row -->
+                <h1 class="h3 mb-2 text-gray-800">ACL vs Interfaces</h1>
+                <div class="row">
+
+
+                    <!-- Unprotected Interfaces Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'unprotected_if' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_Interfaces_NoACL < 0.1 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary  mb-1">
+                                            Unprotected Interfaces (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_Interfaces_NoACL}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_Interfaces_NoACL}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_Interfaces_NoACL < 0.1 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>N Interfaces:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_Interfaces }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>N Unprotected:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_Interfaces_NoACL }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                    
+
+                    <!-- Not Applied ACL Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'notappacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Percent_Unused_ACL < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Percent_Unused_ACL < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Percent_Unused_ACL < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary  mb-1">
+                                            Not Applied ACLs (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Percent_Unused_ACL}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Percent_Unused_ACL}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Percent_Unused_ACL < 8 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                        {%  elif This_Device.Percent_Unused_ACL < 24 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                        {%  elif This_Device.Percent_Unused_ACL < 50 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                        {% endif %}
+                                    </div>                                    
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Declared:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.Declared_ACL }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Not Applied:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.Unused_ACL }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+                    <!-- Expanded ACL Lines Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'expandedacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_ACL_Oversize_Expanded < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_Oversize_Expanded < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_Oversize_Expanded < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary  mb-1">
+                                            Expanded ACLs Oversize
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_ACL_Oversize_Expanded}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_ACL_Oversize_Expanded}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_ACL_Oversize_Expanded < 8 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_Oversize_Expanded < 24 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_Oversize_Expanded < 50 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                        {% endif %}
+                                    </div>                                    
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>N ACL Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_Oversize }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>N ACL Lines Expanded:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_Oversize_Expanded }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+                    <!-- Inactive ACL Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'inactiveacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_ACL_Inactive < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_Inactive < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_Inactive < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Inactive Lines (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_ACL_Inactive}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_ACL_Inactive}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_ACL_Inactive < 8 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_Inactive < 24 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_Inactive < 50 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                        {% endif %}
+                                    </div>                                      
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>ACL Total Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_Lines }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>N Inactive Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_Inactive }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+                    <!-- No Log for ACL Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'nologacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_ACL_NoLog < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_NoLog < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_NoLog < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            No Log (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_ACL_NoLog}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_ACL_NoLog}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_ACL_NoLog < 8 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_NoLog < 24 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_NoLog < 50 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                        {% endif %}
+                                    </div>   
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Active ACL Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_Active }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>No Log Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_NoLog }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                    
+
+
+                    <!-- Log Disabled for ACL Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'logdisabledacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_ACL_LogDisabled < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_LogDisabled < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_LogDisabled < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Log Disabled (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_ACL_LogDisabled}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_ACL_LogDisabled}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_ACL_LogDisabled < 8 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_LogDisabled < 24 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_LogDisabled < 50 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Active ACL Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_Active }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>N Log Disabled Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_LogDisabled }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+
+                    <!-- Delta HitCnt = 0 for ACL Card -->
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'deltahitcnt0acl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_ACL_HitCnt_Zero < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_HitCnt_Zero < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_ACL_HitCnt_Zero < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Delta HitCnt = 0 (*)
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_ACL_HitCnt_Zero}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_ACL_HitCnt_Zero}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_ACL_HitCnt_Zero < 8 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_HitCnt_Zero < 24 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                        {%  elif This_Device.Prct_N_ACL_HitCnt_Zero < 50 %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                        {%  else %}
+                                            <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Active ACL Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_Active }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>N Delta HitCnt = 0:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_ACL_HitCnt_Zero }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+        <!--==============================================================================================-->
+
+
+
+
+
+
+
+        <!--==============================================================================================-->
+        <div class="card shadow mb-4">
+            <div class="card-body" >
+                <!-- Content Row -->
+                <h1 class="h3 mb-2 text-gray-800">NAT</h1>
+                <div class="row">
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'notappacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_NAT_TrHit_0 < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_NAT_TrHit_0 < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_NAT_TrHit_0 < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Tr_Hit = 0
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_NAT_TrHit_0}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_NAT_TrHit_0}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_NAT_TrHit_0 < 8 %}
+                                            <i class="fas fa-check fa-2x text-success"></i>
+                                        {%  elif This_Device.Prct_N_NAT_TrHit_0 < 24 %}
+                                            <i class="fas fa-frown fa-2x text-warning"></i>
+                                        {%  elif This_Device.Prct_N_NAT_TrHit_0 < 50 %}
+                                            <i class="fas fa-exclamation-triangle fa-2x text-orange"></i>
+                                        {%  else %}
+                                            <i class="fas fa-angry fa-2x text-danger"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>Declared:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_NAT_Lines }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Tr_Hit = 0:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_NAT_TrHit_0 }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+
+
+
+                    <div class="col-xl-3 col-md-6 mb-4">
+                        <a href="{% url 'nologacl' FW_NAME %}" class="custom-card">
+                        <!--<div class="card border-left-success shadow h-100 py-2">-->
+                        {% if This_Device.Prct_N_NAT_UnHit_0 < 8 %}
+                            <div class="card border-left-success shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_NAT_UnHit_0 < 24 %}
+                            <div class="card border-left-warning shadow h-100 py-2">
+                        {%  elif This_Device.Prct_N_NAT_UnHit_0 < 50 %}
+                            <div class="card border-left-orange shadow h-100 py-2">
+                        {%  else %}
+                            <div class="card border-left-danger shadow h-100 py-2">
+                        {% endif %}
+                            <div class="card-body">
+                                <div class="row no-gutters align-items-center">
+                                    <div class="col mr-2">
+                                        <div class="text-s font-weight-bold text-primary mb-1">
+                                            Un_Hit = 0
+                                        </div>
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col-auto">
+                                                <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                    {{This_Device.Prct_N_NAT_UnHit_0}}%
+                                                </div>
+                                            </div>
+                                            <div class="col">
+                                                <div class="progress progress-sm mr-2">
+                                                    <div class="progress-bar bg-primary" 
+                                                        role="progressbar"
+                                                        style="width: {{This_Device.Prct_N_NAT_UnHit_0}}%" aria-valuenow="100" 
+                                                        aria-valuemin="0"
+                                                        aria-valuemax="100">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-auto">
+                                        {% if This_Device.Prct_N_NAT_UnHit_0 < 8 %}
+                                            <i class="fas fa-check fa-2x text-success"></i>
+                                        {%  elif This_Device.Prct_N_NAT_UnHit_0 < 24 %}
+                                            <i class="fas fa-frown fa-2x text-warning"></i>
+                                        {%  elif This_Device.Prct_N_NAT_UnHit_0 < 50 %}
+                                            <i class="fas fa-exclamation-triangle fa-2x text-orange"></i>
+                                        {%  else %}
+                                            <i class="fas fa-angry fa-2x text-danger"></i>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">
+                                    <table>
+                                        <tr>
+                                            <th>NAT Lines:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_NAT_Lines }}</th>
+                                        </tr>                                
+                                        <tr>
+                                            <th>Un_Hit = 0:&nbsp;&nbsp;&nbsp;</th>
+                                            <th>{{ This_Device.N_NAT_UnHit_0 }}</th>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        </a>
+                    </div>
+                    
+
+
+                    
+                </div>
+            </div>
+        </div>
+        <!--==============================================================================================-->
+
+
+
+        <!--==============================================================================================-->
+        <!-- Content Row -->
+        <div class="row">
+
+            <!-- Content Column -->
+            <div class="col-lg-6 mb-4">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">N° ACL Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° ACL NoLog</font>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_ACL in ACL_Report %}
+                            <tr>
+                                <td> <nobr><h4 class="small font-weight-bold"> {{ t_ACL.ACL_Name }} </h4> </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <!-- <div class="progress-bar" role="progressbar" style="width: 40%" 
+                                            aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>-->
+                                            <div class="progress-bar" role="progressbar" style="width: {% widthratio t_ACL.ACL_Length Max_N_ACL_Lines 100 %}%"
+                                            aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: {% widthratio t_ACL.N_ACL_NoLog Max_N_ACL_Lines 100 %}%"
+                                        aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>                                    
+                                </td>                                    
+                                <!--<td style="padding-left:10px; width:10%" > <h4 class="small font-weight-bold text-primary"> {{ t_ACL.ACL_NoLog_Percent }} % </h4> </td>-->
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-primary"> {{ t_ACL.ACL_Length }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-danger">  {{ t_ACL.N_ACL_NoLog }} </h4> </td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Content Column -->
+            <div class="col-lg-6 mb-4">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">N° ACL Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° ACL HitCnt = 0</font>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_ACL in ACL_Report %}
+                            <tr>
+                                <td> <nobr><h4 class="small font-weight-bold"> {{ t_ACL.ACL_Name }} </h4> </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <!-- <div class="progress-bar" role="progressbar" style="width: 40%" 
+                                            aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>-->
+                                            <div class="progress-bar" role="progressbar" style="width: {% widthratio t_ACL.ACL_Length Max_N_ACL_Lines 100 %}%"
+                                            aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-danger" role="progressbar" style="width: {% widthratio t_ACL.N_ACL_HitCnt_Zero Max_N_ACL_Lines 100 %}%"
+                                        aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+                                </div>                                    
+                                </td>                                    
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-primary"> {{ t_ACL.ACL_Length }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-danger">  {{ t_ACL.N_ACL_HitCnt_Zero }} </h4> </td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--==============================================================================================-->
+
+
+
+
+
+
+
+
+
+
+        <!--==============================================================================================-->
+        <!-- ACL SummaryDataTales -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Summary for ACLs vs Interfaces </h6>
+            </div>
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 1, "asc" ]]' data-page-length="50">
+                    <thead>
+                        <tr>
+                            <th>Interface</th>
+                            <th>ACL Name</th>
+                            <th>N° Lines</th>
+                            <th>N° Expanded</th>
+                            <th>X</th>
+                            <th>N° Inactive</th>
+                            <th>%</th>
+                            <th>N° No Log</th>
+                            <th>%</th>
+                            <th>N° HitCnt=0</th>
+                            <th>%</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t_ACL in ACL_Report %}
+                            <tr>
+                                <td>{{ t_ACL.Nameif }}</td>
+                                <td>{{ t_ACL.ACL_Name }}</td>
+                                <td>{{ t_ACL.ACL_Length }}</td>
+                                <td>{{ t_ACL.ACL_ELength }}</td>
+                                <td>{{ t_ACL.ACL_ELength_X }}</td>
+                                <td>{{ t_ACL.N_ACL_Inactive }}</td>
+                                <td>{{ t_ACL.ACL_Inactive_Percent }} %</td>
+                                <td>{{ t_ACL.N_ACL_NoLog }}</td>
+                                <td>{{ t_ACL.ACL_NoLog_Percent }} %</td>
+                                <td>{{ t_ACL.N_ACL_HitCnt_Zero }} </td>
+                                <td>{{ t_ACL.ACL_HitCnt_Zero_Percent }} %</td>
+                            </tr>
+                        {% endfor %}                                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <!--==============================================================================================-->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+       
+
+
+
+
+        <h1 class="h3 mb-2 text-gray-800">Tables_3</h1>
+        <p class="mb-4">
+            DataTables is a third party plugin that is used to generate the demo table below.
+            For more information about DataTables, please visit the 
+            <a target="_blank" href="https://datatables.net">official DataTables documentation</a>.
+        </p>
+        <p>
+            <ul>
+                {% for t_device in Devices_list %}
+                    <li>{{ t_device.IP_Address }}</li>
+                {% endfor %}
+            </ul>
+            <br> this is only for this device
+                {% for t_device in Devices_list %}
+                    {% if t_device.HostName == FW_NAME %}
+                    <br> Config_Diff_Added_Lines = {{ t_device.Config_Diff_Added_Lines }}
+                    {% endif %}
+                {% endfor %}
+
+        </p>
+
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    Example_3
+                </h6>
+            </div>
+            <div class="card-body" >
+                <code>
+                    some text in example 2
+                    <br>
+                </code>
+                <p class="text-success">.text-success</p>
+
+                For example, <code class="text-success">&lt;section&gt;</code> should be wrapped as inline.
+            </div>
+        </div>
+
+
+
+        
+
+
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+
+
+
+{% endblock %}
+
+<!--
+{% autoescape on %}
+    {% block javascript %}
+
+    {{ block.super }}
+
+    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+
+<script src="{% static Chart_url %}" ></script>    
+    
+    {% endblock javascript %}
+{% endautoescape %}
+-->

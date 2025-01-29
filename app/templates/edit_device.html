@@ -1,0 +1,376 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                Settings - Manage Devices
+            </h1>
+        </div>
+
+
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+
+
+
+        <!-- Content Row -->
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Edit Device</h4>
+                {% for t_group in user.groups.all %}
+                    {% if 'Admin' in t_group.name %}
+                        <a href="{% url 'add_device' %}" class="d-block p-2 btn btn-primary shadow-sm">
+                            <i class="fas fa-plus text-white-50"></i> 
+                            Add Device
+                        </a>
+                    {% else %}
+                        <a href="#" class="d-block p-2 btn btn-primary shadow-sm disabled" data-toggle="tooltip" title="You are not an Admin User" aria-disabled="true">
+                            <i class="fas fa-plus text-white-50"></i> 
+                            Add Device
+                        </a>
+                    {% endif %}
+                {% empty %}
+                    <a href="#" class="d-block p-2 btn btn-primary shadow-sm disabled" data-toggle="tooltip" title="You are not an Admin User" aria-disabled="true">
+                        <i class="fas fa-plus text-white-50"></i> 
+                        Add Device
+                    </a>
+                {% endfor %}                
+            </div>
+
+            <!--
+            <div class="card-body" class="col-md-4">
+                <form action='' method="POST">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <input type="submit" value="Update" class="btn btn-secondary">
+                </form>
+            </div>
+            -->
+
+            <div class="card-body">
+
+                {% if form.errors %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>There was an error with your form!!!</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>                
+                {% endif %}
+  
+                <form method=POST>
+                    {% csrf_token %}
+                    {% for field in form %}
+                        <div class="form-group row align-items-center">
+                            <label for="{{ field.id_for_label }}" class="col-lg-2 col-form-label">{{ field.label }}</label>
+                            <div class="col-md-2">
+                                {{ field }}
+                                {% if field.errors %}
+                                    <div class="text-danger">
+                                        {{ field.errors }}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            {% if field.help_text %}
+                                <div class="col-md-4">
+                                    <small class="form-text text-muted">
+                                        {{ field.help_text }}
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    {% for t_group in user.groups.all %}
+                    {% if 'Admin' in t_group.name %}
+                        <button type="submit" class="btn btn-primary">Submit</button> 
+                    {% else %}
+                        <button type="submit" class="btn btn-primary" data-toggle="tooltip" title="You are not an Admin User" disabled>Submit</button> 
+                    {% endif %}
+                    {% empty %}                    
+                    <button type="submit" class="btn btn-primary" data-toggle="tooltip" title="You are not an Admin User" disabled>Submit</button> 
+                    {% endfor %}
+
+                </form>
+
+                <script>
+                    $(function () {
+                        $('[data-toggle="tooltip"]').tooltip();
+                    });
+                </script>
+            </div>
+        </div>
+
+        <!-- Content Row -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Test Connection @ {{t_Device.IP_Address}}</h4>
+                &nbsp;
+                <div id="Fetching_Config_Spinner_{{t_Device.HostName}}" class="spinner-border text-gray-800" role="status" data-toggle="tooltip" title="Fetching Config"></div>
+            </div>
+          
+            <div class="card-body">
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="runPythonScript2()" data-toggle="modal" title="Run a 'show clock'" data-target="#DeleteModalF{{t_Device.HostName}}">
+                        <i class="fas fa-terminal"></i>&nbsp;Test Connection
+                    </button>
+                </div>
+                <br>
+                <pre id="output"></pre>
+                <!--<button type="button" class="btn btn-outline-primary" onclick="runPythonScript2()">Run Python Script</button>-->
+            </div>
+        </div>        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function checkSpinnerStatus() {
+                    fetch('/Fetching_Config_Spinner/{{ t_Device.HostName }}/')
+                        .then(response => response.json())
+                        .then(data => {
+                            const spinner1 = document.getElementById("Fetching_Config_Spinner_{{t_Device.HostName}}");
+                            if (data.is_visible) {
+                                spinner1.style.display = 'block';
+                                //spinner.style.animation = '';
+                            } else {
+                                spinner1.style.display = 'none';
+                                //spinner.style.animation = 'none';
+                            }
+                        });
+                }
+                setInterval(checkSpinnerStatus, 5000);  // Check spinner status every 5 seconds
+                checkSpinnerStatus();                   // Initial check
+            });
+        </script>
+
+        <script>
+            function runPythonScript2() {
+            var param = "{{t_Device.IP_Address}}";
+            const output = document.getElementById('output');
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/run_scriptASA_Test_Conn/' + param, true);
+            
+            xhr.onprogress = function () {
+                output.textContent += xhr.responseText;
+                xhr.responseText = ''; // Clear buffer after appending to prevent repeated output
+            };
+        
+            xhr.onerror = function () {
+                console.error("Error during the AJAX call.");
+            };
+        
+            xhr.onloadend = function() {
+              if (xhr.status != 200) {  // HTTP error?
+                console.error(`Error ${xhr.status}: ${xhr.statusText}`);
+              }
+            };
+        
+            xhr.send();
+            }
+        </script>
+
+
+        <!-- Content Row -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Manually Check: {{t_Device.HostName}} </h4>
+                &nbsp;
+                <div id="Fetching_Config_Spinner2_{{t_Device.HostName}}" class="spinner-border text-gray-800" role="status" data-toggle="tooltip" title="Fetching Config"></div>
+                <div id="Processing_Conf_Spinner2_{{t_Device.HostName}}" class="spinner-border text-primary"  role="status" data-toggle="tooltip" title="Processing Config"></div>
+            </div>
+            <div class="card-body">
+                <div class="col-md-2">
+                    <button type="button" class="btn btn-outline-primary" onclick="runPythonScript_WTF()" data-toggle="modal" title="Run Job" data-target="#DeleteModal2{{t_Device.HostName}}">
+                        <i class="fas fa-play"></i>&nbsp;Run Job
+                    </button>
+                </div>                
+                <pre id="output_run_{{t_Device.HostName}}"></pre>
+            </div>
+        </div>             
+        <script>
+            function runPythonScript_WTF() {
+            var param = "{{t_Device.IP_Address}}";
+            const output = document.getElementById('output_run_{{t_Device.HostName}}');
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/run_Script_WTF/' + param, true);
+            //xhr.open('GET', '/run_Script_WTF_Shell/' + param, true);
+            
+            xhr.onprogress = function () {
+                output.textContent += xhr.responseText;
+                xhr.responseText = ''; // Clear buffer after appending to prevent repeated output
+            };
+        
+            xhr.onerror = function () {
+                console.error("Error during the AJAX call.");
+            };
+        
+            xhr.onloadend = function() {
+              if (xhr.status != 200) {  // HTTP error?
+                console.error(`Error ${xhr.status}: ${xhr.statusText}`);
+              }
+            };
+        
+            xhr.send();
+            }
+        </script>
+
+        <div class="container mt-3">
+            <script>
+                $(document).ready(function(){
+                  $('#myBtn').click(function(){
+                    $('.toast').toast('show');
+                  });
+                });
+            </script>  
+            <div class="toast mt-3" data-autohide="true" data-delay=5000 >
+                <div class="toast-header">
+                    <strong class="mr-auto text-primary">Toast Header</strong>
+                </div>
+                <div class="toast-body">
+                    Some text inside the toast body
+                </div>
+            </div>
+        </div>
+
+
+        <div class="modal fade" id="DeleteModalF{{t_Device.HostName}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-terminal"></i>&nbsp;Connecting to {{t_Device.IP_Address}}...</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Please wait for the process to end...
+                        <ul>
+                            <li>term page 0</li>
+                            <li>show clock</li>
+                        </ul>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="button" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                // Select the modal by its unique ID
+                var modal = $('#DeleteModalF{{t_Device.HostName}}');
+                // Bind to the 'shown.bs.modal' event to start the timer when the modal opens
+                modal.on('shown.bs.modal', function () {
+                    setTimeout(function() {
+                        modal.modal('hide');
+                    }, 12000); // Close the modal after x seconds
+                });
+            });
+        </script>
+
+
+        <div class="modal fade" id="DeleteModal2{{t_Device.HostName}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel"><i class="fas fa-terminal"></i>&nbsp;Connecting to {{t_Device.IP_Address}}...</h5>
+                        <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        Please wait for the process to end...<br>
+                        Do not close or reload this page or you will loose the output
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-primary" type="button" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                // Select the modal by its unique ID
+                var modal = $('#DeleteModal2{{t_Device.HostName}}');
+                // Bind to the 'shown.bs.modal' event to start the timer when the modal opens
+                modal.on('shown.bs.modal', function () {
+                    setTimeout(function() {
+                        modal.modal('hide');
+                    }, 12000); // Close the modal after x seconds
+                });
+            });
+        </script>        
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                function checkSpinnerStatus2() {
+                    fetch('/Fetching_Config_Spinner/{{ t_Device.HostName }}/')
+                        .then(response => response.json())
+                        .then(data => {
+                            const spinner1 = document.getElementById("Fetching_Config_Spinner2_{{t_Device.HostName}}");
+                            if (data.is_visible) {
+                                spinner1.style.display = 'block';   //spinner.style.animation = '';
+                            } else {
+                                spinner1.style.display = 'none';    //spinner.style.animation = 'none';
+                            }
+                        });
+                }
+                setInterval(checkSpinnerStatus2, 5000); // Check spinner status every 10 seconds
+                checkSpinnerStatus2();                  // Initial check
+
+                function checkSpinnerStatus3() {
+                    fetch('/Processing_Conf_Spinner/{{ t_Device.HostName }}/')
+                        .then(response => response.json())
+                        .then(data => {
+                            const spinner1 = document.getElementById("Processing_Conf_Spinner2_{{t_Device.HostName}}");
+                            if (data.is_visible) {
+                                spinner1.style.display = 'block';   //spinner.style.animation = '';
+                            } else {
+                                spinner1.style.display = 'none';    //spinner.style.animation = 'none';
+                            }
+                        });
+                }
+                setInterval(checkSpinnerStatus3,5000); // Check spinner status every 0 seconds
+                checkSpinnerStatus3();                  // Initial check
+            });
+        </script>
+
+
+     
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+ 
+
+
+
+{% endblock %}
+

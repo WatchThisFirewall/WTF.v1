@@ -1,0 +1,73 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <style type="text/css">
+    a.custom-card:hover {
+    color: none;
+    text-decoration: none;
+    }
+    </style>
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <a class="custom-card" href="{% url 'dashboard' FW_NAME %}">
+                <h1 class="h3 mb-0 text-gray-800">
+                    {{ FW_NAME_slash }}
+                </h1>
+            </a>
+            <!--
+            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50"></i>
+                Generate Report
+            </a>
+            -->
+        </div>
+
+        <div class="card shadow mb-4">
+            <!-- <div class="card-header py-3"> -->
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-info text-white">
+                <!--<h6 class="m-0 font-weight-bold text-primary"> -->
+                    <h6 class="m-0 font-weight-bold">
+                    <i style="font-size:30px" class="fas fas fa-columns"></i>
+                    <i style="font-size:30px"> &nbsp; Config Diff</i>
+                </h6>
+            </div>
+
+            <script
+            new DataTable('#example', {
+                order: [[2, 'asc']]
+            });></script>
+            
+            {% include confdiff_Fname%}
+
+              
+        </div>
+    </div>
+</div>
+<!-- End of Main Content -->
+
+{% endblock %}
+
+
+{% autoescape on %}
+    {% block javascript %}
+
+    {{ block.super }}
+
+    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+
+    
+    {% endblock javascript %}
+{% endautoescape %}

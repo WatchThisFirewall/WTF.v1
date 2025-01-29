@@ -1,0 +1,525 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+        </div>
+
+     
+
+        <!-- ACL SummaryDataTales -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Summary for ACLs vs Interfaces </h6>
+            </div>
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>HostName</th>
+                            <th>Last Check</th>
+                            <th>Conf Lines</th>
+                            <th>N° Interfaces</th>
+                            <th>N° ACL</th>
+                            <th>N° ACL Lines</th>
+                            <th>N° ACL Lines X</th>
+                            <th>N° ACL No Log</th>
+                            <th>N° ACL Inactive</th>
+                            <th>N° ACL HitCnt=0</th>
+                            <th>N° NAT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t_device in Devices_list %}
+                            <tr>
+                                <td>{{ t_device.HostName_slash }}</td>
+                                <td>{{ t_device.Last_Check|date:"d M Y" }}</td>
+                                <td>{{ t_device.Config_Total_Lines }}</td>
+                                <td>{{ t_device.N_Interfaces }}</td>
+                                <td>{{ t_device.Declared_ACL }}</td>
+                                <td>{{ t_device.N_ACL_Lines }}</td>
+                                <td>{{ t_device.N_ACL_Lines_Expanded }}</td>
+                                <td>{{ t_device.N_ACL_NoLog }}</td>
+                                <td>{{ t_device.N_ACL_Inactive }}</td>
+                                <td>{{ t_device.N_ACL_HitCnt_Zero }}</td>
+                                <td>{{ t_device.N_NAT_Lines }}</td>
+                            </tr>
+                        {% endfor %}                                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        
+
+
+        <!-- ACL SummaryDataTales -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Summary for ACLs vs Interfaces 2</h6>
+            </div>
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="0x123456" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>HostName</th>
+                            <th>Last Check</th>
+                            <th>Conf Lines</th>
+                            <th>N° Interfaces</th>
+                            <th>N° ACL</th>
+                            <th>N° ACL Lines</th>
+                            <th>N° ACL Lines X</th>
+                            <th>N° ACL No Log</th>
+                            <th>N° ACL Inactive</th>
+                            <th>N° ACL HitCnt=0</th>
+                            <th>N° NAT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t_device in Devices_list %}
+                            <tr>
+                                <td>{{ t_device.HostName_slash }}</td>
+                                <td>{{ t_device.Last_Check|date:"d M Y" }}</td>
+                                <td>{{ t_device.Config_Total_Lines }}</td>
+                                <td>{{ t_device.N_Interfaces }}</td>
+                                <td>{{ t_device.Declared_ACL }}</td>
+                                <td>{{ t_device.N_ACL_Lines }}</td>
+                                <td>{{ t_device.N_ACL_Lines_Expanded }}</td>
+                                <td>{{ t_device.N_ACL_NoLog }}</td>
+                                <td>{{ t_device.N_ACL_Inactive }}</td>
+                                <td>{{ t_device.N_ACL_HitCnt_Zero }}</td>
+                                <td>{{ t_device.N_NAT_Lines }}</td>
+                            </tr>
+                        {% endfor %}                                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <script>
+            $(document).ready(function() {
+                // Initialize DataTable with pageLength set to 50
+                var table = $('#0x123456').DataTable({
+                    "pageLength": 5   // Set default page length to 50 entries
+                });
+                // Or Initialize DataTable as default
+                //var table = $('#example1').DataTable();
+            
+                // Apply the search for each column
+                $('#0x123456 tfoot th').each(function (i) {
+                    $('input', this).on('keyup change', function () {
+                        if (table.column(i).search() !== this.value) {
+                            table.column(i).search(this.value).draw();
+                        }
+                    });
+                });
+            });
+        </script>
+        
+        <!-- ACL SummaryDataTales -->
+        <div class="col-lg-8">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Second Table </h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-primary" role="alert">
+                    Default Credentials for Connecting to Devices
+                </div>
+                <div class="btn btn-primary btn-icon-split btn-sm"><span class="text">Exploded ACL Length</span><span class="icon text-white-50" style="width:50px;">128 </span></div>
+              <div class="btn btn-success btn-icon-split btn-sm"><span class="text">Triggered ACL      </span><span class="icon text-white-50" style="width:50px;">0   </span></div>
+              <br><br>
+              <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0">
+
+                <tbody>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>0</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div><div class="text-dark"><strong>/21</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div><div class="text-dark"><strong>/20</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div><div class="text-dark"><strong>/19</strong></div></td>
+                        <td class="text-center bg-gradient-info   " rowspan="16"><div class="text-white"><strong>/26</strong></div><div class="text-dark"><strong>/18</strong></div></td>
+                        <td class="text-center bg-gradient-primary" rowspan="32"><div class="text-white"><strong>/25</strong></div><div class="text-dark"><strong>/17</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>4</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>8</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>12</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>16</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>20</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>24</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>32</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>36</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>40</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>44</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>48</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>52</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>56</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>60</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>64</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div></td>
+                        <td class="text-center bg-gradient-info  " rowspan="16"><div class="text-white"><strong>/26</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>68</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>71</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>76</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>80</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>84</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>88</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>92</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>96</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>100</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>104</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>108</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>112</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>116</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>120</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>124</strong></div></td>
+                    </tr> 
+
+
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>128</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div></td>
+                        <td class="text-center bg-gradient-info   " rowspan="16"><div class="text-white"><strong>/26</strong></div></td>
+                        <td class="text-center bg-gradient-primary" rowspan="32"><div class="text-white"><strong>/25</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>132</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>136</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>140</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>144</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>148</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>152</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>156</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>160</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>164</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>168</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>172</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>176</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>180</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>184</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>188</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>192</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div></td>
+                        <td class="text-center bg-gradient-info  " rowspan="16"><div class="text-white"><strong>/26</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>196</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>200</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>204</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>208</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>212</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>216</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>220</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>224</strong></div></td>
+                        <td class="text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                        <td class="text-center bg-gradient-success" rowspan="8"><div class="text-white"><strong>/27</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>228</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>232</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>236</strong></div></td>
+                    </tr>  
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-danger"><strong>240</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                        <td class="text-center bg-gradient-orange  " rowspan="4"><div class="text-white"><strong>/28</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>244</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>248</strong></div></td>
+                        <td class=" text-center bg-gradient-warning" rowspan="2"><div class="text-white"><strong>/29</strong></div></td>
+                    </tr>
+                    <tr>
+                        <td class="text-center bg-gradient-light  "><div class="text-dark"><strong>252</strong></div></td>
+                    </tr> 
+                </tbody>  
+                </table>
+            </div>
+        </div>
+        </div>
+
+        <!-- Content Row -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">TEST</h6>
+            </div>
+            <div class="card-body">       
+
+                <table id="example1" class="table-condensed table-striped table-bordered" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>HostName</th>
+                            <th>Last Check</th>
+                            <th>Conf Lines</th>
+                            <th>N° Interfaces</th>
+                            <th>N° ACL</th>
+                            <th>N° ACL Lines</th>
+                            <th>N° ACL Lines X</th>
+                            <th>N° ACL No Log</th>
+                            <th>N° ACL Inactive</th>
+                            <th>N° ACL HitCnt=0</th>
+                            <th>N° NAT</th>
+                        </tr>
+                    </thead>
+                    <tfoot>
+                        <tr>
+                            <!-- Input fields for each column -->
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Filter by HostName"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="Filter"></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                            <th><input type="text" class="form-control form-control-sm" placeholder="" hidden></th>
+                        </tr>
+                    </tfoot>
+                    <tbody>
+                        {% for t_device in Devices_list %}
+                        <tr>
+                            <td>{{ t_device.HostName_slash }}</td>
+                            <td>{{ t_device.Last_Check|date:"d M Y" }}</td>
+                            <td>{{ t_device.Config_Total_Lines }}</td>
+                            <td>{{ t_device.N_Interfaces }}</td>
+                            <td>{{ t_device.Declared_ACL }}</td>
+                            <td>{{ t_device.N_ACL_Lines }}</td>
+                            <td>{{ t_device.N_ACL_Lines_Expanded }}</td>
+                            <td>{{ t_device.N_ACL_NoLog }}</td>
+                            <td>{{ t_device.N_ACL_Inactive }}</td>
+                            <td>{{ t_device.N_ACL_HitCnt_Zero }}</td>
+                            <td>{{ t_device.N_NAT_Lines }}</td>
+                        </tr>
+                    {% endfor %} 
+                    </tbody>
+                </table>
+                <script>
+                    $(document).ready(function() {
+                        // Initialize DataTable with pageLength set to 50
+                        var table = $('#example1').DataTable({
+                            "pageLength": 50   // Set default page length to 50 entries
+                        });
+                        // Or Initialize DataTable as default
+                        //var table = $('#example1').DataTable();
+                    
+                        // Apply the search for each column
+                        $('#example1 tfoot th').each(function (i) {
+                            $('input', this).on('keyup change', function () {
+                                if (table.column(i).search() !== this.value) {
+                                    table.column(i).search(this.value).draw();
+                                }
+                            });
+                        });
+                    });
+                </script>                
+            </div>
+        </div>
+
+    </div>
+    <!-- /.container-fluid -->
+
+
+</div>
+<!-- End of Main Content -->
+
+
+
+<style>
+    table tfoot {
+        display: table-header-group;
+    }
+</style>
+
+{% endblock %}
+<!--
+{% autoescape on %}
+    {% block javascript %}
+
+    {{ block.super }}
+
+    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+
+    
+    {% endblock javascript %}
+{% endautoescape %}
+-->

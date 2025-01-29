@@ -1,0 +1,249 @@
+{% extends 'tplt_base.html' %}
+
+
+
+{% block MainContent %}
+{% load static %}
+
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                Settings
+            </h1>
+        </div>
+
+
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+
+
+
+        <!-- Content Row -->
+
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <!-- SummaryDataTales -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Manage Users</h4>
+                {% for t_group in request.user.groups.all %}
+                    {% if 'Admin' in t_group.name %}
+                        <a href="{% url 'register_user' %}" class="d-block p-2 btn btn-primary shadow-sm"> <i class="fas fa-plus text-white-50"></i> 
+                            Add User
+                        </a>
+                    {% endif %}
+                {% empty %}
+                    {% if user.is_superuser %}
+                        <a href="{% url 'register_user' %}" class="d-block p-2 btn btn-primary shadow-sm"> <i class="fas fa-plus text-white-50"></i> 
+                            Add User
+                        </a>
+                    {% endif %}
+                {% endfor %}                 
+             </div>
+           
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "asc" ]]' data-page-length="50">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Username</th>
+                            <th class="text-center">First Name</th>
+                            <th class="text-center">Last Name</th>
+                            <th class="text-center">Email</th>
+                            <th class="text-center">Group</th>
+                            <th class="text-center">Last Login</th>
+                            <th class="text-center">Creation</th>
+                            <th class="text-center" data-toggle="tooltip" title="Edit User"></th>
+                            <th class="text-center" data-toggle="tooltip" title="Delete User"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       
+                        {% for t_user in Users_list %}
+                            <tr>
+                                <td>{{ t_user.username }}</td>
+                                <td>{{ t_user.first_name }}</td>
+                                <td>{{ t_user.last_name }}</td>
+                                <td>{{ t_user.email }}</td>
+                                <td>
+                                    {% for t_group in t_user.groups.all %}
+                                        {{ t_group.name }}
+                                    {% empty %}
+                                        No groups
+                                    {% endfor %}
+                                </td>
+                                <!--<td>{{ t_user.groups }}</td>-->
+                                <td>{{ t_user.last_login|date:"Y-m-d H:i:s.u" }}</td>
+                                <td>{{ t_user.date_joined|date:"Y-m-d H:i:s.u" }}</td>
+                                <td>
+                                    <div class="d-flex justify-content-center"> 
+                                        <a href="{% url 'update_user' t_user.id%}"
+                                            {% for t_group in request.user.groups.all %}
+                                                {% if 'Admin' in t_group.name %}
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                {% elif request.user.id == t_user.id %}
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-primary disabled" 
+                                                {% endif %}
+                                            {% empty %}
+                                                {% if user.is_superuser %}
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-primary disabled" 
+                                                {% endif %}
+                                            {% endfor %}                                            
+                                            data-toggle="tooltip" title="Edit User">
+                                            <span class="icon"> <i class="fas fa-pencil-alt"></i> </span>
+
+                                        </a>
+                                    </div>
+                                </td>                                
+                                <td>
+                                    <div class="d-flex justify-content-center"> 
+                                        <a href="#"
+                                            {% for t_group in request.user.groups.all %}
+                                                {% if 'Admin' in t_group.name %}
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                {% elif request.user.id == t_user.id %}
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-danger disabled" 
+                                                {% endif %}
+                                            {% empty %}
+                                            {% if user.is_superuser %}
+                                                class="btn btn-sm btn-outline-danger" 
+                                            {% else %}
+                                                class="btn btn-sm btn-outline-danger disabled" 
+                                            {% endif %}
+                                            {% endfor %}  
+                                            data-toggle="modal" title="Delete User" data-target="#DeleteModalF{{t_user.id}}">
+                                            <span class="icon"> <i class="far fa-trash-alt"></i> </span>
+                                        </a>                                        
+                                    </div>
+
+                                    <!-- Delete Modal First -->
+                                    <div class="modal fade" id="DeleteModalF{{t_user.id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel"><i class="far fa-trash-alt"></i>&nbsp;Are You Sure?</h5>
+                                                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Select "Delete" if you want to remove the user <br><br>
+                                                    <ul><li>{{t_user.username}}<br></li></ul>
+                                                    from the database.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                                    <a class="btn btn-primary" data-toggle="modal" href="#" data-target="#DeleteModalS{{t_user.id}}">Delete</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Delete Modal First -->
+                                    <!-- Delete Modal Second -->
+                                    <div class="modal fade" id="DeleteModalS{{t_user.id}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel"><i class="far fa-trash-alt text-danger"></i>&nbsp;<text class="text-danger">Are You Really Sure?</text></h5>
+                                                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Select "Delete" if you want to remove the user <br><br>
+                                                    <ul><li>{{t_user.username}}<br></li></ul>
+                                                    from the database.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <a class="btn btn-danger" href="{% url 'delete_user' t_user.id %}">Delete</a>
+                                                    <button class="btn btn-primary" type="button" data-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Delete Modal Second -->                                    
+                                </td>
+                            </tr>
+
+                            
+
+
+
+
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+        <!-- Content Row -->
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+
+
+
+{% endblock %}
+
+<!--
+{% autoescape on %}
+    {% block javascript %}
+        <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+        <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+        <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+    {% endblock javascript %}
+{% endautoescape %}
+-->

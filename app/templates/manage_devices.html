@@ -1,0 +1,376 @@
+{% extends 'tplt_base.html' %}
+
+
+
+{% block MainContent %}
+{% load static %}
+
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                Settings
+            </h1>
+        </div>
+        <!-- Content Row -->
+
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+        <!-- ACL SummaryDataTales -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Manage Devices</h4>
+                {% for t_group in user.groups.all %}
+                    {% if 'Admin' in t_group.name %}
+                        <a href="{% url 'add_device' %}" class="d-block p-2 btn btn-primary shadow-sm">
+                            <i class="fas fa-plus text-white-50"></i> 
+                            Add Device
+                        </a>
+                    {% else %}
+                        <a href="#" class="d-block p-2 btn btn-primary shadow-sm disabled" data-toggle="tooltip" title="You are not an Admin User" aria-disabled="true">
+                            <i class="fas fa-plus text-white-50"></i> 
+                            Add Device
+                        </a>
+                    {% endif %}
+                {% empty %}
+                    <a href="#" class="d-block p-2 btn btn-primary shadow-sm disabled" data-toggle="tooltip" title="You are not an Admin User" aria-disabled="true">
+                        <i class="fas fa-plus text-white-50"></i> 
+                        Add Device
+                    </a>
+                {% endfor %}
+
+            </div>
+            <script>
+                $(document).ready(function(){
+                  $('[data-toggle="tooltip"]').tooltip();   
+                });
+            </script>             
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "asc" ]]' data-page-length="100">
+                    <thead>
+                        <tr>
+                            <th data-toggle="tooltip" title="Hostname">Hostname</th>
+                            <th data-toggle="tooltip" title="IP Address">IP Address</th>
+                            <th class="text-center" data-toggle="tooltip" title="Custom Username">User</th>
+                            <th class="text-center" data-toggle="tooltip" title="Custom Password">Pwd</th>
+                            <th class="text-center" data-toggle="tooltip" title="Device Model">Type</th>
+                            <th class="text-center" data-toggle="tooltip" title="Device Enabled"><i class="far fa-check-circle"></i></th>
+
+                            <th class="text-center" data-toggle="tooltip" title="Scheduled Scan Day"><i class="far fa-calendar-alt text-primary"></i></th>
+                            <th class="text-center" data-toggle="tooltip" title="Scheduled Scan Time"><i class="far fa-clock text-primary"></i></th>
+                            <th class="text-center" data-toggle="tooltip" title="Scheduled Enabled"><i class="far fa-check-square text-primary"></i></th>
+
+                            <th class="text-center" data-toggle="tooltip" title="Last Check (Elapsed Days)"><i class="far fa-calendar-check"></i></th>
+                            <th class="text-center" data-toggle="tooltip" title="Processing Time"><i class="fas fa-spinner"></i></th>
+                            <th class="text-center" data-toggle="tooltip" title="Fetching Config"><i class="fas fa-eye-dropper"></i></th>
+                            <th class="text-center" data-toggle="tooltip" title="Processing Config"><i class="fas fa-cog"></i></th>
+                            <!--<th class="text-center" data-toggle="tooltip" title="Schedule Scan"><i class="far fa-calendar-alt"></i></th>-->
+                            <th class="text-center" data-toggle="tooltip" title="Edit Device"><i class="fas fa-pencil-alt"></i></th>
+                            <th class="text-center" data-toggle="tooltip" title="Delete Device"><i class="far fa-trash-alt"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       
+                        {% for t_device in Devices_list %}
+                            <tr>
+                                <td>
+                                    <!--{{ t_device.HostName_slash }}-->
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        {{ t_device.HostName_slash }}
+                                    </a>
+                                </td>
+                                <td>{{ t_device.IP_Address }}</td>
+                                <td class="text-center">
+                                    {% if t_device.Username == None %}
+                                    <div class="text-gray">  No </div>
+                                    {%  else %}
+                                    <div class="text-success">  Yes </div>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">
+                                    {% if t_device.Password == None %}
+                                    <div class="text-gray">  No </div>
+                                    {%  else %}
+                                    <div class="text-success">  Yes </div>
+                                    {% endif %}
+                                </td>
+                                <td>{{ t_device.Type }}</td>
+                                <td class="text-center">
+                                    {% if t_device.Enabled == True %}
+                                    <div class="text-success">  Yes </div>
+                                    {%  else %}
+                                    <div class="text-danger">  No </div>
+                                    {% endif %}
+                                </td>
+                                <td><div class="d-flex justify-content-center">{{ t_device.RUN_Day_of_Week }}</div></td>
+                                <td><div class="d-flex justify-content-center">{{ t_device.RUN_Time_of_Day }}</div></td>
+                                <td class="text-center">
+                                    {% if t_device.RUN_Enabled == True %}
+                                    <div class="text-success">  Yes </div>
+                                    {%  else %}
+                                    <div class="text-danger">  No </div>
+                                    {% endif %}
+                                </td>
+
+                                <td><div class="d-flex justify-content-center">{{ t_device.t_Last_Check }} ({{ t_device.Last_Check_Delta }})</div></td>
+                                <td><div class="d-flex justify-content-center">{{ t_device.Check_Duration_display }}</div></td>
+                                <td>
+                                    <div class="d-flex justify-content-center">
+                                        <div id="Fetching_Config_Spinner_{{t_device.HostName}}" class="spinner-border text-gray-800" role="status" data-toggle="tooltip" title="Fetching Config"></div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-center">
+                                        <div id="Processing_Conf_Spinner_{{t_device.HostName}}" class="spinner-border text-primary" role="status" data-toggle="tooltip" title="Processing Config"></div>
+                                    </div>
+                                </td>
+                                <!--
+                                <td>
+                                    <div class="d-flex justify-content-center"> 
+                                        <a href="{% url 'edit_device' t_device.IP_Address%}" 
+                                            {% for t_group in user.groups.all %}
+                                                {% if 'Admin' in t_group.name %}
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-primary disabled" 
+                                                {% endif %}
+                                            {% empty %}
+                                                {% if user.is_superuser %}
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-primary disabled" 
+                                                {% endif %}
+                                            {% endfor %}  
+                                            data-toggle="tooltip" title="Schedule Jobs">
+                                            <span class="icon"> <i class="far fa-calendar-alt"></i> </span>
+                                        </a>
+                                    </div>
+                                </td>  
+                                -->
+
+
+                                <td>
+                                    <div class="d-flex justify-content-center"> 
+                                        <a href="{% url 'edit_device' t_device.IP_Address%}" 
+                                            {% for t_group in user.groups.all %}
+                                                {% if 'Admin' in t_group.name %}
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-primary disabled" 
+                                                {% endif %}
+                                            {% empty %}
+                                                {% if user.is_superuser %}
+                                                    class="btn btn-sm btn-outline-primary" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-primary disabled" 
+                                                {% endif %}
+                                            {% endfor %}  
+                                            data-toggle="tooltip" title="Edit Device">
+                                            <span class="icon"> <i class="fas fa-pencil-alt"></i> </span>
+                                        </a>
+                                    </div>
+                                </td>                                
+                                <td>
+                                    <div class="d-flex justify-content-center"> 
+                                        <!--
+                                        <a href="{% url 'delete_device' t_device.IP_Address %}" class="btn btn-sm btn-outline-danger" data-toggle="tooltip" title="Delete Device">
+                                            <span class="icon"> <i class="fas fa-trash"></i> </span>
+                                        </a>
+                                        -->
+                                        <a href="#" 
+                                            {% for t_group in user.groups.all %}
+                                                {% if 'Admin' in t_group.name %}
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-danger disabled" 
+                                                {% endif %}
+                                            {% empty %}
+                                                {% if user.is_superuser %}
+                                                    class="btn btn-sm btn-outline-danger" 
+                                                {% else %}
+                                                    class="btn btn-sm btn-outline-danger disabled" 
+                                                {% endif %}
+                                            {% endfor %} 
+                                            data-toggle="modal" title="Delete Device" data-target="#DeleteModalF{{t_device.HostName}}">
+                                            <span class="icon"> <i class="far fa-trash-alt"></i> </span>
+                                        </a>                                        
+                                    </div>
+                                    <!-- Delete Modal First -->
+                                    <div class="modal fade" id="DeleteModalF{{t_device.HostName}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel"><i class="far fa-trash-alt"></i>&nbsp;Are You Sure?</h5>
+                                                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Select "Delete" if you want to remove the device <br><br>
+                                                    <ul><li>{{t_device.HostName}}@{{t_device.IP_Address}}<br></li></ul>
+                                                    from the database.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                                    <a class="btn btn-primary" data-toggle="modal" href="#" data-target="#DeleteModalS{{t_device.HostName}}">Delete</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Delete Modal First -->
+                                    <!-- Delete Modal Second -->
+                                    <div class="modal fade" id="DeleteModalS{{t_device.HostName}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel"><i class="far fa-trash-alt text-danger"></i>&nbsp;<text class="text-danger">Are You Really Sure?</text></h5>
+                                                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Select "Delete" if you want to remove the device <br><br>
+                                                    <ul><li>{{t_device.HostName}}@{{t_device.IP_Address}}<br></li></ul>
+                                                    from the database.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <a class="btn btn-danger" href="{% url 'delete_device' t_device.IP_Address %}">Delete</a>
+                                                    <button class="btn btn-primary" type="button" data-dismiss="modal">Cancel</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- End Delete Modal Second -->                                         
+                                    <!-- Delete Modal-->
+                                    <!--
+                                    <div class="modal fade" id="DeleteModal{{t_device.HostName}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="exampleModalLabel">Are You Sure?</h5>
+                                                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">×</span>
+                                                    </button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Select "Delete" if you want to remove the device <br><br>
+                                                    <ul><li>{{t_device.HostName}}@{{t_device.IP_Address}}<br></li></ul>
+                                                    from the database.
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                                    <a class="btn btn-primary" href="{% url 'delete_device' t_device.IP_Address %}">Yes Delete</a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    -->
+                                    <!-- End Delete Modal-->
+                                </td>
+                            </tr>
+
+                            
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    function checkSpinnerStatus() {
+                                        fetch('/Fetching_Config_Spinner/{{ t_device.HostName }}/')
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                const spinner1 = document.getElementById("Fetching_Config_Spinner_{{t_device.HostName}}");
+                            
+                                                if (data.is_visible) {
+                                                    spinner1.style.display = 'block';
+                                                    //spinner.style.animation = '';
+                                                } else {
+                                                    spinner1.style.display = 'none';
+                                                    //spinner.style.animation = 'none';
+                                                }
+                                            });
+                                    }
+                                    setInterval(checkSpinnerStatus, 10000); // Check spinner status every 5 seconds
+                                    checkSpinnerStatus(); // Initial check
+                                });
+                            </script>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    function checkSpinnerStatus2() {
+                                        fetch('/Processing_Conf_Spinner/{{ t_device.HostName }}/')
+                                            .then(response => response.json())
+                                            .then(data => {
+                                                const spinner = document.getElementById("Processing_Conf_Spinner_{{t_device.HostName}}");
+                            
+                                                if (data.is_visible) {
+                                                    spinner.style.display = 'block';
+                                                    //spinner.style.animation = '';
+                                                } else {
+                                                    spinner.style.display = 'none';
+                                                    //spinner.style.animation = 'none';
+                                                }
+                                            });
+                                    }
+                                    setInterval(checkSpinnerStatus2, 10000); // Check spinner status every 5 seconds
+                                    checkSpinnerStatus2();  // Initial check
+                                });
+                            </script>   
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+                <script>
+                    $(document).ready(function() {
+                        $('#dataTable').DataTable({
+                            columnDefs: [
+                                { orderable: false, targets: [5,6,7,8,11,12,13,14] }
+                            ]
+                        });
+                    });
+                </script>                
+            </div>
+        </div>
+        <!-- Content Row -->
+
+
+
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+
+
+
+{% endblock %}
+
+<!--
+{% autoescape on %}
+    {% block javascript %}
+        <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+        <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+        <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+    {% endblock javascript %}
+{% endautoescape %}
+
+-->

@@ -1,0 +1,93 @@
+!
+!  (=================================================)
+!  (==         List Of Device To Check For         ==)
+!  (=================================================)
+!
+! -----------------------------------------------
+! IP_Address | Username | Password | Device_Type
+! -----------------------------------------------
+! Use [#|!] to comment line or block
+
+!10.106.252.45     usernmae    passsword  cisco_asa     Test_Device
+
+! 10.106.252.190     luigi.mattellini    igiull0_OO  cisco_asa     FW-INFRA-MGMT
+! 10.106.252.227     luigi.mattellini    igiull0_OO  cisco_asa     G8-WAN-FW-01/VC-BT
+! 10.106.252.229     luigi.mattellini    igiull0_OO  cisco_asa     G8-WAN-FW-01/VC-PROCESSOR
+! 10.106.221.217     luigi.mattellini    igiull0_OO  cisco_asa     FW-SIMI-INTERNET-1
+
+! 10.106.252.97      luigi.mattellini    igiull0_OO  cisco_asa     PER-WAN-FW/admin
+! 10.206.252.97      luigi.mattellini    igiull0_OO  cisco_asa     SET-WAN-FW/admin
+! 10.106.252.193     luigi.mattellini    igiull0_OO  cisco_asa     PER-WAN-FW/FW-CR-WAN
+! 10.206.252.193     luigi.mattellini    igiull0_OO  cisco_asa     SET-WAN-FW/FW-CR-WAN
+! 10.106.252.197     luigi.mattellini    igiull0_OO  cisco_asa     PER-WAN-FW/FW-NC-WAN
+! 10.206.252.197     luigi.mattellini    igiull0_OO  cisco_asa     SET-WAN-FW/FW-NC-WAN
+! 10.106.252.195     luigi.mattellini    igiull0_OO  cisco_asa     PER-WAN-FW/FW-CORP-WAN
+! 10.206.252.195     luigi.mattellini    igiull0_OO  cisco_asa     SET-WAN-FW/FW-CORP-WAN
+
+! 10.106.252.93      luigi.mattellini    igiull0_OO  cisco_asa     PER-INT-FW-01/FW-CR-INT
+! 10.206.252.93      luigi.mattellini    igiull0_OO  cisco_asa     SET-INT-FW-01/FW-CR-INT
+! 10.106.252.95      luigi.mattellini    igiull0_OO  cisco_asa     PER-INT-FW-01/FW-NC-INT
+! 10.206.252.95      luigi.mattellini    igiull0_OO  cisco_asa     SET-INT-FW-01/FW-NC-INT
+! 10.106.252.102     luigi.mattellini    igiull0_OO  cisco_asa     PER-INT-FW-01/FW-CORP-INT
+! 10.206.252.102     luigi.mattellini    igiull0_OO  cisco_asa     SET-INT-FW-01/FW-CORP-INT
+
+! 10.106.252.207     luigi.mattellini    igiull0_OO  cisco_asa     PER-VPN-FW-01/admin
+! 10.106.252.31      luigi.mattellini    igiull0_OO  cisco_asa     PER-VPN-FW-01/VC-PDL
+! 10.106.252.212     luigi.mattellini    igiull0_OO  cisco_asa     PER-VPN-FW-01/VC-VPN-CLNT
+! 10.106.252.206     luigi.mattellini    igiull0_OO  cisco_asa     PER-VPN-FW-01/VC-VPN-PSD2
+! 10.106.252.58      luigi.mattellini    igiull0_OO  cisco_asa     PER-VPN-FW-01/VC-VPN-L2L
+! 10.106.252.179     luigi.mattellini    igiull0_OO  cisco_asa     PER-VPN-FW-01/VC-EXTRANET
+
+! 10.106.252.2       luigi.mattellini    igiull0_OO  cisco_asa     FW-M-PE-01
+10.206.252.2       luigi.mattellini    igiull0_OO  cisco_asa     FW-M-SE-01
+
+! 10.119.254.181     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/VMW-NC
+! 10.219.254.181     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/VMW-NC
+! 10.119.254.184     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/VMW-CR
+! 10.219.254.184     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/VMW-CR
+! 10.106.252.17      luigi.mattellini    igiull0_OO  cisco_asa     PER-FW-INFRA-SVCS-01
+! 10.206.252.17      luigi.mattellini    igiull0_OO  cisco_asa     SET-FW-INFRA-SVCS-01
+
+!10.206.252.164     admin               BazBlex457   cisco_ftd     FW-GTPOS-SE-STG.gtpos.nexi.it
+!10.106.252.164     admin               BazBlex457   cisco_ftd     FW-GTPOS-INT-PE
+! 10.206.252.77      luigi.mattellini    igiull0_OO  cisco_asa     G8-WAN-FW-01/VC-EXTRANET
+! 10.119.254.200     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/admin
+! 10.219.254.200     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/admin
+! 10.119.254.196     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/PCI
+! 10.219.254.196     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/PCI
+! 10.119.254.212     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/MGMT
+! 10.219.254.212     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/MGMT
+! 10.119.254.193     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/PREPROD
+! 10.219.254.193     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/PREPROD
+! 10.119.254.187     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/STAGING
+! 10.219.254.187     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/STAGING
+! 10.119.254.190     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/SIA
+! 10.219.254.190     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/SIA
+! 10.119.254.209     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/DMZ
+! 10.219.254.209     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/DMZ
+! 10.119.254.206     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/CLOUD-NC
+! 10.219.254.206     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/CLOUD-NC
+! 10.119.254.203     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/CLOUD-CR
+! 10.219.254.203     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/CLOUD-CR
+! 10.119.254.175     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/XCLOUD-NC
+! 10.219.254.175     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/XCLOUD-NC
+! 10.119.254.178     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-PE-ASA/XCLOUD-CR
+! 10.219.254.178     luigi.mattellini    igiull0_OO  cisco_asa     FW-CORE-SE-ASA/XCLOUD-CR
+! 10.106.202.194     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-NC-SHARED
+! 10.206.202.131     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-NC-WEB
+! 10.206.202.133     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-NC-APP
+! 10.206.202.135     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-NC-DB
+! 10.206.202.139     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-CR-WEB
+! 10.206.202.141     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-CR-APP
+! 10.206.202.143     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-CR-DB
+! 10.206.202.180     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-NC-LEG-WEB
+! 10.206.202.182     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-NC-LEG-APP
+! 10.206.202.184     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-NC-LEG-DB
+! 10.206.202.170     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-CR-LEG-WEB
+! 10.206.202.172     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-CR-LEG-APP
+! 10.206.202.174     luigi.mattellini    igiull0_OO  cisco_asa     LEG-FW-01/FW-CR-LEG-DB
+! 10.106.252.162     luigi.mattellini    igiull0_OO  cisco_asa     PER-CORP-FW-01/FW-CORP
+! 10.206.252.162     luigi.mattellini    igiull0_OO  cisco_asa     SET-CORP-FW-01/FW-CORP
+!!!172.19.191.157	    lmattellini      	igiull0_OO	cisco_asa     FW-SIMI-WAN-1/admin (FWSM)
+! 10.2.6.230          admin               admin       cisco_asa     ciscoasa  #asa emulato
+!

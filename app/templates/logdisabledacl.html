@@ -1,0 +1,107 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+    <style type="text/css">
+    a.custom-card:hover {
+      color: none;
+      text-decoration: none;
+    }
+    </style>
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <a class="custom-card" href="{% url 'dashboard' FW_NAME %}">
+                <h1 class="h3 mb-0 text-gray-800">
+                    {{ FW_NAME_slash }}
+                </h1>
+            </a>
+            <!--
+            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50"></i> Download txt</a>
+            -->
+        </div>
+        
+        <!-- Content Row -->
+        <!-- Page Heading -->
+        <div class="card shadow mb-4">
+            {% if This_Device.Prct_N_ACL_LogDisabled < 8 %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-success text-white">
+            {%  elif This_Device.Prct_N_ACL_LogDisabled < 24 %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-warning text-white">
+            {%  elif This_Device.Prct_N_ACL_LogDisabled < 50 %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-orange text-white">
+            {%  else %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-danger text-white">
+            {% endif %}                
+                <h6 class="m-0 font-weight-bold ">
+                    <i style="font-size:30px" class="fas fas fa-unlock"></i>
+                    <i style="font-size:30px"> &nbsp; Logging Disabled</i>
+                </h6>
+                <!--
+                <a href="{% static logdisabledacl_Fname_txt %}"
+                    class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-download fa-sm text-white-50"></i> Download txt</a>
+                -->
+            </div>
+        </div>
+
+        <div class="nav nav-tabs mb-3" role="tablist">
+          <button class="nav-link disabled" onclick="openTab(event, 'Watch')">Watch</button>
+          <button class="nav-link disabled" onclick="openTab(event, 'Think')">Think</button>
+          <button class="nav-link tablinks" onclick="openTab(event, 'Fix')" id="defaultOpen">Fix</button>
+        </div>
+
+        <div id="Fix" class="tabcontent">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i style="font-size:30px" class="fas fa-code"></i>
+                    </h6>
+                </div>
+                <style type="text/css">
+                    div.scroll {
+                      overflow-x: scroll;
+                      overflow-y: hidden;
+                      white-space: nowrap;
+                    }
+                </style>
+                <div class="card-body" overflow-x="scroll">
+                    {{ This_Device.N_ACL_LogDisabled }} ACLs lines over {{ This_Device.N_ACL_Active }} ({{This_Device.Prct_N_ACL_LogDisabled}}%) have logging disabled<br>
+                    {% include logdisabledacl_Fname_htm%}
+                </div>                
+            </div>
+        </div>
+    <!-- /.container-fluid -->
+    </div>
+</div>
+<!-- End of Main Content -->
+
+<script>
+function openTab(evt, TabName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(TabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+
+{% endblock %}

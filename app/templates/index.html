@@ -1,0 +1,1045 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+        </div>
+
+
+<!--
+
+        <button id="runScriptButton">Run Python Script1</button>
+        <div id="output"></div>
+
+        <script>
+            document.getElementById('runScriptButton').addEventListener('click', () => {
+                // Open a new window first to avoid popup blockers
+
+                const newWindow = window.open('', '_blank');
+                fetch('/run-script/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/text',
+                        'X-CSRFToken': '{{ csrf_token }}'  // Django template tag for CSRF token
+                    }
+                })
+                .then(response => response.text())
+                .then(data => {
+                    // Write the output to the new window
+                    newWindow.document.write('<pre>' + data.output + '</pre>');
+                    newWindow.document.close();  // Close the document stream
+                })
+                .catch(error => {
+                    newWindow.document.write('<pre>Error: ' + error + '</pre>');
+                    newWindow.document.close();  // Close the document stream
+                    console.error('Error:', error);
+                });
+            });
+        </script>
+
+        <button onclick="runPythonScript()">Run Python Script2</button>  
+        <script>
+            function runPythonScript() {
+            // Get the path to the Python script.
+            var pythonScriptPath = "C:/__Python_Tools__/__Django/WTF_v1/WTF/app/Scripts/ASA_Check_Config.v.6.py";      // Run the Python script.
+            subprocess.run(["python", pythonScriptPath]);
+            }
+        </script>
+
+
+
+
+
+
+
+
+        <pre id="output"></pre>
+
+        <script>
+            const output = document.getElementById('output');
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', '/run-script/', true);
+
+            xhr.onprogress = function () {
+                output.textContent += xhr.responseText;
+                xhr.responseText = ''; // Clear buffer after appending to prevent repeated output
+            };
+
+            xhr.onerror = function () {
+                console.error("Error during the AJAX call.");
+            };
+
+            xhr.onloadend = function() {
+                if (xhr.status != 200) {  // HTTP error?
+                    console.error(`Error ${xhr.status}: ${xhr.statusText}`);
+                }
+            };
+
+            xhr.send();
+        </script>
+
+
+
+        <div id="dina_content">
+            // Content will be dynamically updated here 
+        </div>
+
+        <script>
+            function fetchUpdates() {
+                fetch('C:/__Python_Tools__/__Django/WTF_v1/WTF/_Log_FW_/FW-M-PE-01/_CONFIG_FW-M-PE-01.txt')
+                    .then(response => response.text())
+                    .then(data => {
+                        // Update the content of the page with the fetched data
+                        document.getElementById('dina_content').innerText = data;
+                    })
+                    .catch(error => console.error('Error fetching updates:', error));
+            }
+
+            // Fetch updates initially when the page loads
+            fetchUpdates();
+
+            // Set interval to fetch updates periodically (every 5 seconds in this example)
+            setInterval(fetchUpdates, 5000);
+        </script>
+
+
+
+    -->
+
+
+        <!-- Content Row -->
+        <div class="row">
+
+            <!-- CRITICAL Logs Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}?level=CRITICAL" class="custom-card">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-danger mb-1">
+                                    CRITICAL Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Crit_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-danger">
+                                <i class="fas fa-times-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+            <!-- ERROR Logs Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}?level=ERROR" class="custom-card">
+                <div class="card border-left-orange shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-orange mb-1">
+                                    ERROR Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Erro_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-orange">
+                                <i class="fas fa-exclamation-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+            <!-- WARNING Logs Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}?level=WARNING" class="custom-card">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-warning mb-1">
+                                    WARNING Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Warn_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-warning">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+            <!-- Pending Requests Card Example -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}" class="custom-card">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-info mb-1">
+                                    INFO Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Info_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-info">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+        </div>
+
+
+
+        <!-- Content Row -->
+
+
+
+
+ 
+
+
+        <!-- Content Row -->
+        <div class="row">
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Last Check (Days)</h6>
+                    </div>
+                    <div class="card-body lh-1">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                                <tr>
+                                    <td><nobr>
+                                        <style type="text/css"> 
+                                            a.custom-card:hover {
+                                            color: none;
+                                            text-decoration: none;
+                                            }
+                                        </style>
+                                        <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                            <h5 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h5>
+                                        </a>
+                                    </nobr></td>
+                                    
+                                    <td style="width:70%; padding-left:10px" >
+                                        <div class="progress progress-sm mb-2">
+                                            <div class="progress-bar bg-primary" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                                style="width: {% widthratio t_device.Last_Check_Delta 50 100 %}%">
+                                            </div>
+                                        </div> 
+                                    </td>                                    
+                                    <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.Last_Check_Delta }} </h4></td>
+                                </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Up Time
+                            <font class="text-dark">(</font>
+                            <font class="text-primary">Days</font>
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">Years</font>
+                            <font class="text-dark">)</font>
+                        </h6>                        
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.UpTime MAX_UpTime 100 %}%">
+                                        </div>
+                                    </div> 
+                                </td>                                    
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.UpTime }}  </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-danger"> {{ t_device.UpTime_Year }} </h4></td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>  
+       
+
+          
+        </div>   
+
+
+        <!-- Content Row -->
+        <div class="row">
+            <!-- Content Column -->
+
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">Configuration Length
+                            <font class="text-dark">(</font>
+                            <font class="text-primary">Lines</font>
+                            <font class="text-dark">)</font>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.Config_Total_Lines Max_Config_Total_Lines 100 %}%">
+                                        </div>
+                                    </div> 
+                                </td>                                    
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.Config_Total_Lines }} </h4></td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">N° Objects
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° Unused</font>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.SUM_OBJ_Declared MAX_SUM_OBJ_Declared 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.SUM_OBJ_Unapplied MAX_SUM_OBJ_Declared 100 %}%">
+                                        </div>
+                                    </div>                                    
+                                </td>                                    
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.SUM_OBJ_Declared }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-danger"> {{ t_device.SUM_OBJ_Unapplied }} </h4></td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>   
+
+
+      
+        <!-- Content Row -->
+        <div class="row">
+
+            <div class="col-lg-6">
+                <div class="card shadow mb-4">
+                    <!-- Card Header - Dropdown -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">N° ACL Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° ACL HitCnt = 0</font>
+                            <font class="text-dark">/</font>
+                            <font class="text-success">Older Than {{ My_Global_Settings.Max_ACL_HitCnt0_Age }} Days</font>
+                        </h6>
+                        <!--
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-question-circle fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Dropdown Header:</div>
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">This is a very long sentence to seee where it goes</a>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_Lines Max_N_ACL_Lines 100 %}%"></div>
+                                        </div>
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                        style="width: {% widthratio t_device.N_ACL_HitCnt_Zero Max_N_ACL_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                        style="width: {% widthratio t_device.N_ACL_HitCnt_Zero_toDel Max_N_ACL_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                </td>                                    
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-primary"> {{ t_device.N_ACL_Lines }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-danger">  {{ t_device.N_ACL_HitCnt_Zero }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-success">  {{ t_device.N_ACL_HitCnt_Zero_toDel }} </h4> </td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>  
+
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">N° ACL Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° Inactive </font>
+                            <font class="text-dark">/</font>
+                            <font class="text-success">Older Than {{ My_Global_Settings.Max_ACL_Inactive_Age }} Days</font>
+                        </h6>
+                        <!--
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-question-circle fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Dropdown Header:</div>
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_Lines Max_N_ACL_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_Inactive Max_N_ACL_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_Inactive_toDel Max_N_ACL_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                 
+                                </td>                                    
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.N_ACL_Lines }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-danger"> {{ t_device.N_ACL_Inactive }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-success"> {{ t_device.N_ACL_Inactive_toDel }} </h4></td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+
+        <!-- Content Row -->
+        <div class="row">
+
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">N° ACL Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° ACL NoLog</font>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_Lines Max_N_ACL_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_NoLog Max_N_ACL_Lines 100 %}%">
+                                        </div>
+                                    </div>                                    
+                                </td>                                    
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-primary"> {{ t_device.N_ACL_Lines }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-danger">  {{ t_device.N_ACL_NoLog }} </h4> </td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">N° ACL Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° ACL Lines Expanded</font>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_Lines Max_N_ACL_Lines_Expanded 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_ACL_Lines_Expanded Max_N_ACL_Lines_Expanded 100 %}%">
+                                        </div>
+                                    </div>
+                                
+                                </td>                                    
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.N_ACL_Lines }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-danger"> {{ t_device.N_ACL_Lines_Expanded }} </h4></td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+
+        <!-- Content Row -->
+        <div class="row">
+
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <div class="card shadow mb-4">
+                    <!-- Card Header - Dropdown -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">N° NAT Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° NAT HitCnt = 0</font>
+                            <font class="text-dark">/</font>
+                            <font class="text-success">Older Than {{ My_Global_Settings.Max_NAT_ZeroHit_Age }} Days</font>
+                        </h6>
+                        <!--
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-question-circle fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Dropdown Header:</div>
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_NAT_Lines Max_N_NAT_Lines 100 %}%"></div>
+                                        </div>
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                        style="width: {% widthratio t_device.N_NAT_HitCnt_Zero Max_N_NAT_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                        style="width: {% widthratio t_device.N_NAT_HitCnt_Zero_toDel Max_N_NAT_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                </td>                                    
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-primary"> {{ t_device.N_NAT_Lines }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-danger">  {{ t_device.N_NAT_HitCnt_Zero }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-success">  {{ t_device.N_NAT_HitCnt_Zero_toDel }} </h4> </td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>  
+
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">N° NAT Lines
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° Inactive </font>
+                            <font class="text-dark">/</font>
+                            <font class="text-success">Older Than {{ My_Global_Settings.Max_NAT_Inactive_Age }} Days</font>
+                        </h6>
+                        <!--
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-question-circle fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Dropdown Header:</div>
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                        </div>                        
+                        -->
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_NAT_Lines Max_N_NAT_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_NAT_Inactive Max_N_NAT_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_NAT_Inactive_toDel Max_N_NAT_Lines 100 %}%">
+                                        </div>
+                                    </div>
+                                 
+                                </td>                                    
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.N_NAT_Lines }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-danger"> {{ t_device.N_NAT_Inactive }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-success"> {{ t_device.N_NAT_Inactive_toDel }} </h4></td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>     
+
+
+
+
+        <!-- Content Row -->
+        <div class="row">
+            <!-- Content Column -->
+            <div class="col-lg-6">
+                <div class="card shadow mb-4">
+                    <!-- Card Header - Dropdown -->
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-dark">ACL Opening:
+                            <font class="text-danger">TCP</font>
+                            <font class="text-dark">/</font>
+                            <font class="text-primary">UDP</font>
+                            <font class="text-dark">/</font>
+                            <font class="text-success">ICMP</font>
+                        </h6>
+                        <!--
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-question-circle fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Dropdown Header:</div>
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                    <!-- Card Body -->
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                        style="width: {% widthratio t_device.Prct_ACL_Space_TCP 100 100 %}%">
+                                        </div>
+                                    </div>                                    
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.Prct_ACL_Space_UDP 100 100 %}%"></div>
+                                        </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-success" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                        style="width: {% widthratio t_device.Prct_ACL_Space_ICMP 100 100 %}%">
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-danger">  {{ t_device.Prct_ACL_Space_TCP }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-primary"> {{ t_device.Prct_ACL_Space_UDP }} </h4> </td>
+                                <td style="padding-left:10px" > <h4 class="small font-weight-bold text-success">  {{ t_device.Prct_ACL_Space_ICMP }} </h4> </td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>  
+
+            <div class="col-lg-6">
+                <!-- Project Card Example -->
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                        <h6 class="m-0 font-weight-bold text-primary">N° Capture
+                            <font class="text-dark">/</font>
+                            <font class="text-danger">N° Active</font>
+                            <font class="text-dark">/</font>
+                            <font class="text-warning">N° circular-buffer</font>
+                        </h6>
+                        <!--
+                        <div class="dropdown no-arrow">
+                            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fas fa-question-circle fa-sm fa-fw text-gray-400"></i>
+                            </a>
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink">
+                                <div class="dropdown-header">Dropdown Header:</div>
+                                <a class="dropdown-item" href="#">Action</a>
+                                <a class="dropdown-item" href="#">Another action</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="#">Something else here</a>
+                            </div>
+                        </div>                        
+                        -->
+                    </div>
+                    <div class="card-body">
+                        <table style="width:100%">
+                            {% for t_device in Devices_list %}
+                            <tr>
+                                <td><nobr>
+                                    <style type="text/css"> 
+                                        a.custom-card:hover {
+                                        color: none;
+                                        text-decoration: none;
+                                        }
+                                    </style>
+                                    <a href="{% url 'dashboard' t_device.HostName %}" class="custom-card"> 
+                                        <h4 class="small font-weight-bold text-secondary"> {{ t_device.HostName_slash }} </h4>
+                                    </a>
+                                </nobr></td>
+                                <td style="width:70%; padding-left:10px" >
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_Capture Max_N_Capture 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-0">
+                                        <div class="progress-bar bg-danger" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_Capture_Active Max_N_Capture 100 %}%">
+                                        </div>
+                                    </div>
+                                    <div class="progress progress-sm mb-2">
+                                        <div class="progress-bar bg-warning" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"
+                                            style="width: {% widthratio t_device.N_Capture_CircBuff Max_N_Capture 100 %}%">
+                                        </div>
+                                    </div>
+                                 
+                                </td>                                    
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-primary"> {{ t_device.N_Capture }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-danger"> {{ t_device.N_Capture_Active }} </h4></td>
+                                <td style="padding-left:10px" ><h4 class="small font-weight-bold text-warning"> {{ t_device.N_Capture_CircBuff }} </h4></td>
+                            </tr>
+                            {% endfor %} 
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+
+        
+
+        <!-- ACL SummaryDataTales -->
+        <div class="card shadow">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">Summary for ACLs vs Interfaces </h6>
+            </div>
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>HostName</th>
+                            <th>Last Check</th>
+                            <th>Conf Lines</th>
+                            <th>N° Interfaces</th>
+                            <th>N° ACL</th>
+                            <th>N° ACL Lines</th>
+                            <th>N° ACL Lines X</th>
+                            <th>N° ACL No Log</th>
+                            <th>N° ACL Inactive</th>
+                            <th>N° ACL HitCnt=0</th>
+                            <th>N° NAT</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t_device in Devices_list %}
+                            <tr>
+                                <td>{{ t_device.HostName_slash }}</td>
+                                <td>{{ t_device.Last_Check|date:"d M Y" }}</td>
+                                <td>{{ t_device.Config_Total_Lines }}</td>
+                                <td>{{ t_device.N_Interfaces }}</td>
+                                <td>{{ t_device.Declared_ACL }}</td>
+                                <td>{{ t_device.N_ACL_Lines }}</td>
+                                <td>{{ t_device.N_ACL_Lines_Expanded }}</td>
+                                <td>{{ t_device.N_ACL_NoLog }}</td>
+                                <td>{{ t_device.N_ACL_Inactive }}</td>
+                                <td>{{ t_device.N_ACL_HitCnt_Zero }}</td>
+                                <td>{{ t_device.N_NAT_Lines }}</td>
+                            </tr>
+                        {% endfor %}                                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+                
+
+        <!-- Content Row -->
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+    <!-- /.container-fluid -->
+
+
+</div>
+<!-- End of Main Content -->
+
+<script>
+function openTab(evt, TabName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(TabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+
+{% endblock %}
+<!--
+{% autoescape on %}
+    {% block javascript %}
+
+    {{ block.super }}
+
+    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+
+    
+    {% endblock javascript %}
+{% endautoescape %}
+-->

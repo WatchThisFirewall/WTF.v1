@@ -1,0 +1,1558 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Watch This Firewall</title>
+    <link rel="icon" type="image/x-icon" href="/static/img/WTF_Favicon.ico">
+    <!-- Custom fonts for this template-->
+    <link href="/static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+    <!-- Custom styles for this template-->
+
+    <link href="/static/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/static/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+
+    
+</head>
+
+<body id="page-top">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+            <!-- Sidebar - Brand -->
+            <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/">
+                <div class="sidebar-brand-icon rotate-n-15">
+                    <i class="fas fa-glasses"></i>
+                </div>
+                <div class="sidebar-brand-text mx-3"><h1><b>WTF!!!</b></h1></div>
+            </a>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider my-0">
+
+            <!-- Nav Item - Dashboard -->
+            <li class="nav-item active">
+                <a class="nav-link" href="/">
+                    <i class="fas fa-fw fa-tachometer-alt"></i>
+                    <span>Dashboard</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Interface
+            </div>
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseOne"
+                    aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fas fa-fw fa-eye-dropper"></i>
+                    <span>Devices</span>
+                </a>
+                <div id="collapseOne" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-CORE-PE-ASA___VMW-CR/">
+                                FW-CORE-PE-ASA___VMW-CR
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-CORE-PE-ASA___VMW-NC/">
+                                FW-CORE-PE-ASA___VMW-NC
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-CORE-SE-ASA___VMW-CR/">
+                                FW-CORE-SE-ASA___VMW-CR
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-CORE-SE-ASA___VMW-NC/">
+                                FW-CORE-SE-ASA___VMW-NC
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-INFRA-MGMT/">
+                                FW-INFRA-MGMT
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-M-PE-01/">
+                                FW-M-PE-01
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-M-SE-01/">
+                                FW-M-SE-01
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/FW-SIMI-INTERNET-1/">
+                                FW-SIMI-INTERNET-1
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/G8-WAN-FW-01___VC-BT/">
+                                G8-WAN-FW-01___VC-BT
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/G8-WAN-FW-01___VC-PROCESSOR/">
+                                G8-WAN-FW-01___VC-PROCESSOR
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/PER-FW-INFRA-SVCS-01/">
+                                PER-FW-INFRA-SVCS-01
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/PER-INT-FW-01___FW-CR-INT/">
+                                PER-INT-FW-01___FW-CR-INT
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/PER-INT-FW-01___FW-NC-INT/">
+                                PER-INT-FW-01___FW-NC-INT
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/PER-WAN-FW___FW-CR-WAN/">
+                                PER-WAN-FW___FW-CR-WAN
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/PER-WAN-FW___FW-NC-WAN/">
+                                PER-WAN-FW___FW-NC-WAN
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/SET-FW-INFRA-SVCS-01/">
+                                SET-FW-INFRA-SVCS-01
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/SET-INT-FW-01___FW-CR-INT/">
+                                SET-INT-FW-01___FW-CR-INT
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/SET-INT-FW-01___FW-NC-INT/">
+                                SET-INT-FW-01___FW-NC-INT
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/SET-WAN-FW___FW-CR-WAN/">
+                                SET-WAN-FW___FW-CR-WAN
+                            </a>
+                        
+                            <a class="collapse-item" style="font-size:0.8em" href="/dashboard/SET-WAN-FW___FW-NC-WAN/">
+                                SET-WAN-FW___FW-NC-WAN
+                            </a>
+                        
+
+                    </div>
+                </div>
+            </li>
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
+                    aria-expanded="true" aria-controls="collapseTwo">
+                    <i class="fas fa-fw fa-cog"></i>
+                    <span>Components</span>
+                </a>
+                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Custom Components:</h6>
+                        <a class="collapse-item" href="buttons.html">Buttons</a>
+                        <a class="collapse-item" href="cards.html">Cards</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- Nav Item - Utilities Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseUtilities"
+                    aria-expanded="true" aria-controls="collapseUtilities">
+                    <i class="fas fa-fw fa-wrench"></i>
+                    <span>Settings</span>
+                </a>
+                <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <!--<h6 class="collapse-header">General Settings</h6>-->
+                        <a class="collapse-item" href="/general_settings.html">General Settings</a>
+                        <a class="collapse-item" href="/manage_devices.html">Manage Devices</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
+            <!-- Heading -->
+            <div class="sidebar-heading">
+                Addons
+            </div>
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
+                    aria-expanded="true" aria-controls="collapsePages">
+                    <i class="fas fa-fw fa-folder"></i>
+                    <span>Pages</span>
+                </a>
+                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <h6 class="collapse-header">Login Screens:</h6>
+                        <a class="collapse-item" href="login.html">Login</a>
+                        <a class="collapse-item" href="register.html">Register</a>
+                        <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
+                        <div class="collapse-divider"></div>
+                        <h6 class="collapse-header">Other Pages:</h6>
+                        <a class="collapse-item" href="404.html">404 Page</a>
+                        <a class="collapse-item" href="blank.html">Blank Page</a>
+                    </div>
+                </div>
+            </li>
+
+            <!-- Nav Item - Charts -->
+            <li class="nav-item">
+                <a class="nav-link" href="charts.html">
+                    <i class="fas fa-fw fa-chart-area"></i>
+                    <span>Charts</span></a>
+            </li>
+
+            <!-- Nav Item - Tables -->
+            <li class="nav-item">
+                <a class="nav-link" href="tables.html">
+                    <!-- <i class="fas fa-fw fa-table"></i>-->
+                    <i class="fas fa-fw fa-database"></i>
+                    <span>Tables</span></a>
+            </li>
+
+            <!-- Divider -->
+            <hr class="sidebar-divider d-none d-md-block">
+
+            <!-- Sidebar Toggler (Sidebar) -->
+            <div class="text-center d-none d-md-inline">
+                <button class="rounded-circle border-0" id="sidebarToggle"></button>
+            </div>
+        </ul>
+        <!-- End of Sidebar -->
+
+        
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+
+            
+
+
+<!-- Main Content -->
+<div id="content">
+
+    
+    <!-- Topbar -->
+    <nav class="navbar navbar-expand navbar-light bg-white topbar mb-4 static-top shadow">
+
+        <!-- Sidebar Toggle (Topbar) -->
+        <form class="form-inline">
+        <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+            <i class="fa fa-bars"></i>
+        </button>
+        </form>
+
+        <!-- Topbar Search -->
+        <form
+            class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+            <div class="input-group">
+                <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
+                    aria-label="Search" aria-describedby="basic-addon2">
+                <div class="input-group-append">
+                    <button class="btn btn-primary" type="button">
+                        <i class="fas fa-search fa-sm"></i>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Topbar Navbar -->
+        <ul class="navbar-nav ml-auto">
+
+            <!-- Nav Item - Search Dropdown (Visible Only XS) -->
+            <li class="nav-item dropdown no-arrow d-sm-none">
+                <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-search fa-fw"></i>
+                </a>
+                <!-- Dropdown - Messages -->
+                <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                    aria-labelledby="searchDropdown">
+                    <form class="form-inline mr-auto w-100 navbar-search">
+                        <div class="input-group">
+                            <input type="text" class="form-control bg-light border-0 small"
+                                placeholder="Search for..." aria-label="Search"
+                                aria-describedby="basic-addon2">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="button">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </li>
+
+            <!-- Nav Item - Alerts -->
+            <li class="nav-item dropdown no-arrow mx-1">
+                <a class="nav-link dropdown-toggle" href="#" id="alertsDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-bell fa-fw"></i>
+                    <!-- Counter - Alerts -->
+                    <span class="badge badge-danger badge-counter">3+</span>
+                </a>
+                <!-- Dropdown - Alerts -->
+                <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                    aria-labelledby="alertsDropdown">
+                    <h6 class="dropdown-header">
+                        Alerts Center
+                    </h6>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <div class="mr-3">
+                            <div class="icon-circle bg-primary">
+                                <i class="fas fa-file-alt text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="small text-gray-500">December 12, 2019</div>
+                            <span class="font-weight-bold">A new monthly report is ready to download!</span>
+                        </div>
+                    </a>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <div class="mr-3">
+                            <div class="icon-circle bg-success">
+                                <i class="fas fa-donate text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="small text-gray-500">December 7, 2019</div>
+                            $290.29 has been deposited into your account!
+                        </div>
+                    </a>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <div class="mr-3">
+                            <div class="icon-circle bg-warning">
+                                <i class="fas fa-exclamation-triangle text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="small text-gray-500">December 2, 2019</div>
+                            Spending Alert: We've noticed unusually high spending for your account.
+                        </div>
+                    </a>
+                    <a class="dropdown-item text-center small text-gray-500" href="#">Show All Alerts</a>
+                </div>
+            </li>
+
+            <!-- Nav Item - Messages -->
+            <li class="nav-item dropdown no-arrow mx-1">
+                <a class="nav-link dropdown-toggle" href="#" id="messagesDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <i class="fas fa-envelope fa-fw"></i>
+                    <!-- Counter - Messages -->
+                    <span class="badge badge-danger badge-counter">7</span>
+                </a>
+                <!-- Dropdown - Messages -->
+                <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                    aria-labelledby="messagesDropdown">
+                    <h6 class="dropdown-header">
+                        Message Center
+                    </h6>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <div class="dropdown-list-image mr-3">
+                            <img class="rounded-circle" src="/static/img/undraw_profile_1.svg" alt="...">
+                            <div class="status-indicator bg-success"></div>
+                        </div>
+                        <div class="font-weight-bold">
+                            <div class="text-truncate">Hi there! I am wondering if you can help me with a
+                                problem I've been having.</div>
+                            <div class="small text-gray-500">Emily Fowler · 58m</div>
+                        </div>
+                    </a>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <div class="dropdown-list-image mr-3">
+                            <img class="rounded-circle" src="/static/img/undraw_profile_2.svg" alt="...">
+                            <div class="status-indicator"></div>
+                        </div>
+                        <div>
+                            <div class="text-truncate">I have the photos that you ordered last month, how
+                                would you like them sent to you?</div>
+                            <div class="small text-gray-500">Jae Chun · 1d</div>
+                        </div>
+                    </a>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <div class="dropdown-list-image mr-3">
+                            undraw_profile_2
+                            <img class="rounded-circle" src="/static/img/undraw_profile_3.svg" alt="...">
+                            <div class="status-indicator bg-warning"></div>
+                        </div>
+                        <div>
+                            <div class="text-truncate">Last month's report looks great, I am very happy with
+                                the progress so far, keep up the good work!</div>
+                            <div class="small text-gray-500">Morgan Alvarez · 2d</div>
+                        </div>
+                    </a>
+                    <a class="dropdown-item d-flex align-items-center" href="#">
+                        <div class="dropdown-list-image mr-3">
+                            <img class="rounded-circle" src="/static/img/60x60.jpg" alt="...">
+                            <div class="status-indicator bg-success"></div>
+                        </div>
+                        <div>
+                            <div class="text-truncate">Am I a good boy? The reason I ask is because someone
+                                told me that people say this to all dogs, even if they aren't good...</div>
+                            <div class="small text-gray-500">Chicken the Dog · 2w</div>
+                        </div>
+                    </a>
+                    <a class="dropdown-item text-center small text-gray-500" href="#">Read More Messages</a>
+                </div>
+            </li>
+
+            <div class="topbar-divider d-none d-sm-block"></div>
+
+            <!-- Nav Item - User Information -->
+            <li class="nav-item dropdown no-arrow">
+                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    <span class="mr-2 d-none d-lg-inline text-gray-600 small">Douglas McGee</span>
+                    <img class="img-profile rounded-circle" src="/static/img/undraw_profile.svg">
+                </a>
+                <!-- Dropdown - User Information -->
+                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                    aria-labelledby="userDropdown">
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Profile
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Settings
+                    </a>
+                    <a class="dropdown-item" href="#">
+                        <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Activity Log
+                    </a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                        Logout
+                    </a>
+                </div>
+            </li>
+
+        </ul>
+
+    </nav>
+    <!-- End of Topbar -->
+    <style type="text/css">
+    a.custom-card:hover {
+      color: none;
+      text-decoration: none;
+    }
+    </style>
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <a class="custom-card" href="/dashboard/FW-M-PE-01/">
+                <h1 class="h3 mb-0 text-gray-800">
+                    FW-M-PE-01
+                </h1>
+            </a>
+        </div>
+        
+        <!-- Content Row -->
+        <!-- Page Heading -->
+        <div class="card shadow mb-4 " >
+        
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-warning text-white">
+        
+                <h6 class="m-0 font-weight-bold">
+                    <i style="font-size:30px" class="fas fas fa-unlock"></i>
+                    <i style="font-size:30px"> &nbsp; Object Network Duplicated</i>
+                </h6>
+                <a href="/static/FW-M-PE-01/FW-M-PE-01-ObjGrpNet_Not_Applied-Merge.txt"
+                    class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-download fa-sm text-white-50"></i> Download txt</a>
+            </div>
+        </div>
+
+        <div class="nav nav-tabs mb-3" role="tablist">
+          <button class="nav-link tablinks" onclick="openTab(event, 'Watch')" id="defaultOpen">Watch</button>
+          <button class="nav-link tablinks disabled" onclick="openTab(event, 'Think')">Think</button>
+          <button class="nav-link tablinks disabled" onclick="openTab(event, 'Fix')">Fix</button>
+        </div>
+
+        <div id="Watch" class="tabcontent">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i style="font-size:30px" class="fas fa-glasses"></i>
+                    </h6>
+                </div>
+                <style type="text/css">
+                div.scroll {
+                  overflow-x: scroll;
+                  overflow-y: hidden;
+                  white-space: nowrap;
+                }
+                </style>
+
+                <div class="card-body">
+                    238 Object Group Network over 647 (36.8%) are duplicated <br>
+
+                    <div class="card-body">
+<table class="table-bordered table-condensed table-striped " id="dataTable" width="100%" cellspacing="0" data-page-length="50" >
+       <thead><tr>
+           <th class="px-2">Object Group</th>
+           <th class="px-2">Object Group Name</th>
+       </tr></thead>
+       <tbody>
+       <tr>
+       <td class="px-2">
+       10.10.210.11<br>
+       10.10.210.12<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_9<br>
+       DM_INLINE_NETWORK_12<br>
+       DM_INLINE_NETWORK_13<br>
+       DM_INLINE_NETWORK_14<br>
+       DM_INLINE_NETWORK_21<br>
+       DM_INLINE_NETWORK_22<br>
+       DM_INLINE_NETWORK_23<br>
+       DM_INLINE_NETWORK_24<br>
+       DM_INLINE_NETWORK_25<br>
+       DM_INLINE_NETWORK_26<br>
+       DM_INLINE_NETWORK_27<br>
+       DM_INLINE_NETWORK_46<br>
+       DM_INLINE_NETWORK_47<br>
+       DM_INLINE_NETWORK_80<br>
+       DM_INLINE_NETWORK_81<br>
+       DC-CARTASI-LOCAL<br>
+       DM_INLINE_NETWORK_87<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.16.120<br>
+       10.106.16.121<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_11<br>
+       GRP_MDS-PP01<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.0.120<br>
+       10.106.0.121<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_35<br>
+       GRP_MDS<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.32.120<br>
+       10.106.32.121<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_36<br>
+       GRP_MDS-CP01<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.104.93.21<br>
+       10.104.93.22<br>
+       10.104.93.23<br>
+       </td>
+       <td class="px-2">
+       STORAGE-CONTROLLER-PE<br>
+       DM_INLINE_NETWORK_229<br>
+       DM_INLINE_NETWORK_231<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.3.133<br>
+       10.106.1.69<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_39<br>
+       DM_INLINE_NETWORK_42<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.250.0 255.255.255.0<br>
+       10.206.250.0 255.255.255.0<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_48<br>
+       DM_INLINE_NETWORK_51<br>
+       DM_INLINE_NETWORK_59<br>
+       DM_INLINE_NETWORK_95<br>
+       VPN-PERO-SETTIMO-OOB<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.16.148<br>
+       10.106.32.148<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_63<br>
+       DM_INLINE_NETWORK_64<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.222.216.68<br>
+       10.222.216.69<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_304<br>
+       DM_INLINE_NETWORK_305<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.252.25<br>
+       10.106.252.26<br>
+       </td>
+       <td class="px-2">
+       WAF-GTATM-PE-01<br>
+       WAF-PERO<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.103.16<br>
+       10.206.103.16<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_307<br>
+       GR01_SMTP_DMZ_PE_SE<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.104.10<br>
+       10.206.104.10<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_308<br>
+       GRP_PROXY_NB_PE_SE<br>
+       DM_INLINE_NETWORK_204<br>
+       DM_INLINE_NETWORK_211<br>
+       DM_INLINE_NETWORK_217<br>
+       DM_INLINE_NETWORK_221<br>
+       DM_INLINE_NETWORK_222<br>
+       DM_INLINE_NETWORK_224<br>
+       DM_INLINE_NETWORK_227<br>
+       DM_INLINE_NETWORK_230<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.80.24<br>
+       10.106.80.25<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_309<br>
+       DM_INLINE_NETWORK_310<br>
+       DM_INLINE_NETWORK_312<br>
+       DM_INLINE_NETWORK_313<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.120.64.0 255.255.255.0<br>
+       10.220.64.0 255.255.255.0<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_311<br>
+       GRP-JUMPHOST<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.1.22<br>
+       10.106.1.21<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_73<br>
+       DM_INLINE_NETWORK_75<br>
+       DM_INLINE_NETWORK_83<br>
+       DM_INLINE_NETWORK_197<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.0.64 255.255.255.192<br>
+       10.119.1.0 255.255.255.224<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_315<br>
+       DM_INLINE_NETWORK_316<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       172.17.100.0 255.255.255.0<br>
+       172.17.101.0 255.255.255.0<br>
+       172.17.102.0 255.255.255.0<br>
+       172.17.103.0 255.255.255.0<br>
+       172.17.104.0 255.255.255.0<br>
+       172.17.105.0 255.255.255.0<br>
+       172.17.106.0 255.255.255.0<br>
+       172.17.204.0 255.255.255.0<br>
+       172.17.205.0 255.255.255.0<br>
+       172.17.206.0 255.255.255.0<br>
+       172.17.208.0 255.255.255.0<br>
+       172.27.100.0 255.255.254.0<br>
+       172.17.203.0 255.255.255.0<br>
+       10.130.156.0 255.255.254.0<br>
+       10.130.144.0 255.255.254.0<br>
+       10.130.146.0 255.255.254.0<br>
+       10.130.9.0 255.255.255.240<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_78<br>
+       DM_INLINE_NETWORK_79<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.119.254.68<br>
+       10.119.254.99<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_320<br>
+       DM_INLINE_NETWORK_319<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.1.34<br>
+       10.106.1.36<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_322<br>
+       DM_INLINE_NETWORK_200<br>
+       DM_INLINE_NETWORK_283<br>
+       DM_INLINE_NETWORK_286<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.1.89<br>
+       10.106.1.34<br>
+       10.106.1.35<br>
+       10.106.1.36<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_90<br>
+       DM_INLINE_NETWORK_91<br>
+       DM_INLINE_NETWORK_102<br>
+       DM_INLINE_NETWORK_109<br>
+       DM_INLINE_NETWORK_113<br>
+       DM_INLINE_NETWORK_122<br>
+       DM_INLINE_NETWORK_123<br>
+       DM_INLINE_NETWORK_124<br>
+       DM_INLINE_NETWORK_125<br>
+       DM_INLINE_NETWORK_126<br>
+       DM_INLINE_NETWORK_130<br>
+       DM_INLINE_NETWORK_131<br>
+       DM_INLINE_NETWORK_135<br>
+       DM_INLINE_NETWORK_138<br>
+       DM_INLINE_NETWORK_141<br>
+       DM_INLINE_NETWORK_164<br>
+       DM_INLINE_NETWORK_232<br>
+       DM_INLINE_NETWORK_233<br>
+       DM_INLINE_NETWORK_245<br>
+       GRP_MGMT_PE<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.222.216<br>
+       10.106.222.217<br>
+       10.106.222.218<br>
+       10.106.222.219<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_324<br>
+       DM_INLINE_NETWORK_325<br>
+       DM_INLINE_NETWORK_326<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.214.0 255.255.255.192<br>
+       10.206.214.0 255.255.255.192<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_100<br>
+       DM_INLINE_NETWORK_101<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.104.102.2<br>
+       10.104.102.11<br>
+       10.104.102.12<br>
+       10.104.102.13<br>
+       10.104.102.14<br>
+       10.104.102.15<br>
+       10.104.102.16<br>
+       10.104.202.11<br>
+       10.104.202.12<br>
+       10.104.202.13<br>
+       10.104.202.14<br>
+       10.104.202.15<br>
+       10.104.202.16<br>
+       10.104.90.18<br>
+       10.104.90.23<br>
+       10.204.102.11<br>
+       10.204.102.12<br>
+       10.204.102.13<br>
+       10.204.102.14<br>
+       10.204.102.15<br>
+       10.204.102.16<br>
+       10.204.202.11<br>
+       10.204.202.12<br>
+       10.204.202.13<br>
+       10.204.202.14<br>
+       10.204.202.15<br>
+       10.204.202.16<br>
+       10.204.90.18<br>
+       10.204.90.19<br>
+       10.104.90.19<br>
+       10.204.102.2<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_103<br>
+       DM_INLINE_NETWORK_104<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.10.217.10<br>
+       10.10.217.14<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_327<br>
+       DM_INLINE_NETWORK_288<br>
+       DM_INLINE_NETWORK_289<br>
+       DM_INLINE_NETWORK_290<br>
+       DM_INLINE_NETWORK_291<br>
+       DM_INLINE_NETWORK_292<br>
+       DM_INLINE_NETWORK_293<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.10.100.0 255.255.254.0<br>
+       10.10.108.0 255.255.254.0<br>
+       10.10.128.0 255.255.254.0<br>
+       10.10.132.0 255.255.252.0<br>
+       10.10.140.0 255.255.252.0<br>
+       172.16.210.157<br>
+       172.16.210.41<br>
+       10.10.120.0 255.255.254.0<br>
+       10.10.220.0 255.255.254.0<br>
+       10.10.146.0 255.255.254.0<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_110<br>
+       DM_INLINE_NETWORK_111<br>
+       DM_INLINE_NETWORK_112<br>
+       DM_INLINE_NETWORK_114<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.215.0 255.255.255.192<br>
+       10.206.215.0 255.255.255.192<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_115<br>
+       DM_INLINE_NETWORK_116<br>
+       DM_INLINE_NETWORK_117<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.10.144.11<br>
+       10.10.100.125<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_127<br>
+       DM_INLINE_NETWORK_128<br>
+       DM_INLINE_NETWORK_129<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.115.0.0 255.255.255.0<br>
+       10.115.1.0 255.255.255.0<br>
+       10.115.2.0 255.255.255.0<br>
+       10.215.0.0 255.255.255.0<br>
+       10.215.1.0 255.255.255.0<br>
+       10.215.2.0 255.255.255.0<br>
+       10.215.16.0 255.255.255.0<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_140<br>
+       DM_INLINE_NETWORK_143<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.1.70<br>
+       10.106.1.100<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_146<br>
+       DM_INLINE_NETWORK_147<br>
+       DM_INLINE_NETWORK_148<br>
+       DM_INLINE_NETWORK_149<br>
+       DM_INLINE_NETWORK_150<br>
+       DM_INLINE_NETWORK_151<br>
+       DM_INLINE_NETWORK_152<br>
+       DM_INLINE_NETWORK_153<br>
+       DM_INLINE_NETWORK_154<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.4.25<br>
+       10.106.4.26<br>
+       10.106.4.27<br>
+       10.206.4.25<br>
+       10.206.4.26<br>
+       10.206.4.27<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_157<br>
+       DM_INLINE_NETWORK_158<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.10.214.41<br>
+       10.10.214.42<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_160<br>
+       DM_INLINE_NETWORK_209<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.222.189<br>
+       10.106.222.190<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_330<br>
+       DM_INLINE_NETWORK_331<br>
+       H_10.106.222.189-190<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       172.16.247.105<br>
+       172.16.249.105<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_161<br>
+       DM_INLINE_NETWORK_162<br>
+       Monstorage_PE_SE<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.252.136<br>
+       10.106.252.137<br>
+       </td>
+       <td class="px-2">
+       WAFs<br>
+       DM_INLINE_NETWORK_275<br>
+       DM_INLINE_NETWORK_276<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.1.1.164<br>
+       10.1.1.174<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_173<br>
+       DM_INLINE_NETWORK_176<br>
+       DM_INLINE_NETWORK_177<br>
+       DM_INLINE_NETWORK_180<br>
+       DM_INLINE_NETWORK_181<br>
+       DM_INLINE_NETWORK_187<br>
+       DM_INLINE_NETWORK_190<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       172.17.203.0 255.255.255.0<br>
+       172.17.204.0 255.255.254.0<br>
+       172.17.206.0 255.255.254.0<br>
+       172.17.208.0 255.255.254.0<br>
+       172.17.210.0 255.255.254.0<br>
+       172.17.212.0 255.255.254.0<br>
+       </td>
+       <td class="px-2">
+       WIFI_EXT<br>
+       DM_INLINE_NETWORK_185<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.1.1.137<br>
+       10.1.1.164<br>
+       10.1.1.174<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_182<br>
+       DM_INLINE_NETWORK_189<br>
+       DM_INLINE_NETWORK_193<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.10.213.60<br>
+       10.10.214.26<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_183<br>
+       DM_INLINE_NETWORK_184<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.1.1.10<br>
+       10.1.1.141<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_194<br>
+       Jenkins<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.255.160.0 255.255.254.0<br>
+       10.255.162.0 255.255.254.0<br>
+       10.255.164.0 255.255.254.0<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_198<br>
+       GRP_VPN_CISCO<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.123.64.0 255.255.255.192<br>
+       10.121.64.0 255.255.255.192<br>
+       10.221.64.0 255.255.255.192<br>
+       10.223.64.0 255.255.255.192<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_201<br>
+       DM_INLINE_NETWORK_202<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.206.1.14<br>
+       10.106.1.14<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_203<br>
+       DM_INLINE_NETWORK_205<br>
+       DM_INLINE_NETWORK_250<br>
+       DM_INLINE_NETWORK_253<br>
+       DM_INLINE_NETWORK_254<br>
+       DM_INLINE_NETWORK_259<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.161.1.199<br>
+       192.168.36.46<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_206<br>
+       DM_INLINE_NETWORK_207<br>
+       DM_INLINE_NETWORK_213<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.1.0.171<br>
+       10.1.0.172<br>
+       10.1.0.173<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_210<br>
+       DM_INLINE_NETWORK_212<br>
+       GRP_DA-OPS1-CS<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.64.136<br>
+       10.106.64.137<br>
+       10.106.64.138<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_214<br>
+       DM_INLINE_NETWORK_215<br>
+       GRP_DSK-CS01-PE-B<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.16.136<br>
+       10.106.16.137<br>
+       10.106.16.138<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_216<br>
+       DM_INLINE_NETWORK_218<br>
+       GRP_DSK-PP01-PE<br>
+       GRP_NP01_STORAGE_FE<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.32.136<br>
+       10.106.32.137<br>
+       10.106.32.138<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_219<br>
+       DM_INLINE_NETWORK_220<br>
+       GRP_DSK-CP01-PE<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.0.19<br>
+       10.106.0.20<br>
+       10.106.0.21<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_223<br>
+       DM_INLINE_NETWORK_225<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.80.26<br>
+       10.106.80.27<br>
+       10.106.80.28<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_226<br>
+       DM_INLINE_NETWORK_228<br>
+       GRP_DMZ<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.255.160.0 255.255.254.0<br>
+       10.255.164.0 255.255.254.0<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_234<br>
+       DM_INLINE_NETWORK_236<br>
+       DM_INLINE_NETWORK_237<br>
+       DM_INLINE_NETWORK_238<br>
+       DM_INLINE_NETWORK_239<br>
+       DM_INLINE_NETWORK_240<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.70.64 255.255.255.192<br>
+       10.206.70.64 255.255.255.192<br>
+       </td>
+       <td class="px-2">
+       GR_COREP_DATAPOD_GOLD<br>
+       GR_COREP_DATAPOD_SILV<br>
+       DM_INLINE_NETWORK_244<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.70.64 255.255.255.192<br>
+       10.206.70.64 255.255.255.192<br>
+       10.106.70.64 255.255.255.192<br>
+       10.206.70.64 255.255.255.192<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_241<br>
+       DM_INLINE_NETWORK_242<br>
+       DM_INLINE_NETWORK_243<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.252.134<br>
+       10.106.252.135<br>
+       10.106.252.136<br>
+       10.106.252.137<br>
+       10.106.252.235<br>
+       10.106.252.236<br>
+       10.106.252.237<br>
+       10.106.252.238<br>
+       10.106.252.204<br>
+       10.106.252.205<br>
+       10.206.252.134<br>
+       10.206.252.135<br>
+       10.206.252.136<br>
+       10.206.252.137<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_246<br>
+       DM_INLINE_NETWORK_247<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.252.115<br>
+       10.106.252.124<br>
+       10.106.252.125<br>
+       10.106.252.138<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_249<br>
+       DM_INLINE_NETWORK_251<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.112.32.0 255.255.255.224<br>
+       10.212.32.0 255.255.255.224<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_252<br>
+       DM_INLINE_NETWORK_255<br>
+       DM_INLINE_NETWORK_260<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.120.1.68<br>
+       10.120.1.69<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_256<br>
+       DM_INLINE_NETWORK_257<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.104.93.137<br>
+       10.104.93.138<br>
+       10.104.93.139<br>
+       </td>
+       <td class="px-2">
+       GRP_SE-G350-A<br>
+       GRP-PE-G350-A<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.222.214<br>
+       10.106.222.215<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_261<br>
+       DM_INLINE_NETWORK_263<br>
+       DM_INLINE_NETWORK_264<br>
+       DM_INLINE_NETWORK_265<br>
+       DM_INLINE_NETWORK_266<br>
+       DM_INLINE_NETWORK_267<br>
+       DM_INLINE_NETWORK_270<br>
+       DM_INLINE_NETWORK_277<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.228.64.11<br>
+       10.228.64.12<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_268<br>
+       DM_INLINE_NETWORK_269<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.112.224.36<br>
+       10.112.224.38<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_280<br>
+       DM_INLINE_NETWORK_281<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.70.95<br>
+       10.106.70.96<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_284<br>
+       DM_INLINE_NETWORK_285<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       </td>
+       <td class="px-2">
+       test1<br>
+       TESTXX<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.106.222.182<br>
+       10.106.222.183<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_338<br>
+       DM_INLINE_NETWORK_339<br>
+       DM_INLINE_NETWORK_340<br>
+       DM_INLINE_NETWORK_342<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.222.220.15<br>
+       10.222.216.15<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_295<br>
+       DM_INLINE_NETWORK_296<br>
+       DM_INLINE_NETWORK_297<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.206.252.0 255.255.255.0<br>
+       10.106.252.0 255.255.255.0<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_298<br>
+       DM_INLINE_NETWORK_299<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.69.48.4<br>
+       10.69.48.5<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_300<br>
+       DM_INLINE_NETWORK_301<br>
+       </td>
+       </tr>
+       <tr>
+       <td class="px-2">
+       10.104.93.138<br>
+       10.104.93.139<br>
+       </td>
+       <td class="px-2">
+       DM_INLINE_NETWORK_344<br>
+       DM_INLINE_NETWORK_346<br>
+       </td>
+       </tr>
+       </tbody>
+   </table>
+</div>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="Think" class="tabcontent">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i style="font-size:30px" class="fas fa-info-circle"></i>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    
+<style>
+    p.small {
+      line-height: 1.0;
+      font-family:"Courier New";
+      font-size: 1rem;
+    }
+</style>
+<p class="text-dark small">
+<br><font color="#1e25ba"> show </font><font color="#1e25ba"> run </font><font color="#ba1e28"> | </font><font color="#ba1e28"> i </font>test1 
+<br><font color="#1e25ba"> show </font><font color="#1e25ba"> run </font><font color="#ba1e28"> | </font><font color="#ba1e28"> i </font>TESTXX 
+</p>
+
+                </div>
+            </div>
+        </div>
+
+        <div id="Fix" class="tabcontent">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i style="font-size:30px" class="fas fa-code"></i>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    
+<style>
+    p.small {
+      line-height: 1.0;
+      font-family:"Courier New";
+      font-size: 1rem;
+    }
+</style>
+<p class="text-dark small">
+<br><font color="#ba1e28"> no </font><font color="#995c00"> object-group </font><font color="#1e25ba"> network </font>test1 
+<br><font color="#ba1e28"> no </font><font color="#995c00"> object-group </font><font color="#1e25ba"> network </font>TESTXX 
+</p>
+
+                </div>
+            </div>
+        </div>
+    <!-- /.container-fluid -->
+    </div>
+</div>
+<!-- End of Main Content -->
+
+<script>
+function openTab(evt, TabName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(TabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+
+
+
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>Copyright &copy; Your Website 2021</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                    <a class="btn btn-primary" href="login.html">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/static/vendor/jquery/jquery.min.js"></script>
+    <script src="/static/vendor/bootstrap/js/bootstrap.bundle.min.js" ></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/static/vendor/jquery-easing/jquery.easing.min.js" ></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/static/js/sb-admin-2.min.js" ></script>
+    <!--
+    <script src="/static/js/sb-admin-2.js" ></script>
+    -->
+
+    
+    <!-- Page level plugins -->
+    <script src="/static/vendor/chart.js/Chart.min.js" ></script>
+
+    <!-- Page level custom scripts -->
+    <!--
+    <script src="/static/js/demo/chart-area-demo.js" ></script>
+    -->
+    <script src="/static/js/demo/chart-pie-demo.js" ></script>
+    <!-- da qui in poi e' test per la tabella-->
+     
+    
+    <!--
+        
+    <script src="/static/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+    <script src="/static/js/demo/datatables-demo.js" ></script>
+    <link  href="/static/vendor/datatables/dataTables.bootstrap4.min.css%22%20rel%3D%22stylesheet%22">
+    -->
+
+</body>
+
+</html>

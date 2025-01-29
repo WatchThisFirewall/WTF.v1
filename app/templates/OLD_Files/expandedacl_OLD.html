@@ -1,0 +1,73 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <style type="text/css">
+    a.custom-card:hover {
+    color: none;
+    text-decoration: none;
+    }
+    </style>
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <a class="custom-card" href="{% url 'dashboard' FW_NAME %}">
+                <h1 class="h3 mb-0 text-gray-800">
+                    {{ FW_NAME }}
+                </h1>
+            </a>
+        </div>
+
+        <div class="card shadow mb-4">
+            {% if This_Device.Prct_N_ACL_Oversize_Expanded < 8 %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-success text-white">
+            {%  elif This_Device.Prct_N_ACL_Oversize_Expanded < 24 %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-warning text-white">
+            {%  elif This_Device.Prct_N_ACL_Oversize_Expanded < 50 %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-orange text-white">
+            {%  else %}
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-danger text-white">
+            {% endif %}                
+                <h6 class="m-0 font-weight-bold ">
+                    <i style="font-size:30px" class="fas fas fa-unlock"></i>
+                    <i style="font-size:30px"> &nbsp; ACLs That Expand Over {{ My_Global_Settings.Max_ACL_Expand_Ratio }} Lines</i>
+                </h6>
+                <a href="{% static nologacl_Fname_txt %}"
+                    class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-download fa-sm text-white-50"></i> Download txt</a>
+            </div>
+        </div>
+
+        <div class="card shadow mb-4">
+            <!-- <div class="card-header py-3"> -->
+            <script new DataTable('#example', {order: [[2, 'asc']]});></script>
+            {% include expandedacl_Fname_htm%}
+        </div>
+    </div>
+</div>
+<!-- End of Main Content -->
+
+{% endblock %}
+
+
+{% autoescape on %}
+    {% block javascript %}
+
+    {{ block.super }}
+
+    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+
+    
+    {% endblock javascript %}
+{% endautoescape %}

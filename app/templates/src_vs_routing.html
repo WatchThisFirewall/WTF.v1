@@ -1,0 +1,143 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+    <style type="text/css">
+    a.custom-card:hover {
+      color: none;
+      text-decoration: none;
+    }
+    </style>
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <a class="custom-card" href="{% url 'dashboard' FW_NAME %}">
+                <h1 class="h3 mb-0 text-gray-800">
+                    {{ FW_NAME_slash }}
+                </h1>
+            </a>
+            <!--
+            <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50"></i> Download txt</a>
+            -->
+        </div>
+        
+        <!-- Content Row -->
+        <!-- Page Heading -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-info text-white">
+                <h6 class="m-0 font-weight-bold ">
+                    <i style="font-size:30px" class="fas fas fa-unlock"></i>
+                    <i style="font-size:30px"> &nbsp; ACL Source vs Routing</i>
+                </h6>
+            </div>
+        </div>
+
+        <div class="nav nav-tabs mb-3" role="tablist">
+          <button class="nav-link tablinks" onclick="openTab(event, 'Watch')" id="defaultOpen">Watch</button>
+          <button class="nav-link disabled" onclick="openTab(event, 'Think')">Think</button>
+          <button class="nav-link disabled" onclick="openTab(event, 'Fix')">Fix</button>
+        </div>
+        <style>
+            p.small {
+              line-height: 1.0;
+              font-family:"Courier New";
+              font-size: 1rem;
+            }
+            a.custom-card:hover {
+                color: none;
+                text-decoration: none;
+                }            
+        </style>
+
+        <div id="Watch" class="tabcontent">
+            <ul>
+            <li><a class="custom-card" href="#section1">Go to: <b>Wrong Routing for ACL Matching</b></a> <br></li>
+            <li><a class="custom-card" href="#section2">Go to: <b>SRC Wider Than Routing Table’s Scope</b></a> <br></li>
+            <li><a class="custom-card" href="#section3">Go to: <b>Totally Wrong Routing</b></a> <br></li>
+            <li><a class="custom-card" href="#section4">Go to: <b>Partially Wrong Routing</b></a> <br></li>
+            </ul>
+            <!--..............................................................................................-->
+            <div class="card shadow mb-4" id="section1">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h4 class="h4 m-0 font-weight-bold text-primary">Wrong Routing for ACL Matching</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-primary" role="alert">
+                        HitCnt is incrementing but traffic is from a Wrong Interface
+                    </div>
+                    {% include WR4ACLCounting%}
+                </div>
+            </div>
+            
+            <div class="card shadow mb-4" id="section2">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h4 class="h4 m-0 font-weight-bold text-primary">SRC Wider Than Routing Table’s Scope</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-primary" role="alert">
+                        Source Object spans a routing space wider than the Routing Table's Scope
+                    </div>
+                    {% include ACLWiderRoute%}
+                </div>
+            </div>
+            <!--..............................................................................................-->
+            <div class="card shadow mb-4" id="section3">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h4 class="h4 m-0 font-weight-bold text-primary">Totally Wrong Routing</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-primary" role="alert">
+                        Source Object is <b>Totally Outside</b> the Interface Routing Table's Scope.<br>
+                        Wait for them to age out.
+                    </div>
+                    {% include TotWrongRouteACL%}
+                </div>
+            </div>
+            <!--..............................................................................................-->
+            <div class="card shadow mb-4" id="section4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h4 class="h4 m-0 font-weight-bold text-primary">Partially Wrong Routing</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-primary" role="alert">
+                        Source Object is <b>Partially Outside</b> the Interface Routing Table's Scope
+                    </div>
+                    {% include PtlyWrongRouteACL%}
+                </div>
+            </div>
+            <!--..............................................................................................-->
+        </div>
+    <!-- /.container-fluid -->
+    </div>
+</div>
+<!-- End of Main Content -->
+
+<script>
+function openTab(evt, TabName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(TabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+// Get the element with id="defaultOpen" and click on it
+document.getElementById("defaultOpen").click();
+</script>
+
+{% endblock %}

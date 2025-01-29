@@ -1,0 +1,236 @@
+{% extends 'tplt_base.html' %}
+
+
+
+{% block MainContent %}
+{% load static %}
+
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                Logs
+            </h1>
+        </div>
+
+
+
+
+
+        <!-- Content Row -->
+        <div class="row">
+
+            <!-- CRITICAL Logs Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}?level=CRITICAL" class="custom-card">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-danger mb-1">
+                                    CRITICAL Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Crit_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-danger">
+                                <i class="fas fa-times-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+            <!-- ERROR Logs Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}?level=ERROR" class="custom-card">
+                <div class="card border-left-orange shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-orange mb-1">
+                                    ERROR Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Erro_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-orange">
+                                <i class="fas fa-exclamation-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+            <!-- WARNING Logs Card -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}?level=WARNING" class="custom-card">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-warning mb-1">
+                                    WARNING Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Warn_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-warning">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+            <!-- Pending Requests Card Example -->
+            <div class="col-xl-3 col-md-6 mb-4">
+                <a href="{% url 'wtf_logs' %}" class="custom-card">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="h5 font-weight-bold text-info mb-1">
+                                    INFO Logs
+                                </div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800">{{ N_Info_Logs }}</div>
+                            </div>
+                            <div class="col-auto text-info">
+                                <i class="fas fa-info-circle fa-2x"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+
+        </div>
+
+
+
+
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+
+
+
+        <!-- Content Row -->
+
+
+
+
+
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <!-- Logs DataTales -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                {% if log_level == 'CRITICAL' %}
+                    <h4 class="h4 m-0 font-weight-bold text-primary">CRITICAL Logs</h4>
+                {% elif log_level == 'ERROR' %}
+                    <h4 class="h4 m-0 font-weight-bold text-primary">ERROR Logs</h4>
+                {% elif log_level == 'WARNING' %}
+                    <h4 class="h4 m-0 font-weight-bold text-primary">WARNING Logs</h4>
+                {% else %}
+                    <h4 class="h4 m-0 font-weight-bold text-primary">Logs</h4>
+                {% endif %}
+                <h4 class="h4 m-0 font-weight-bold text-primary">Logs</h4>
+            </div>
+            <script>
+                $(document).ready(function(){
+                  $('[data-toggle="tooltip"]').tooltip();   
+                });
+            </script>             
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "desc" ]]' data-page-length="100">
+                    <thead>
+                        <tr>
+                            <th data-toggle="tooltip" title="">&nbsp;<i class="far fa-calendar-alt text-primary">&nbsp;</i>Time</th>
+                            <th data-toggle="tooltip" title="">&nbsp;Level</th>
+                            <th data-toggle="tooltip" title="">&nbsp;Message</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       
+                        {% for t_log in All_Logs %}
+                            <tr>
+                                <td>&nbsp;{{ t_log.TimeStamp|date:"Y-m-d H:i:s.u" }}</td>
+                                <td>
+                                    {% if t_log.Level == 'CRITICAL' %}
+                                        <div class="text-danger">  &nbsp;{{ t_log.Level }} </div>
+                                    {% elif t_log.Level == 'ERROR' %}
+                                        <div class="text-orange">  &nbsp;{{ t_log.Level }} </div>
+                                    {% elif t_log.Level == 'WARNING' %}
+                                        <div class="text-warning">  &nbsp;{{ t_log.Level }} </div>
+                                    {% elif t_log.Level == 'INFO' %}
+                                        <div class="text-info">  &nbsp;{{ t_log.Level }} </div>
+                                    {%  else %}
+                                        &nbsp;{{ t_log.Level }} 
+                                    {% endif %}
+                                </td>
+                                <td>&nbsp;{{ t_log.Message }}</td>
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+
+                </table>
+
+                <script>
+                    $(document).ready(function() {
+                        $('#dataTable').DataTable({
+                            columnDefs: [
+                                { orderable: false, targets: [2] }
+                            ]
+                        });
+                    });
+                </script>                
+            </div>
+        </div>
+        <!-- Content Row -->
+
+
+
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+
+
+
+{% endblock %}
+
+<!--
+{% autoescape on %}
+    {% block javascript %}
+        <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+        <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+        <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+    {% endblock javascript %}
+{% endautoescape %}
+
+-->

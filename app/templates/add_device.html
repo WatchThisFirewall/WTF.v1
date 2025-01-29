@@ -1,0 +1,196 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                Settings
+            </h1>
+        </div>
+
+
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+
+
+
+        <!-- Content Row -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <!-- START CARD  -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Add Device</h4>
+            </div>
+            <div class="card-body">
+                  <form action='' method=POST>
+                      {% csrf_token %}
+                      <!--{{ form.as_p }}-->
+                      {% for field in form %}
+                      <div class="form-group row align-items-center">
+                          <label for="{{ field.id_for_label }}" class="col-lg-2 col-form-label">{{ field.label }}</label>
+                          <div class="col-md-2">
+                              {{ field }}
+                              {% if field.errors %}
+                                  <div class="text-danger">
+                                      {{ field.errors }}
+                                  </div>
+                              {% endif %}
+                          </div>
+                          {% if field.help_text %}
+                              <div class="col-md-4">
+                                  <small class="form-text text-muted">
+                                      {{ field.help_text }}
+                                  </small>
+                              </div>
+                          {% endif %}
+                      </div>
+                      {% endfor %}                         
+                      <input type="submit" value="Submit" class="btn btn-primary">
+                  </form>
+            </div>
+        </div>
+        <!-- END CARD -->
+
+        
+        <!-- START CARD  -->
+        <div class="card shadow mb-4">
+          <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+              <h4 class="h4 m-0 font-weight-bold text-primary">How to Add a Device</h4>
+          </div>
+          <div class="card-body">
+              <div class="row g-2 align-items-center">
+                <ol>
+                <li> Fill in the form</li>
+                <li> Submit the form</li>
+                <li> You will be redirected to the "Edit Device" page</li>
+                <li> Test the connection</li>
+                <li> Verify all the settings are correct</li>
+                </ol>
+              </div> 
+          </div>
+      </div>
+      <!-- END CARD -->
+
+
+        <style>
+            pre.small {
+              line-height: 1.0;
+              font-family:"Courier New";
+              font-size: 1rem;
+            }
+        </style>
+        
+        
+
+
+
+
+
+        
+<!--
+
+        <div class="container mt-3">
+            <h3>Tooltip Example</h3>
+            <p>Tooltips must be initialized with jQuery: select the specified element and call the tooltip() method.</p>
+            <a href="#" data-toggle="tooltip" title="Hooray!">Hover over me</a>
+        </div>
+
+        <script>
+          $(document).ready(function(){
+            $('[data-toggle="tooltip"]').tooltip();   
+          });
+        </script>
+
+
+
+
+
+
+
+        <div class="container mt-3">
+            <h3>Tooltip Options</h3>
+            <p>The <strong>autohide</strong> option hides the toast by default.</p>
+            <p>In this example, we use data-autohide="false" to show the toast by default. You can close it by clicking on the close (x) icon inside the toast header.</p>  
+          
+            <div class="toast" data-autohide="false">
+              <div class="toast-header">
+                <strong class="mr-auto text-primary">Toast Header</strong>
+                <small class="text-muted">5 mins ago</small>
+                <button type="button" class="ml-2 mb-1 close" data-dismiss="toast">×</button>
+              </div>
+              <div class="toast-body">
+                Some text inside the toast body
+              </div>
+            </div>
+          </div>
+          
+          <script>
+          $(document).ready(function(){
+            $('.toast').toast('show');
+          });
+          </script>
+
+
+
+
+
+
+
+          <div class="container mt-3">
+            <h3>Tooltip Options</h3>
+            <p>The <strong>delay</strong> option specifies the number of milliseconds it will take to hide the toast.</p>
+            <p>In this example, it will take 2000 milliseconds to hide the toast, once it is shown. Click on the "Show Toast" button to see the effect.</p>
+            <button type="button" class="btn btn-primary" id="myBtn">Show Toast</button>
+
+            <script>
+                $(document).ready(function(){
+                  $('#myBtn').click(function(){
+                    $('.toast').toast('show');
+                  });
+                });
+            </script>  
+
+            <div class="toast mt-3" data-autohide="true" data-delay=2000 >
+              <div class="toast-header">
+                <strong class="mr-auto text-primary">Toast Header</strong>
+              </div>
+              <div class="toast-body">
+                Some text inside the toast body
+              </div>
+            </div>
+          </div>
+-->
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+
+{% endblock %}

@@ -1,0 +1,116 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                Settings
+            </h1>
+        </div>
+
+
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+
+
+
+        <!-- Content Row -->
+
+        {% if submitted %}
+            {% if messages %}
+                {%  for message in messages %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>{{ message}}</strong>
+                      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                      <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endif %} 
+
+
+
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Add User</h4>
+            </div>
+            <div class="card-body">
+                <div class="row g-2 align-items-center">
+                    {% if messages %}
+                        {%  for message in messages %}
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <strong>{{ message}}</strong>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                            </button>
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                {% if form.errors %}
+                    <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <strong>There was an error with your form!!!</strong>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                    </button>
+                    </div>                
+                {% endif %}
+                <div class="row g-2 align-items-center">
+                    <form action="{% url 'register_user' %}" method=POST>
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <br><br>
+                        <input type="submit" value="Submit" class="btn btn-secondary">
+                    </form>  
+                   
+                </div> 
+            </div>
+        </div>
+
+        <!-- Content Row -->
+
+        
+
+
+
+        <style>
+            pre.small {
+              line-height: 1.0;
+              font-family:"Courier New";
+              font-size: 1rem;
+            }
+        </style>
+        
+   
+
+
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+ 
+
+
+
+{% endblock %}
+
