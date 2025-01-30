@@ -19,6 +19,7 @@
 **/debug.log
 **/.dockerignore
 **/__WTF_Error_Log.txt
+**/Device_List.txt
 
 # Don't ignore important.log
 # !important.log
