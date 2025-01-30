@@ -36,12 +36,16 @@ show crypto ipsec sa entry (Under Development)
 show clock (When Testing The Connection)
 ```
 
-It elaborate the output and produce several reports. Below the summary report for each device
+It elaborate the output and produce several reports. Below the summary report for each device.
 <div align="center">
   <img src="IMAGES/summary.jpg" alt="Summary"/>
 </div>
 <br>
-Settings can be easily costomized according to the specific network guide lines
+Simply by tracking the configuration length over time, it becomes easy to see whether the device is maintained and kept clean.
+<div align="center">
+  <img src="IMAGES/Conf_Length_Hist.jpg" alt="Settings"/>
+</div>
+Settings can be easily costomized according to the specific network guide lines.
 <div align="center">
   <img src="IMAGES/Settings2.jpg" alt="Settings"/>
 </div>
