@@ -1,0 +1,37 @@
+# #: Comments (lines starting with # are ignored).
+# *: Matches any number of characters (e.g., *.log ignores all .log files).
+# ?: Matches a single character (e.g., ?.txt ignores a.txt but not ab.txt).
+# /: Specifies a directory (e.g., /logs ignores the logs directory in the root).
+# !: Negates a pattern (e.g., !important.log ensures important.log is not ignored, even if *.log is ignored).
+# **: Matches nested directories (e.g., **/logs ignores all logs directories at any level).
+
+# Ignore all .log files
+*.log
+
+# Ignore the _Log_FW_ directory
+**/_Log_FW_/
+
+# Ignore the OLD_Files directory
+**/OLD_Files/
+
+# Ignore all .tmp files in any directory
+**/*.tmp
+**/debug.log
+**/.dockerignore
+**/__WTF_Error_Log.txt
+
+# Don't ignore important.log
+# !important.log
+
+# Ignore Python compiled files
+*.pyc
+__pycache__/
+
+# Ignore virtual environments
+venv311/
+venv/
+env/
+
+# Ignore IDE-specific files
+.vscode/
+.idea/
