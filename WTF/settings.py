@@ -1,18 +1,19 @@
 
 from pathlib import Path
 import os
-ENVIRONMENT = 'TEST' #PROD|TEST
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
-
+ENVIRONMENT= os.getenv('DJANGO_ENV', 'TEST')
+ENVIRONMENT = 'TEST' #PROD|TEST
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'o0@!62+2spd)dq!5tkw@yaxp4y7zb&%)^1)-dosx0i_c9-o_+z'
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'o0@!62+2spd)dq!5tkw@yaxp4y7zb&%)^1)-xxxx0i_c9-o_+z')
+#SECRET_KEY = 'o0@!62+2spd)dq!5tkw@yaxp4y7zb&%)^1)-dosx0i_c9-o_+z'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 if ENVIRONMENT == 'TEST':
@@ -81,17 +82,25 @@ WSGI_APPLICATION = 'WTF.wsgi.application'
 # }
 import os
 django_env = os.getenv('DJANGO_ENV', 'local')
+db_name = os.getenv('POSTGRES_DB', 'ASA_Check')
+db_username = os.getenv('POSTGRES_USER', 'postgres')
+db_password = os.getenv('POSTGRES_PASSWORD', 'postgres')
+# print(f'django_env= {django_env}')
+# print(f'db_name= {db_name}')
+# print(f'db_username= {db_username}')
+# print(f'db_password= {db_password}')
 
 DATABASES = {
    'default': {
        'ENGINE': 'django.db.backends.postgresql',
-       #'NAME': 'ASA_Check_v3',
-       'NAME': 'ASA_Check' if django_env == 'local' else 'ASA_Check_v3',
-       #'NAME': 'WhatchThisFirewall' if django_env == 'local' else 'ASA_Check_v3',
-       'USER': 'postgres',
-       'PASSWORD': 'postgres',
-       'HOST': '127.0.0.1' if django_env == 'local' else 'db_postgres',
-       'PORT': '5432',
+       #'NAME'    : 'ASA_Check' if django_env == 'local' else 'ASA_Check_v3',
+       #'USER'    : 'postgres',
+       #'PASSWORD': 'postgres',
+       'NAME'    : db_name,
+       'USER'    : db_username,
+       'PASSWORD': db_password,
+       'HOST'    : '127.0.0.1' if django_env == 'local' else 'db_postgres',
+       'PORT'    : '5432',
        # ----- Following settings are for Dockerized DB -----
        #'HOST': 'db_postgres',
    }
@@ -179,8 +188,8 @@ if ENVIRONMENT == 'TEST':
         },
         'handlers': {
             'file': {
-                #'level': 'DEBUG',
-                'level': 'INFO',
+                'level': 'DEBUG',
+                #'level': 'INFO',
                 'class': 'logging.FileHandler',
                 'filename': os.path.join(BASE_DIR, 'debug.log'),
                 'formatter': 'verbose',
@@ -192,18 +201,28 @@ if ENVIRONMENT == 'TEST':
         },
         'loggers': {
             '': {
-                'handlers': ['file', 'console'],
+                #'handlers': ['file', 'console'],
                 #'level': 'DEBUG',
+                'handlers': ['console'],
                 'level': 'INFO',
                 'propagate': True,
             },
             'django': {
-                'handlers': ['file', 'console'],
+                #'handlers': ['file', 'console'],
                 #'level': 'DEBUG',
+                'handlers': ['console'],
                 'level': 'INFO',
                 'propagate': True,
             },
         },
     }
+    
+if ENVIRONMENT == 'DEBUG':
+    LOGGING['loggers']['']['handlers'].append('file')
+    LOGGING['loggers']['django']['handlers'].append('file')    
 
-
+#'DEBUG': Detailed information, typically used for debugging.
+#'INFO': General information about application flow.
+#'WARNING': Warnings that are not critical but might indicate an issue.
+#'ERROR': Errors that occur in the application.
+#'CRITICAL': Very severe error that causes the program to stop.

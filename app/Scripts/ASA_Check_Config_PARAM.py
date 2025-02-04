@@ -10,18 +10,20 @@ import platform
 ##    wtf:
 ##        environment:
 ##            - DJANGO_ENV=docker
-django_env = os.getenv('DJANGO_ENV', 'local')
+django_env = os.getenv('DJANGO_RUNTIME', 'local')
 if platform.system() == "Windows":
     PostgreSQL_Host = 'localhost'
     PostgreSQL_Port = 5432
 else:
-    if os.getenv('DJANGO_ENV') == 'docker':
-        db_Name = 'ASA_Check_v3'
+    if os.getenv('DJANGO_RUNTIME') == 'docker':
         PostgreSQL_Host = 'db_postgres'
         PostgreSQL_Port = 5432
+        db_Name         = os.getenv('POSTGRES_DB')
+        PostgreSQL_User = os.getenv('POSTGRES_USER')
+        PostgreSQL_PW   = os.getenv('POSTGRES_PASSWORD')
     else:
         PostgreSQL_Host = 'localhost'
-        PostgreSQL_Port = 5433
+        PostgreSQL_Port = 5432
 
     #engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
 

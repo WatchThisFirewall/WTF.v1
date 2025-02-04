@@ -92,6 +92,14 @@ pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 1000)
 pd.set_option('display.width', 1000)
 
+
+##print(f'PostgreSQL_Host = {PostgreSQL_Host}')
+##print(f'PostgreSQL_Port = {PostgreSQL_Port}')
+##print(f'db_Name = {db_Name}')
+##print(f'PostgreSQL_User = {PostgreSQL_User}')
+##print(f'PostgreSQL_PW = {PostgreSQL_PW}')
+
+
 args = utils_v2.Get_Args()
 #print('args = %s' %args)
 if args.e == False:

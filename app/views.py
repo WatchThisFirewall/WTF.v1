@@ -951,18 +951,18 @@ def manage_devices(request):
 #=================================================================================================================
 def delete_device(request, t_IP_Address):
     try:
-        c_group = request.user.groups.all()[0] # This is the group of the user that is making the request
+        c_group = request.user.groups.all()[0].name # This is the group of the user that is making the request
     except:
         c_group = None
     if request.user.is_authenticated:
         try:
-            if ('Admin'in c_group.name):
+            if ('Admin'in c_group):
                 t_Device = My_Devices.objects.get(IP_Address=t_IP_Address)
                 t_Device.delete()
-                Log_MSG = f"User '{request.user}' Deleted device '{t_Device.HostName}' with IP '{t_Device.t_IP_Address}'"
+                Log_MSG = f"User '{request.user}' Deleted device '{t_Device.HostName}' with IP '{t_Device.IP_Address}'"
                 WTF_Log.objects.create( TimeStamp = timezone.now(),
                                         Level = 'INFO',
-                                        Message = Log_MSG,)                
+                                        Message = Log_MSG,)
                 messages.success(request, f"Device {t_IP_Address} has been deleted!")
                 return redirect('manage_devices')
             else: # Guest user

@@ -53,13 +53,11 @@
             </div>
         </div>
 
-
         <div class="nav nav-tabs mb-3" role="tablist">
           <button class="nav-link tablinks" onclick="openTab(event, 'Watch')" id="defaultOpen">Watch</button>
-          <button class="nav-link tablinks" onclick="openTab(event, 'Think')">Think</button>
           <button class="nav-link tablinks" onclick="openTab(event, 'Fix')"  >Fix</button>
+          <button class="nav-link tablinks" onclick="openTab(event, 'Think')">Think</button>
         </div>
-
 
         <div id="Watch" class="tabcontent">
             <div class="card shadow mb-4">
@@ -90,13 +88,26 @@
             </div>
         </div>
 
+        <div id="Fix" class="tabcontent">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i style="font-size:30px" class="fas fa-code"></i>
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% include Fix_FName%}
+                </div>
+            </div>
+        </div>  
+
         <div id="Think" class="tabcontent">
             <div class="card shadow mb-4">
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">
                         <i style="font-size:30px" class="fas fa-info-circle"></i>
                     </h6>
-                </div>
+                </div>This tab does not relate with the previews one
                 <style type="text/css">
                 div.scroll {
                   overflow-x: scroll;
@@ -110,20 +121,7 @@
             </div>
         </div>        
 
-
-
-        <div id="Fix" class="tabcontent">
-            <div class="card shadow mb-4">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">
-                        <i style="font-size:30px" class="fas fa-code"></i>
-                    </h6>
-                </div>
-                <div class="card-body">
-                    {% include Fix_FName%}
-                </div>
-            </div>
-        </div>        
+      
     <!-- /.container-fluid -->
     </div>
 </div>

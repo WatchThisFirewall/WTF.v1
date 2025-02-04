@@ -21,11 +21,16 @@ services:
         volumes:
             - wtf_data:/wtf_app
         environment:
-            - DEBUG=True
+            #- DEBUG=True
             - DJANGO_SUPERUSER_USERNAME=django_admin
             - DJANGO_SUPERUSER_PASSWORD=django_admin_pwd
             - DJANGO_SUPERUSER_EMAIL=admin@example.com
-            - DJANGO_ENV=docker
+            - DJANGO_RUNTIME=docker
+            - DJANGO_ENV=TEST
+            - DJANGO_SECRET_KEY=o0@!62+2spd)dq!5tkw@yaxp4y7zb&%)^1)-dosx0i_c9-o_+z
+            - POSTGRES_DB=WTF_DB_v1
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
         depends_on:
             - db_postgres
             
@@ -37,8 +42,12 @@ services:
         volumes:
             - wtf_data:/wtf_app
         environment:
-            - DEBUG=True
-            - DJANGO_ENV=docker
+            #- DEBUG=True
+            - DJANGO_ENV=TEST
+            - DJANGO_RUNTIME=docker
+            - POSTGRES_DB=WTF_DB_v1
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres        
         depends_on:
             - wtf
         restart: unless-stopped
@@ -49,9 +58,9 @@ services:
         ports: 
             - 5433:5432
         environment:
-            POSTGRES_DB: ASA_Check_v3              # Name of the default database
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: postgres
+            - POSTGRES_DB=WTF_DB_v1
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
         #restart: always
         restart: unless-stopped
         volumes:

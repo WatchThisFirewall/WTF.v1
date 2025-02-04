@@ -42,6 +42,7 @@ It elaborate the output and produce several reports. Below the summary report fo
 </div>
 <br>
 Simply by tracking the configuration length over time, it becomes easy to see whether the device is maintained and kept clean.
+<br>
 <div align="center">
   <img src="IMAGES/Conf_Length_Hist.jpg" alt="Settings"/>
 </div>
