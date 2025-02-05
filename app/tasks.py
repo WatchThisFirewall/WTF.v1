@@ -139,7 +139,7 @@ def Run_Script_Bkgnd_WTF(t_IP_Address):
 
     #python_path = Path("./../venv311/Scripts/python.exe")
     python_path = get_python_path()
-    script_path = Path("./app/Scripts/ASA_Check_Config.v.8.py")
+    script_path = Path("./app/Scripts/ASA_Check_Config.v.1.py")
     output_path = Path("./_Log_FW_").joinpath(t_hostName)
     
     output_path.mkdir(parents=True, exist_ok=True)  # Create directories if not present

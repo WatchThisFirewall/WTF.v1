@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
-# ASA_Check_Config.v.4.py
-# changelog ---------------------------------------------------------------
-# in version 4 error handling is splitted for program and firewalls
-# -------------------------------------------------------------------------
+# ASA_Check_Config.v.1.py
+
 
 ##asgiref==3.8.1
 ##bcrypt==4.2.0

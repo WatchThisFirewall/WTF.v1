@@ -46,10 +46,25 @@ Simply by tracking the configuration length over time, it becomes easy to see wh
 <div align="center">
   <img src="IMAGES/Conf_Length_Hist.jpg" alt="Settings"/>
 </div>
-Settings can be easily costomized according to the specific network guide lines.
+Settings can be easily costomized according to your specific network requirements or guide lines.
 <div align="center">
   <img src="IMAGES/Settings2.jpg" alt="Settings"/>
 </div>
+```
+- Max Capture Age             20      After X days, the Capture can be deleted
+- Max Port Range              10      Warn if a range has more than X ports
+- Max IPv4 Range              10      Warn if a range has more than X IPs
+- Min ACL HitCnt Threshold    20      Under this number, the ACL is in doubt
+- Max ACL Zero HitCnt Age     180     After X days not triggered, the ACL can be turned "inactive"
+- Max ACL Inactive Age        180     After X days an inactive ACL can be deleted
+- Max ACL Expand Ratio        100     Warn if an ACL expands more than X lines
+- N° ACL Most Triggered       10      Number of Top triggered ACL to be reordered
+- Min NAT HitCnt Threshold    20      Under this number the NAT is in doubt
+- Max NAT Zero HitCnt Age     180     After X days not triggered, the NAT can be turned "inactive"
+- Max NAT Inactive Age        180     After X days, an inactive NAT can be removed
+- N° NAT Most Triggered       10      Number of Top triggered NAT to be reordered
+- N° Days Log Lasting         100     Delete the log after X Days
+```
 
 ## Recommendations
 > [!CAUTION]

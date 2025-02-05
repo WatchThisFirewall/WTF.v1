@@ -1,0 +1,43 @@
+name: wtf_on_docker_1
+
+services:
+
+    db_postgres:
+        image: postgres:14-alpine
+        container_name: wtf_postgres_ctr
+        ports: 
+            - 5433:5432
+        environment:
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    
+    wtf:
+        image: watchthisfirewall/test1:wtf_v1
+        container_name: wtf_django_ctr
+        ports: 
+            - 8001:8000
+        environment:
+            - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+            - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+            - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+            - DJANGO_RUNTIME=${DJANGO_RUNTIME}
+            - DJANGO_ENV=${DJANGO_ENV}
+            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        depends_on:
+            - db_postgres
+            
+    tasks:
+        image: watchthisfirewall/test1:tasks_v1
+        container_name: wtf_tasks_ctr
+        environment:
+            - DJANGO_ENV=${DJANGO_ENV}
+            - DJANGO_RUNTIME=${DJANGO_RUNTIME}
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}        
+        depends_on:
+            - wtf

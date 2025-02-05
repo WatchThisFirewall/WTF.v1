@@ -1,11 +1,26 @@
 name: wtf_on_docker_1
 
 services:
+
+    db_postgres:
+        image: postgres:14-alpine
+        container_name: wtf_postgres_ctr
+        ports: 
+            - 5433:5432
+        environment:
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+        #restart: always
+        restart: unless-stopped
+        volumes:
+            - postgres_data:/var/lib/postgresql/data
+        command: postgres -c listen_addresses='*' #for opening the container from outside
     
     wtf:
         #image: my_wtf_image
         build: .    # This tells Docker Compose to build the Docker image from the current directory
-        container_name: my_wtf_container
+        container_name: wtf_django_ctr
         # command: /bin/bash -c " sleep 10 && 
         #                         python manage.py makemigrations && 
         #                         python manage.py migrate && 
@@ -21,52 +36,36 @@ services:
         volumes:
             - wtf_data:/wtf_app
         environment:
-            #- DEBUG=True
-            - DJANGO_SUPERUSER_USERNAME=django_admin
-            - DJANGO_SUPERUSER_PASSWORD=django_admin_pwd
-            - DJANGO_SUPERUSER_EMAIL=admin@example.com
-            - DJANGO_RUNTIME=docker
-            - DJANGO_ENV=TEST
-            - DJANGO_SECRET_KEY=o0@!62+2spd)dq!5tkw@yaxp4y7zb&%)^1)-dosx0i_c9-o_+z
-            - POSTGRES_DB=WTF_DB_v1
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres
+            - DJANGO_SUPERUSER_USERNAME=${DJANGO_SUPERUSER_USERNAME}
+            - DJANGO_SUPERUSER_PASSWORD=${DJANGO_SUPERUSER_PASSWORD}
+            - DJANGO_SUPERUSER_EMAIL=${DJANGO_SUPERUSER_EMAIL}
+            - DJANGO_RUNTIME=${DJANGO_RUNTIME}
+            - DJANGO_ENV=${DJANGO_ENV}
+            - DJANGO_SECRET_KEY=${DJANGO_SECRET_KEY}
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
         depends_on:
             - db_postgres
             
     tasks:
         build: .
         #command: /bin/bash -c "sleep 20 && python manage.py makemigrations && python manage.py migrate && python manage.py process_tasks"
-        command: /bin/bash -c "sleep 30 && python manage.py process_tasks"
-        container_name: my_tasks_container
+        command: /bin/bash -c "sleep 30 && 
+                               python manage.py process_tasks"
+        container_name: wtf_tasks_ctr
         volumes:
             - wtf_data:/wtf_app
         environment:
-            #- DEBUG=True
-            - DJANGO_ENV=TEST
-            - DJANGO_RUNTIME=docker
-            - POSTGRES_DB=WTF_DB_v1
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres        
+            - DJANGO_ENV=${DJANGO_ENV}
+            - DJANGO_RUNTIME=${DJANGO_RUNTIME}
+            - POSTGRES_DB=${POSTGRES_DB}
+            - POSTGRES_USER=${POSTGRES_USER}
+            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}        
         depends_on:
             - wtf
         restart: unless-stopped
-      
-    db_postgres:
-        image: postgres:14-alpine
-        container_name: my_postgres_container
-        ports: 
-            - 5433:5432
-        environment:
-            - POSTGRES_DB=WTF_DB_v1
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres
-        #restart: always
-        restart: unless-stopped
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
-        command: postgres -c listen_addresses='*' #for opening the container from outside
-            
+
 volumes:
     postgres_data:
     wtf_data:

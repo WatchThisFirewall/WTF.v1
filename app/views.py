@@ -1154,7 +1154,7 @@ def run_Script_WTF(request, t_IP_Address):
         async def async_subprocess(queue):
             python_path = get_python_path()
             #python_path = Path("./../venv311/Scripts/python.exe")
-            script_path = Path("./app/Scripts/ASA_Check_Config.v.8.py")
+            script_path = Path("./app/Scripts/ASA_Check_Config.v.1.py")
             args = ['-d', t_HostName]  # Separate arguments from script path
             process = await asyncio.create_subprocess_exec(
                 python_path, 
@@ -1213,7 +1213,7 @@ def run_Script_WTF_Shell(request, t_IP_Address):
             output_path = Path("./_Log_FW_")
             python_path = get_python_path()
             #python_path = Path("./../venv311/Scripts/python.exe")
-            script_path = Path("./app/Scripts/ASA_Check_Config.v.8.py")
+            script_path = Path("./app/Scripts/ASA_Check_Config.v.1.py")
 
             # Use shell to call the Python script and pass arguments directly
             command = f'{python_path} {script_path} -d {t_HostName} > {output_path}{t_HostName}_runlog.txt 2>&1'
