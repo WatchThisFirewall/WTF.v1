@@ -47,9 +47,7 @@ Simply by tracking the configuration length over time, it becomes easy to see wh
   <img src="IMAGES/Conf_Length_Hist.jpg" alt="Settings"/>
 </div>
 Settings can be easily costomized according to your specific network requirements or guide lines.
-<div align="center">
-  <img src="IMAGES/Settings2.jpg" alt="Settings"/>
-</div>
+
 ```
 - Max Capture Age             20      After X days, the Capture can be deleted
 - Max Port Range              10      Warn if a range has more than X ports
