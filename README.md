@@ -19,8 +19,11 @@ The tool is based on Python 3.11 and the package is composed by three containers
 - The Job Scheduler (python:3.11-slim)
 
 # Table of Contents
-- [How Does it Work](#How-Does-it-Work)
-- [![How Does it Work][168]]
+- [How Does it Work?](#How-Does-it-Work)
+- [How Do I get Started?](#How-Do-I-get-Started)
+- [What's Next?](#What-s-Next)
+- [Supported Network Devices](#Supported-Network-Devices)
+
 
 
 # How Does it Work?
@@ -96,7 +99,7 @@ Run this command from the folder where the .env file is located
 ```
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
 ```
-# What Next?
+# What's Next?
 ## 1. Connect to the Server
 Open a Browser and go to the server's IP on http port 8001
 
@@ -155,7 +158,7 @@ textfsm==1.1.3
 typing_extensions==4.12.2
 tzdata==2024.1  
 ```
-# Supported Network Device
+# Supported Network Devices
 - Cisco ASA
 # License
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
@@ -234,4 +237,4 @@ Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/
   [68]: https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg
   [69]: https://github.com/pypa/hatch
   [70]: http://www.pennington.net/py/ciscoconfparse2/examples.html
-[168]: https://github.com/WatchThisFirewall/WTF.v1/#How-Do-I-get-Started?
+
