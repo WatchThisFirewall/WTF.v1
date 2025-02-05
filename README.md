@@ -21,7 +21,7 @@ The tool is based on Python 3.11 and the package is composed by three containers
 # Table of Contents
 - [How Does it Work?](#How-Does-it-Work)
 - [How Do I get Started?](#How-Do-I-get-Started)
-- [What's Next?](#What-s-Next)
+- [What Next?](#What-Next)
 - [Supported Network Devices](#Supported-Network-Devices)
 
 
@@ -99,7 +99,7 @@ Run this command from the folder where the .env file is located
 ```
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
 ```
-# What's Next?
+# What Next?
 ## 1. Connect to the Server
 Open a Browser and go to the server's IP on http port 8001
 
