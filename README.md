@@ -59,7 +59,7 @@ Settings can be easily costomized according to your specific network requirement
 - N° ACL Most Triggered       10      Number of Top triggered ACL to be reordered
 - Min NAT HitCnt Threshold    20      Under this number the NAT is in doubt
 - Max NAT Zero HitCnt Age     180     After X days not triggered, the NAT can be turned "inactive"
-- Max NAT Inactive Age        180     After X days, an inactive NAT can be removed
+- Max NAT Inactive Age        180     After X days, an inactive NAT can be deleted
 - N° NAT Most Triggered       10      Number of Top triggered NAT to be reordered
 - N° Days Log Lasting         100     Delete the log after X Days
 ```
