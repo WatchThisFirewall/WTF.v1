@@ -18,8 +18,12 @@ The tool is based on Python 3.11 and the package is composed by three containers
 - The Django Engine (python:3.11-slim)
 - The Job Scheduler (python:3.11-slim)
 
+# Table of Contents
+- [How Does it Work](#How-Does-it-Work)
+- [![How Does it Work][168]]
 
-# How Does it Work
+
+# How Does it Work?
 It connects to a device and retrive the output from the following commands
 ```
 term page 0
@@ -38,7 +42,7 @@ show clock (When Testing The Connection)
 
 It elaborate the output and produce several reports. Below the summary report for each device.
 <div align="center">
-  <img src="IMAGES/summary.jpg" alt="Summary"/>
+  <img src="IMAGES/summary.jpg" alt="Summary" width="70%"/>
 </div>
 <br>
 Simply by tracking the configuration length over time, it becomes easy to see whether the device is maintained and kept clean.
@@ -71,8 +75,51 @@ We strongly recommend configuring your TACACS or RADIUS server to grant this too
 # How Do I get Started?
 ## 1. Prerequisites
 Before starting, ensure the [Docker Desktop](https://www.docker.com/) package that suits your environment is installed on your system.
-## 2. Pull the Docker Image
-Use the pull command ```docker pull <image_name>:<tag>``` to download the Docker image.
+## 2. Get the Source Files
+Download or Clone the project
+<div align="center">
+  <img src="IMAGES/Download.jpg" alt="Download" width="40%" />
+</div>
+
+## 3. Edit the ".env" (environment) file and be sure to change the following parameters
+
+```
+DJANGO_SECRET_KEY=o0@!62+2spd)dq!5tkw@yaxp4y7zb&%)^1)-dosx0i_c9-o_+z
+POSTGRES_USER=postgres
+POSTGRES_PASSWORD=postgres
+DJANGO_SUPERUSER_USERNAME=django_admin
+DJANGO_SUPERUSER_PASSWORD=django_admin_pwd
+```
+## 4. Pull and Run the Containers
+Run this command from the folder where the .env file is located
+
+```
+docker-compose -f docker-compose.yml -f docker-compose.prod.yml up
+```
+# What Next?
+## 1. Connect to the Server
+Open a Browser and go to the server's IP on http port 8001
+
+```
+http://<SERVER_IP_ADDRESS>:8001 (or http://localhost:8001 if local)
+```
+## 1. Login to the Server
+Login using the credentials you changed before:
+
+```
+DJANGO_SUPERUSER_USERNAME=django_admin
+DJANGO_SUPERUSER_PASSWORD=django_admin_pwd
+```
+## 2. The Admin User
+Go to "Settings" => "User Settings"   
+Edit the User and put him in the "Admin" Group  
+Only Admin users can Add/Remove Devices or change the Global Settings
+
+## 2. Add a Device
+Go to "Settings" => "Device Settings" => "Add Device"  
+Fill in the Form  
+Test the Connection  
+Once it is OK you can run the Check manually or wait for the scheduler to do the job for you
 
 # Dependencies
 ```
@@ -113,8 +160,8 @@ tzdata==2024.1
 # License
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
 # Author
-[ciscoconfparse2][3] was written by [David Michael Pennington][25].
-```"watch-this-firewall_at_gmail.com"    .replace('_at_','@').replace('-','')```
+
+```"watch-this-firewall_at_gmail.com".replace('_at_','@').replace('-','')```
 
 
 
@@ -187,3 +234,4 @@ Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/
   [68]: https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg
   [69]: https://github.com/pypa/hatch
   [70]: http://www.pennington.net/py/ciscoconfparse2/examples.html
+[168]: https://github.com/WatchThisFirewall/WTF.v1/#How-Do-I-get-Started?
