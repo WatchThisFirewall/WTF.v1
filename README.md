@@ -158,7 +158,7 @@ tzdata==2024.1
 - Cisco ASA
 # License
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
-# Author
+# Authors
 
 ```"watch-this-firewall_at_gmail.com".replace('_at_','@').replace('-','')```
 
