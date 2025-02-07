@@ -13,7 +13,7 @@ services:
             - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     
     wtf:
-        image: watchthisfirewall/test1:wtf_v1
+        image: watchthisfirewall/wtf.v1:wtf_v1
         container_name: wtf_django_ctr
         ports: 
             - 8001:8000
@@ -31,7 +31,7 @@ services:
             - db_postgres
             
     tasks:
-        image: watchthisfirewall/test1:tasks_v1
+        image: watchthisfirewall/wtf.v1:tasks_v1
         container_name: wtf_tasks_ctr
         environment:
             - DJANGO_ENV=${DJANGO_ENV}
