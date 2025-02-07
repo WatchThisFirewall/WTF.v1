@@ -4,7 +4,6 @@ WatchThisFirewall is a firewall assessment tool designed to connect to firewalls
 <div align="center">
   <img src="IMAGES/login2.jpg" alt="Logo"/>
 </div>
-<br>
 
 # What is WatchThisFirewall
 WatchThisFirewall is a firewall assessment tool, it is a specialized software solution that thoroughly analyzes firewall configurations, policies, and performance to enhance security and ensure compliance with industry standards. It identifies unused, redundant, or misconfigured objects, NAT rules and access control lists (ACLs), highlighting potential vulnerabilities and inefficiencies.  
