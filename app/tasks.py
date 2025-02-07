@@ -251,15 +251,14 @@ from background_task.models import CompletedTask
     
 @background() 
 def clean_completed_tasks(days=14):
-    now = timezone.now()
-    #now = datetime.datetime.now()
+    _now_ = timezone.localtime(timezone.now())
     """Delete completed tasks older than the specified number of days."""
-    logger.info(f"{now} - checking for completed tasks to delete older than {days} days.")
-    cutoff_date = now - timedelta(days=days)
+    logger.info(f"{_now_} - checking for completed tasks to delete older than {days} days.")
+    cutoff_date = _now_ - timedelta(days=days)
     old_tasks = CompletedTask.objects.filter(run_at__lt=cutoff_date)
     count = old_tasks.count()
     old_tasks.delete()
-    logger.info(f"{now} - Deleted {count} completed tasks.")
+    logger.info(f"{_now_} - Deleted {count} completed tasks.")
     
     
 #=================================================================================================================

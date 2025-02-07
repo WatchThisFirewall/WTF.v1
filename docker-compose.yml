@@ -1,10 +1,10 @@
-name: wtf_on_docker_1
+name: wtf_on_docker_DEV
 
 services:
 
     db_postgres:
         image: postgres:14-alpine
-        container_name: wtf_postgres_ctr
+        container_name: wtf_postgres_DEV
         ports: 
             - 5433:5432
         environment:
@@ -20,7 +20,7 @@ services:
     wtf:
         #image: my_wtf_image
         build: .    # This tells Docker Compose to build the Docker image from the current directory
-        container_name: wtf_django_ctr
+        container_name: wtf_django_DEV
         # command: /bin/bash -c " sleep 10 && 
         #                         python manage.py makemigrations && 
         #                         python manage.py migrate && 
@@ -53,7 +53,7 @@ services:
         #command: /bin/bash -c "sleep 20 && python manage.py makemigrations && python manage.py migrate && python manage.py process_tasks"
         command: /bin/bash -c "sleep 30 && 
                                python manage.py process_tasks"
-        container_name: wtf_tasks_ctr
+        container_name: wtf_tasks_DEV
         volumes:
             - wtf_data:/wtf_app
         environment:

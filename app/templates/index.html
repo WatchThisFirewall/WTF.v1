@@ -27,106 +27,6 @@
         </div>
 
 
-<!--
-
-        <button id="runScriptButton">Run Python Script1</button>
-        <div id="output"></div>
-
-        <script>
-            document.getElementById('runScriptButton').addEventListener('click', () => {
-                // Open a new window first to avoid popup blockers
-
-                const newWindow = window.open('', '_blank');
-                fetch('/run-script/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/text',
-                        'X-CSRFToken': '{{ csrf_token }}'  // Django template tag for CSRF token
-                    }
-                })
-                .then(response => response.text())
-                .then(data => {
-                    // Write the output to the new window
-                    newWindow.document.write('<pre>' + data.output + '</pre>');
-                    newWindow.document.close();  // Close the document stream
-                })
-                .catch(error => {
-                    newWindow.document.write('<pre>Error: ' + error + '</pre>');
-                    newWindow.document.close();  // Close the document stream
-                    console.error('Error:', error);
-                });
-            });
-        </script>
-
-        <button onclick="runPythonScript()">Run Python Script2</button>  
-        <script>
-            function runPythonScript() {
-            // Get the path to the Python script.
-            var pythonScriptPath = "C:/__Python_Tools__/__Django/WTF_v1/WTF/app/Scripts/ASA_Check_Config.v.6.py";      // Run the Python script.
-            subprocess.run(["python", pythonScriptPath]);
-            }
-        </script>
-
-
-
-
-
-
-
-
-        <pre id="output"></pre>
-
-        <script>
-            const output = document.getElementById('output');
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', '/run-script/', true);
-
-            xhr.onprogress = function () {
-                output.textContent += xhr.responseText;
-                xhr.responseText = ''; // Clear buffer after appending to prevent repeated output
-            };
-
-            xhr.onerror = function () {
-                console.error("Error during the AJAX call.");
-            };
-
-            xhr.onloadend = function() {
-                if (xhr.status != 200) {  // HTTP error?
-                    console.error(`Error ${xhr.status}: ${xhr.statusText}`);
-                }
-            };
-
-            xhr.send();
-        </script>
-
-
-
-        <div id="dina_content">
-            // Content will be dynamically updated here 
-        </div>
-
-        <script>
-            function fetchUpdates() {
-                fetch('C:/__Python_Tools__/__Django/WTF_v1/WTF/_Log_FW_/FW-M-PE-01/_CONFIG_FW-M-PE-01.txt')
-                    .then(response => response.text())
-                    .then(data => {
-                        // Update the content of the page with the fetched data
-                        document.getElementById('dina_content').innerText = data;
-                    })
-                    .catch(error => console.error('Error fetching updates:', error));
-            }
-
-            // Fetch updates initially when the page loads
-            fetchUpdates();
-
-            // Set interval to fetch updates periodically (every 5 seconds in this example)
-            setInterval(fetchUpdates, 5000);
-        </script>
-
-
-
-    -->
-
 
         <!-- Content Row -->
         <div class="row">
@@ -214,17 +114,8 @@
                 </div>
                 </a>
             </div>
-
         </div>
-
-
-
         <!-- Content Row -->
-
-
-
-
- 
 
 
         <!-- Content Row -->
@@ -271,11 +162,7 @@
                 <div class="card shadow mb-4">
                     <div class="card-header py-3">
                         <h6 class="m-0 font-weight-bold text-primary">Up Time
-                            <font class="text-dark">(</font>
-                            <font class="text-primary">Days</font>
-                            <font class="text-dark">/</font>
-                            <font class="text-danger">Years</font>
-                            <font class="text-dark">)</font>
+                            <font class="text-dark">(</font><font class="text-primary">Days</font><font class="text-dark">/</font><font class="text-danger">Years</font><font class="text-dark">)</font>
                         </h6>                        
                     </div>
                     <div class="card-body">
@@ -310,9 +197,6 @@
                     </div>
                 </div>
             </div>  
-       
-
-          
         </div>   
 
 
@@ -407,14 +291,11 @@
                     </div>
                 </div>
             </div>
-
         </div>   
-
 
       
         <!-- Content Row -->
         <div class="row">
-
             <div class="col-lg-6">
                 <div class="card shadow mb-4">
                     <!-- Card Header - Dropdown -->
@@ -550,15 +431,11 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
-
 
 
         <!-- Content Row -->
         <div class="row">
-
             <!-- Content Column -->
             <div class="col-lg-6">
                 <!-- Project Card Example -->
@@ -651,15 +528,11 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
-
 
 
         <!-- Content Row -->
         <div class="row">
-
             <!-- Content Column -->
             <div class="col-lg-6">
                 <div class="card shadow mb-4">
@@ -799,8 +672,6 @@
         </div>     
 
 
-
-
         <!-- Content Row -->
         <div class="row">
             <!-- Content Column -->
@@ -808,12 +679,8 @@
                 <div class="card shadow mb-4">
                     <!-- Card Header - Dropdown -->
                     <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                        <h6 class="m-0 font-weight-bold text-dark">ACL Opening:
-                            <font class="text-danger">TCP</font>
-                            <font class="text-dark">/</font>
-                            <font class="text-primary">UDP</font>
-                            <font class="text-dark">/</font>
-                            <font class="text-success">ICMP</font>
+                        <h6 class="m-0 font-weight-bold text-primary">ACL Opening
+                            <font class="text-dark">(</font><font class="text-danger">TCP</font><font class="text-dark">/</font><font class="text-primary">UDP</font><font class="text-dark">/</font><font class="text-success">ICMP</font><font class="text-dark">)</font>
                         </h6>
                         <!--
                         <div class="dropdown no-arrow">
@@ -939,11 +806,7 @@
                     </div>
                 </div>
             </div>
-
-
         </div>
-
-
         
 
         <!-- ACL SummaryDataTales -->
@@ -988,18 +851,7 @@
                 </table>
             </div>
         </div>
-                
-
         <!-- Content Row -->
-
-
-
-
-
-
-
-
-
 
 
     </div>
