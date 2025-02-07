@@ -106,19 +106,19 @@ Open a Browser and go to the server's IP on http port 8001
 ```
 http://<SERVER_IP_ADDRESS>:8001 (or http://localhost:8001 if local)
 ```
-## 1. Login to the Server
+## 2. Login to the Server
 Login using the credentials you changed before:
 
 ```
 DJANGO_SUPERUSER_USERNAME=django_admin
 DJANGO_SUPERUSER_PASSWORD=django_admin_pwd
 ```
-## 2. The Admin User
+## 3. The Admin User
 Go to "Settings" => "User Settings"   
 Edit the User and put him in the "Admin" Group  
 Only Admin users can Add/Remove Devices or change the Global Settings
 
-## 2. Add a Device
+## 4. Add a Device
 Go to "Settings" => "Device Settings" => "Add Device"  
 Fill in the Form  
 Test the Connection  
