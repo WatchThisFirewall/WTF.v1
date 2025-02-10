@@ -7,6 +7,7 @@ from .forms import RegisterUserForm, UpdateUserForm, My_PasswordChangeForm
 from django.contrib.auth.models import User, Group
 from app.models import WTF_Log
 from django.utils import timezone
+import os
 
 from django.db import models
 from app.models import My_Devices, Global_Settings, Devices_Model, Default_Credentials
@@ -32,10 +33,13 @@ def login_user(request):
 
     # Ensure a superuser exists
     if not User.objects.filter(is_superuser=True).exists():
+        Django_username = os.getenv('DJANGO_SUPERUSER_USERNAME', 'django_admin')
+        Django_password = os.getenv('DJANGO_SUPERUSER_PASSWORD', 'django_admin_pwd')
+        Django_email    = os.getenv('DJANGO_SUPERUSER_EMAIL',    'dj-admin@trash.me')
         User.objects.create_superuser(
-            username="django_admin",
-            email="dj-admin@trash.me",
-            password="django_admin_pwd"
+            username=Django_username,
+            email=Django_email,
+            password=Django_password
         )
         print("Superuser created successfully!")
     
