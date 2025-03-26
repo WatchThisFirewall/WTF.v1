@@ -48,30 +48,27 @@ def check_device_schedules():
                 continue
             
             # check for new devices and set the first run to be now
-            if t_device.RUN_Last_Run_Time is None:
+            if not t_device.RUN_Last_Run_Time:
                 if t_device.IP_Address not in db_Run_Script_Bkgnd_WTF_dic.keys():
                     logger.info(f"{_now_} - CDS - 1st queuing Run_Script_Bkgnd_WTF for device: {t_device.HostName}@{t_device.IP_Address}")
                     Run_Script_Bkgnd_WTF(t_device.IP_Address)
-                    continue
-            
+                
             # checkif last run failed for some reason
-            if (t_device.TimeStamp_t0-timedelta(days=7)) < t_device.RUN_Last_Run_Time:
+            elif (t_device.TimeStamp_t0-timedelta(days=7)) < t_device.RUN_Last_Run_Time:
                 if t_device.IP_Address not in db_Run_Script_Bkgnd_WTF_dic.keys():
                     logger.info(f"{_now_} - CDS - re-queuing Run_Script_Bkgnd_WTF for device: {t_device.HostName}@{t_device.IP_Address}")
                     #print(f"print... re-queuing Run_Script_Bkgnd_WTF for device: {t_device.HostName}@{t_device.IP_Address}")
                     Run_Script_Bkgnd_WTF(t_device.IP_Address)
-                    continue
             
             # check if last run is too old
-            if t_device.RUN_Last_Run_Time < (t_device.TimeStamp_t0-timedelta(days=14)):
+            elif t_device.RUN_Last_Run_Time < (t_device.TimeStamp_t0-timedelta(days=14)):
                 if t_device.IP_Address not in db_Run_Script_Bkgnd_WTF_dic.keys():
                     logger.info(f"{_now_} - CDS - old-re-queuing Run_Script_Bkgnd_WTF for device: {t_device.HostName}@{t_device.IP_Address}")
                     #print(f"print... re-queuing Run_Script_Bkgnd_WTF for device: {t_device.HostName}@{t_device.IP_Address}")
-                    Run_Script_Bkgnd_WTF(t_device.IP_Address)
-                    continue            
+                    Run_Script_Bkgnd_WTF(t_device.IP_Address)          
             
             # check if task already scheduled
-            if t_device.IP_Address in db_Run_Script_Bkgnd_WTF_dic.keys():
+            elif t_device.IP_Address in db_Run_Script_Bkgnd_WTF_dic.keys():
                 continue
             
             else:

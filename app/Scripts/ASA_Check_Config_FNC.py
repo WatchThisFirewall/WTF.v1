@@ -188,7 +188,8 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
         Config_Change.append(Log_Message)
         while retries <5:
             try:
-                output.append("%s\n\n%s\n\n" %(t_Command, device_connection.send_command(t_Command,max_loops=50000,delay_factor=3,read_timeout=600*retries)))
+                #output.append("%s\n\n%s\n\n" %(t_Command, device_connection.send_command(t_Command,max_loops=50000,delay_factor=3,read_timeout=1000*retries)))
+                output.append("%s\n\n%s\n\n" %(t_Command, device_connection.send_command(t_Command,read_timeout=3600)))
                 break
             except Exception as e:
                 print(f"Error while executing command: {e}")
@@ -197,6 +198,7 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
         if retries == 4:
             Log_Message = (f"UNABLE TO RUN COMMAND {t_Command} on {hostname}"); print(Log_Message)
             Config_Change.append(Log_Message)
+            pritn(Log_Message)
             row = {'TimeStamp':_now_, 'Level':'ERROR', 'Message':f'UNABLE TO RUN COMMAND {t_Command} on {hostname}'}
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
             return False
@@ -270,6 +272,7 @@ def Split_Show_run(Device, Config_Change, Show_Line, log_folder):
                 l.append(line.encode('ascii', errors='ignore').decode('ascii'))
             else:
                 l.append(line)
+        temp = l
 
         # Output the lines with non-ASCII characters
         for line_num, content in Not_ascii_Run:
@@ -323,6 +326,7 @@ def Split_Show_run(Device, Config_Change, Show_Line, log_folder):
                 l.append(line.encode('ascii', errors='ignore').decode('ascii'))
             else:
                 l.append(line)
+        temp = l
 
         # Output the lines with non-ASCII characters
         for line_num, content in Not_ascii_Cap:
@@ -330,7 +334,14 @@ def Split_Show_run(Device, Config_Change, Show_Line, log_folder):
 
     else:
         with open(f"{FW_log_folder}/{hostname___}.log", 'r', encoding='ascii', errors='ignore') as f:
-            l = f.readlines()
+            t_file = f.readlines()
+        l = []
+        for line_number, line in enumerate(t_file, start=1):
+            if any(ord(char) > 127 for char in line):
+                l.append(line.encode('ascii', errors='ignore').decode('ascii'))
+                print(f" --- Not ascii @ {Show_Line} line {line_number}: {line}")
+            else:
+                l.append(line)
         for n in range(0,len(l)):
             line = l[n]
             if line.startswith('!'):
@@ -1600,56 +1611,123 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     # controlla se ci sono duplicati
 
     OBJ_GRP_NET_Dic_explode = {}
+##    Duplicated_Object_List = []
+    Duplicated_Object_Dic = {}
     for t_key in OBJ_GRP_NET_Dic.keys():
+        if 'DM_INLINE_NETWORK_120' in t_key:
+            print('stop')
         t_vals = []
         for t_item in OBJ_GRP_NET_Dic[t_key]:
-            if 'OCPPROMHUBT04' in t_item:
-                print('stop')
             if 'network-object host ' in t_item:
+##                if t_item.split()[-1] in t_vals:
+##                    print(f'Duplicated Object in {t_key}: {t_item.split()[-1]}')
+##                    Duplicated_Object_List.append(f'{t_key}: {t_item.split()[-1]}')
                 t_vals.append(t_item.split()[-1])
+                if f'{t_key}|{t_item.split()[-1]}' not in Duplicated_Object_Dic.keys():
+                    Duplicated_Object_Dic[f'{t_key}|{t_item.split()[-1]}'] = [f'{t_key} => {t_item}']
+                else:
+                    Duplicated_Object_Dic[f'{t_key}|{t_item.split()[-1]}'].append(f'{t_key} => {t_item}')
             elif 'network-object object ' in t_item:
                 temp = Obj_Net_Dic[t_item.split()[-1]]
                 temp = temp.replace('host ','')
                 temp = temp.replace('range ','')
                 temp = temp.replace('subnet ','')
                 temp = temp.replace('fqdn ','')
+##                if temp in t_vals:
+##                    print(f'Duplicated Object in {t_key}: {temp}')
+##                    Duplicated_Object_List.append(f'{t_key}: {temp}')
                 t_vals.append(temp)
+                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                    Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {t_item}']
+                else:
+                    Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {t_item}')
             elif 'group-object ' in t_item:
                 tt_key = t_item.split()[-1]
                 for tt_item in OBJ_GRP_NET_Dic[tt_key]:
                     if 'network-object host ' in tt_item:
+##                        if tt_item.split()[-1] in t_vals:
+##                            print(f'Duplicated Object in {t_key}: {tt_item.split()[-1]}')
+##                            Duplicated_Object_List.append(f'{t_key}: {tt_item.split()[-1]}')
                         t_vals.append(tt_item.split()[-1])
+                        if f'{t_key}|{tt_item.split()[-1]}' not in Duplicated_Object_Dic.keys():
+                            Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {tt_item}']
+                        else:
+                            Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {tt_item}')
                     elif 'network-object object ' in tt_item:
                         temp = Obj_Net_Dic[tt_item.split()[-1]]
                         temp = temp.replace('host ','')
                         temp = temp.replace('range ','')
                         temp = temp.replace('subnet ','')
                         temp = temp.replace('fqdn ','')
+##                        if temp in t_vals:
+##                            print(f'Duplicated Object in {t_key}: {temp}')
+##                            Duplicated_Object_List.append(f'{t_key}: {temp}')
                         t_vals.append(temp)
+                        if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                            Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {tt_item}']
+                        else:
+                            Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {tt_key} => {tt_item}')
                     elif 'group-object ' in tt_item:
                         ttt_key = tt_item.split()[-1]
                         for ttt_item in OBJ_GRP_NET_Dic[ttt_key]:
                             if 'network-object host ' in ttt_item:
+##                                if ttt_item.split()[-1] in t_vals:
+##                                    print(f'Duplicated Object in {t_key}: {ttt_item.split()[-1]}')
+##                                    Duplicated_Object_List.append(f'{t_key}: {ttt_item.split()[-1]}')
                                 t_vals.append(ttt_item.split()[-1])
+                                if f'{t_key}|{ttt_item.split()[-1]}' not in Duplicated_Object_Dic.keys():
+                                    Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
+                                else:
+                                    Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}')
                             elif 'network-object object ' in ttt_item:
                                 temp = Obj_Net_Dic[ttt_item.split()[-1]]
                                 temp = temp.replace('host ','')
                                 temp = temp.replace('range ','')
                                 temp = temp.replace('subnet ','')
                                 temp = temp.replace('fqdn ','')
+##                                if temp in t_vals:
+##                                    print(f'Duplicated Object in {t_key}: {temp}')
+##                                    Duplicated_Object_List.append(f'{t_key}: {temp}')
                                 t_vals.append(temp)
+                                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                                    Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
+                                else:
+                                    Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}')
                             elif 'group-object ' in ttt_item:
                                 ttt_key = ttt_item.split()[-1]
                             else:
                                 # network-object 10.10.100.0 255.255.254.0
+##                                if (ttt_item.replace('network-object ','')) in t_vals:
+##                                    print(f"Duplicated Object in {t_key}: {ttt_item.replace('network-object ','')}")
+##                                    Duplicated_Object_List.append(f"{t_key}: {ttt_item.replace('network-object ','')}")
                                 t_vals.append(ttt_item.replace('network-object ',''))
+                                temp = ttt_item.replace('network-object ','')
+                                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                                    Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {ttt_key} => {temp}"]
+                                else:
+                                    Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {tt_key} => {ttt_key} => {temp}")
                     else:
                         # network-object 10.10.100.0 255.255.254.0
+##                        if (tt_item.replace('network-object ','')) in t_vals:
+##                            print(f"Duplicated Object in {t_key}: {tt_item.replace('network-object ','')}")
+##                            Duplicated_Object_List.append(f"{t_key}: {tt_item.replace('network-object ','')}")
                         t_vals.append(tt_item.replace('network-object ',''))
-
+                        temp = tt_item.replace('network-object ','')
+                        if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                            Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {temp}"]
+                        else:
+                            Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {tt_key} => {temp}")
             else:
                 # network-object 10.10.100.0 255.255.254.0
+##                if (t_item.replace('network-object ','')) in t_vals:
+##                    print(f"Duplicated Object in {t_key}: {t_item.replace('network-object ','')}")
+##                    Duplicated_Object_List.append(f"{t_key}: {t_item.replace('network-object ','')}")
                 t_vals.append(t_item.replace('network-object ',''))
+                temp = t_item.replace('network-object ','')
+                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                    Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {temp}"]
+                else:
+                    Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {temp}")
         OBJ_GRP_NET_Dic_explode[t_key] = t_vals
 
     Dup_OBJGRP_NET_List = []
@@ -1700,6 +1778,22 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
         Watch_Flist.append('       </tr>\n')
     Watch_Flist.append('       </tbody>\n')
     Watch_Flist.append('   </table>\n')
+##    Watch_Flist.append('   <br>\n')
+##    Watch_Flist.append('   <ul>\n')
+##    for t_line in Duplicated_Object_List:
+##        Watch_Flist.append(f'   <li>{t_line}</li>\n')
+##    Watch_Flist.append('   </ul>\n')
+    Watch_Flist.append('   <br>\n')
+    for t_key in Duplicated_Object_Dic.keys():
+        if len(Duplicated_Object_Dic[t_key]) > 1:
+            Watch_Flist.append(f'   <ul><li>{t_key}\n')
+            Watch_Flist.append('   <ul>\n')
+            for t_item in Duplicated_Object_Dic[t_key]:
+                #Watch_Flist.append(f'   <li>{t_item.replace("=>","&nbsp;<b>=></b>&nbsp;")}</li>\n')
+                t_item = utils_v2.Color_Line(t_item)
+                Watch_Flist.append('   <li>%s</li>\n' %t_item.replace("=>"," &nbsp; <b><font color='#ba1e28'>=></font></b> &nbsp; "))
+            Watch_Flist.append('   </ul>\n')
+            Watch_Flist.append('   </li></ul>\n')
     Watch_Flist.append('</div>\n')
 
     Watch_FName   = FW_log_folder + '/' + hostname___ + '-ObjGrpNet_Duplicated-Watch.html'
@@ -2020,7 +2114,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
     tf_name = f"{FW_log_folder}/VAR_{hostname___}___Obj_Net_Dic"
     Obj_Net_Dic = utils_v2.Shelve_Read_Try(tf_name,'')
 
-    Printed_Lines = []
+    Printed_Lines = set()
     NoActive_NoRoute_Root_ACL = []
     SiActive_NoRoute_Root_ACL = []
     NoActive_NoRoute_Child_ACL = []
@@ -2058,7 +2152,8 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
     ACL_WiderThanRouting = {}
     BINS = 0; LOOP_INDEX = -1; STEPS = 10; ITEMS = len(ACL_List_Dict.keys())
-    for t_key in list(ACL_List_Dict.keys()):
+    #for t_key in list(ACL_List_Dict.keys()):
+    for t_key, acl in ACL_List_Dict.items():
         t_Root__Hash = t_key.split()[-1]
         t_Child_Hash = []
 
@@ -2067,8 +2162,12 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
             print ('...%s%%' %int(BINS*100/STEPS)); BINS = BINS + 1
 
         t_ACL_Lines_DF = utils_v2.ASA_ACL_to_DF(ACL_List_Dict[t_key])
-        t_ACL_Name = t_ACL_Lines_DF.Name[0]
         t_ACL_If_Name = ''
+        try:
+            t_ACL_Name = t_ACL_Lines_DF.Name[0]
+        except:
+            print(f'DEBUG: ACL index 0 is out of bounds t_ACL_Lines_DF.Name[0] for {t_ACL_Lines_DF}')
+            continue
         try:
             t_ACL_If_Name = Accessgroup_Dic_by_ACL[t_ACL_Name]
         except:
@@ -2076,7 +2175,6 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
             continue
 
         for row in t_ACL_Lines_DF.itertuples():
-            temp1 = [row.ACL, row.Name, row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Inactive, row.Hitcnt, row.Hash]
             this_Src_Obj = utils_v2.ASA_ACL_Obj_to_Net(row.Source)
             if this_Src_Obj == []: # ipv6 to be done
                 continue
@@ -2089,7 +2187,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
                     if text_line not in Printed_Lines:
                         #print(text_line)
                         Config_Change.append(text_line)
-                        Printed_Lines.append(text_line)
+                        Printed_Lines.add(text_line)
                         row = {'TimeStamp' : datetime.datetime.now().astimezone(),
                                'Level'     : 'WARNING',
                                'Message'   : (f'Non Conventional Subnet Mask for "{t_this_Src_Obj}" in {t_device}')}
@@ -2155,6 +2253,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
                 if t_this_Src_Obj != '0.0.0.0/0':
                     if ((BEST_ROUTE_IF=='') and (WIDE_ROUTE_List==[])) or ((BEST_ROUTE_DF['Interface']!='-') & (BEST_ROUTE_DF['Interface']!=t_ACL_If_Name)):
+                        temp1 = [row.ACL, row.Name, row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Inactive, row.Hitcnt, row.Hash]
                         if 'inactive' in row.Inactive:
                             if t_key not in NoActive_NoRoute_Root_ACL:
                                 NoActive_NoRoute_Root_ACL.append(t_key)
@@ -2521,6 +2620,10 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
         engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
         with engine.connect() as connection:
             WTF_Log = db.Table('WTF_Log', db.MetaData(), autoload_with=engine)
+            Top_ICMP_Open_Detail = db.Table('Top_ICMP_Open_Detail', db.MetaData(), autoload_with=engine)
+            Top_TCP_Open_Detail = db.Table('Top_TCP_Open_Detail', db.MetaData(), autoload_with=engine)
+            Top_UDP_Open_Detail = db.Table('Top_UDP_Open_Detail', db.MetaData(), autoload_with=engine)
+            Top_IP_Open_Detail = db.Table('Top_IP_Open_Detail', db.MetaData(), autoload_with=engine)
     except Exception as e:
         print(f"error is: {e}")
         print('=================[ Warning ]==================')
@@ -2673,36 +2776,53 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
     Founded_Routes = {}
     acl_too_open = []
     BINS = 0; LOOP_INDEX = -1; STEPS = 10; ITEMS = len(ACL_List_Dict.keys())
-    for t_key in list(ACL_List_Dict.keys()):
+    ACL_Space_ICMP_Detail = {}
+    ACL_Space_TCP__Detail = {}
+    ACL_Space_UDP__Detail = {}
+    ACL_Space_IP___Detail = {}
+    for t_key in ACL_List_Dict:
+        ACL_Space_ICMP_Detail[t_key] = 0
+        ACL_Space_TCP__Detail[t_key] = 0
+        ACL_Space_UDP__Detail[t_key] = 0
+        ACL_Space_IP___Detail[t_key] = 0
 
-        LOOP_INDEX = LOOP_INDEX + 1
-        if LOOP_INDEX > (ITEMS/STEPS)*BINS:
-            print ('....%s%%' %int(BINS*100/STEPS)); BINS = BINS + 1
+        LOOP_INDEX += 1
+        if LOOP_INDEX > (ITEMS / STEPS) * BINS:
+            print(f'....{int(BINS * 100 / STEPS)}%')
+            BINS += 1
 
         t_ACL_Lines_DF = utils_v2.ASA_ACL_to_DF(ACL_List_Dict[t_key])
-        t_ACL_Name = t_ACL_Lines_DF.Name[0]
+        #t_ACL_Name = t_ACL_Lines_DF.Name[0]
         t_If_Name = ''
+        try:
+            t_ACL_Name = t_ACL_Lines_DF.Name[0]
+        except:
+            print(f'DEBUG: ACL index 0 is out of bounds t_ACL_Lines_DF.Name[0] for {t_ACL_Lines_DF}')
+            continue
         try:
             t_If_Name = Accessgroup_Dic_by_ACL[t_ACL_Name]
         except:
             continue #silently skip acl not applied to any interface
 
         for row in t_ACL_Lines_DF.itertuples():
-            ACL_text = row.ACL+' '+row.Name+' '+row.Line+' '+row.Type+' '+row.Action+' '+row.Service+' '+row.Source+' '+row.S_Port+' '+row.Dest+' '+row.D_Port+' '+row.Rest+' '+row.Hitcnt+' '+row.Hash
+            ACL_text = ' '.join([row.ACL, row.Name, row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Hitcnt, row.Hash])
             #print('DBG:' + ' '.join(row)) if (DBG == 1) else ''
             this_Dst_Obj = utils_v2.ASA_ACL_Obj_to_Net(row.Dest)
-            if this_Dst_Obj == []: # ipv6 to be done
+            if not this_Dst_Obj: # ipv6 to be done
                 continue
             if 'inactive' in row.Inactive:
                 continue
 
-            if utils_v2.ASA_ACL_Obj_to_IP(row.Source)[0] == -1: #ipv6
+            source_ip_obj = utils_v2.ASA_ACL_Obj_to_IP(row.Source)[0]
+            if source_ip_obj == -1: #ipv6
                 continue
-            elif utils_v2.ASA_ACL_Obj_to_IP(row.Source)[0] == ipaddress.IPv4Network('0.0.0.0/0'):
+            elif source_ip_obj == ipaddress.IPv4Network('0.0.0.0/0'):
                 SRC = Routing_Space_IN[t_If_Name]
             else:
-                SRC = utils_v2.ASA_ACL_Obj_to_IP(row.Source)[0].num_addresses
+                SRC = source_ip_obj.num_addresses
+
             DST = utils_v2.ASA_ACL_Obj_to_IP(row.Dest)[0].num_addresses
+
             if 'range' in row.D_Port:
                 Port1 = row.D_Port.split('range')[1].split()[0]
                 if Port1.isnumeric() == True:
@@ -2740,6 +2860,17 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                 elif row.Service == 'ip':
                     ACL_Space_UDP[t_If_Name] += SRC*DST*N_of_Ports
                     ACL_Space_TCP[t_If_Name] += SRC*DST*N_of_Ports
+
+            if row.Service == 'icmp':
+                ACL_Space_ICMP_Detail[t_key] += SRC*DST
+            elif row.Service == 'udp':
+                ACL_Space_UDP__Detail[t_key] += SRC*DST*N_of_Ports
+            elif row.Service == 'tcp':
+                ACL_Space_TCP__Detail[t_key] += SRC*DST*N_of_Ports
+            elif row.Service == 'ip':
+                ACL_Space_UDP__Detail[t_key] += SRC*DST*N_of_Ports
+                ACL_Space_TCP__Detail[t_key] += SRC*DST*N_of_Ports
+                ACL_Space_IP___Detail[t_key] += SRC*DST*N_of_Ports
 
             if this_Dst_Obj[0] in list(Founded_Routes.keys()):
                 if this_Dst_Obj[0] != '0.0.0.0 0.0.0.0':
@@ -2833,6 +2964,92 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                         temp = (f"{n[0]:<20} {n[1]:<5}")
                         t_html_file.append(temp.replace(' ','&nbsp;'))
                     t_html_file.append('</p></li>')
+
+    SCALEFACTOR = 100000
+    ACL_Space_ICMP_Detail_list = ACL_Space_ICMP_Detail.items()
+    ACL_Space_ICMP_Detail_Df = pd.DataFrame(ACL_Space_ICMP_Detail_list, columns = ['ACL' , 'Opening'])
+    ACL_Space_ICMP_Detail_Df = ACL_Space_ICMP_Detail_Df.sort_values(by=['Opening'], ascending=[False], ignore_index=True)
+    ACL_Space_ICMP_Detail_Df = ACL_Space_ICMP_Detail_Df[0:99]
+    ACL_Space_ICMP_Detail_Df['Opening'] = ACL_Space_ICMP_Detail_Df['Opening'] / SCALEFACTOR
+
+    #print(ACL_Space_ICMP_Detail_Df)
+    if DB_Available:
+        delete_stmt = db.delete(Top_ICMP_Open_Detail).where(Top_ICMP_Open_Detail.c.HostName == hostname___)
+        with engine.begin() as connection:
+            result = connection.execute(delete_stmt)
+
+        for t_row in ACL_Space_ICMP_Detail_Df.itertuples():
+            Insert_Vals = dict(
+                            HostName = hostname___,
+                            ACL_Line = t_row.ACL,
+                            ICMP_Open_Val = t_row.Opening
+                            )
+            insert_stmt = Top_ICMP_Open_Detail.insert().values(**Insert_Vals)
+            with engine.begin() as connection:
+                results = connection.execute(insert_stmt)
+
+    ACL_Space_TCP__Detail_list = ACL_Space_TCP__Detail.items()
+    ACL_Space_TCP__Detail_Df = pd.DataFrame(ACL_Space_TCP__Detail_list, columns = ['ACL' , 'Opening'])
+    ACL_Space_TCP__Detail_Df = ACL_Space_TCP__Detail_Df.sort_values(by=['Opening'], ascending=[False], ignore_index=True)
+    ACL_Space_TCP__Detail_Df = ACL_Space_TCP__Detail_Df[0:99]
+    ACL_Space_TCP__Detail_Df['Opening'] = ACL_Space_TCP__Detail_Df['Opening'] / SCALEFACTOR
+    #print(ACL_Space_TCP__Detail_Df)
+    if DB_Available:
+        delete_stmt = db.delete(Top_TCP_Open_Detail).where(Top_TCP_Open_Detail.c.HostName == hostname___)
+        with engine.begin() as connection:
+            result = connection.execute(delete_stmt)
+
+        for t_row in ACL_Space_TCP__Detail_Df.itertuples():
+            Insert_Vals = dict(
+                            HostName = hostname___,
+                            ACL_Line = t_row.ACL,
+                            TCP_Open_Val = t_row.Opening
+                            )
+            insert_stmt = Top_TCP_Open_Detail.insert().values(**Insert_Vals)
+            with engine.begin() as connection:
+                results = connection.execute(insert_stmt)
+
+    ACL_Space_UDP__Detail_list = ACL_Space_UDP__Detail.items()
+    ACL_Space_UDP__Detail_Df = pd.DataFrame(ACL_Space_UDP__Detail_list, columns = ['ACL' , 'Opening'])
+    ACL_Space_UDP__Detail_Df = ACL_Space_UDP__Detail_Df.sort_values(by=['Opening'], ascending=[False], ignore_index=True)
+    ACL_Space_UDP__Detail_Df = ACL_Space_UDP__Detail_Df[0:99]
+    ACL_Space_UDP__Detail_Df['Opening'] = ACL_Space_UDP__Detail_Df['Opening'] / SCALEFACTOR
+    #print(ACL_Space_UDP__Detail_Df)
+    if DB_Available:
+        delete_stmt = db.delete(Top_UDP_Open_Detail).where(Top_UDP_Open_Detail.c.HostName == hostname___)
+        with engine.begin() as connection:
+            result = connection.execute(delete_stmt)
+
+        for t_row in ACL_Space_UDP__Detail_Df.itertuples():
+            Insert_Vals = dict(
+                            HostName = hostname___,
+                            ACL_Line = t_row.ACL,
+                            UDP_Open_Val = t_row.Opening
+                            )
+            insert_stmt = Top_UDP_Open_Detail.insert().values(**Insert_Vals)
+            with engine.begin() as connection:
+                results = connection.execute(insert_stmt)
+
+    ACL_Space_IP___Detail_list = ACL_Space_IP___Detail.items()
+    ACL_Space_IP___Detail_Df = pd.DataFrame(ACL_Space_IP___Detail_list, columns = ['ACL' , 'Opening'])
+    ACL_Space_IP___Detail_Df = ACL_Space_IP___Detail_Df.sort_values(by=['Opening'], ascending=[False], ignore_index=True)
+    ACL_Space_IP___Detail_Df = ACL_Space_IP___Detail_Df[0:99]
+    ACL_Space_IP___Detail_Df['Opening'] = ACL_Space_IP___Detail_Df['Opening'] / SCALEFACTOR
+    #print(ACL_Space_IP___Detail_Df)
+    if DB_Available:
+        delete_stmt = db.delete(Top_IP_Open_Detail).where(Top_IP_Open_Detail.c.HostName == hostname___)
+        with engine.begin() as connection:
+            result = connection.execute(delete_stmt)
+
+        for t_row in ACL_Space_IP___Detail_Df.itertuples():
+            Insert_Vals = dict(
+                            HostName = hostname___,
+                            ACL_Line = t_row.ACL,
+                            IP_Open_Val = t_row.Opening
+                            )
+            insert_stmt = Top_IP_Open_Detail.insert().values(**Insert_Vals)
+            with engine.begin() as connection:
+                results = connection.execute(insert_stmt)
 
 
     html_file = []
@@ -2935,11 +3152,11 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
             t_html_file.append('  <tr class="table-danger">\n')
         else:
             t_html_file.append('  <tr>\n')
-        t_html_file.append('    <th>%s</th>\n' %t_item[0])
+        t_html_file.append('    <td>%s</td>\n' %t_item[0])
         new_line = utils_v2.Color_Line(' '.join(t_item[1].split()[:-2]))
-        t_html_file.append('    <th>%s</th>\n' %new_line)
-        t_html_file.append('    <th>%s</th>\n' %utils_v2.Color_Line(t_item[1].split()[-2]))
-        t_html_file.append('    <th>%s</th>\n' %t_item[1].split()[-1])
+        t_html_file.append('    <td>%s</td>\n' %new_line)
+        t_html_file.append('    <td>%s</td>\n' %utils_v2.Color_Line(t_item[1].split()[-2]))
+        t_html_file.append('    <td>%s</td>\n' %t_item[1].split()[-1])
         t_html_file.append('  </tr>\n')
     t_html_file.append('  </tbody>\n')
     t_html_file.append('</table>\n')
@@ -3450,10 +3667,11 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
     try:
         engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
         with engine.connect() as connection:
-            My_Devices      = db.Table('My_Devices',      db.MetaData(), autoload_with=engine)
-            ACL_GROSS       = db.Table('ACL_GROSS',       db.MetaData(), autoload_with=engine)
-            Global_Settings = db.Table('Global_Settings', db.MetaData(), autoload_with=engine)
-            WTF_Log         = db.Table('WTF_Log',         db.MetaData(), autoload_with=engine)
+            My_Devices         = db.Table('My_Devices',        db.MetaData(), autoload_with=engine)
+            ACL_GROSS          = db.Table('ACL_GROSS',         db.MetaData(), autoload_with=engine)
+            Global_Settings    = db.Table('Global_Settings',   db.MetaData(), autoload_with=engine)
+            WTF_Log            = db.Table('WTF_Log',           db.MetaData(), autoload_with=engine)
+
     except Exception as e:
         print(f"error is: {e}")
         print('=================[ Warning ]==================')
@@ -3923,7 +4141,7 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
             for n in temp_few_hitcnt:
                 Config_Change.append(n)
 
-        # remove ldeleted ines from DB -------------------------------
+        # remove deleted ines from DB -------------------------------
         Header_Printed = False
         for row in ACL_GROSS_db.itertuples():
             t_hash = row.Hash
@@ -4082,7 +4300,6 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                         temp_item_4_MHACL.append(Temp_Shadow_List)
                         Most_Hitted_ACL[t_ACL,temp_df_NRows].append(temp_item_4_MHACL)
                     t_Processed_ACLs += 1
-
 
     # OUTPUT HTML FILE for Most_Hitted_ACL-Watch
     t_html_file = ['\n']
@@ -5507,6 +5724,7 @@ def Check_Range(t_device, Config_Change, log_folder):
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
+            Top_IP_Range    = db.Table('Top_IP_Range',    db.MetaData(), autoload_with=engine)
             Global_Settings = db.Table('Global_Settings', db.MetaData(), autoload_with=engine)
     except Exception as e:
         print(f"error is: {e}")
@@ -5550,6 +5768,7 @@ def Check_Range(t_device, Config_Change, log_folder):
 
     N_Range_IP_Obj = 0
     N_Max_Range_IP = 0
+    IP_Ranges_for_DB = {}
     for t_obj_key in Obj_Net_Dic.keys():
         t_value = Obj_Net_Dic[t_obj_key]
         if t_value.startswith('range '):
@@ -5563,6 +5782,7 @@ def Check_Range(t_device, Config_Change, log_folder):
                 t_html_file.append('<tr><td class="text-nowrap"><ul>\n')
                 t_html_file.append('<_L1_TEXT_> '+'<br><li>IPs Range: %s</li>\n' %(N_of_IPs))
                 t_html_file.append('<_CODE_> '+'object network %s<br>\n &nbsp;&nbsp; %s<br><br>\n' %(t_obj_key,t_value))
+                IP_Ranges_for_DB[t_obj_key] = [t_value, N_of_IPs]
                 Out = []
                 t_Out = Where_Used(t_device, t_obj_key, FW_log_folder, Out)
                 if t_Out:
@@ -5687,6 +5907,22 @@ def Check_Range(t_device, Config_Change, log_folder):
         query = db.update(My_Devices).where(My_Devices.c.HostName==hostname___).values(**Updated_Vals)
         with engine.begin() as connection:
             results = connection.execute(query)
+
+        delete_stmt = db.delete(Top_IP_Range).where(Top_IP_Range.c.HostName == hostname___)
+        with engine.begin() as connection:
+            result = connection.execute(delete_stmt)
+
+        # IP_Ranges_for_DB[t_obj_key] = [t_value, N_of_IPs]
+        for t_key in IP_Ranges_for_DB.keys():
+            Insert_Vals = dict(
+                            HostName = hostname___,
+                            Obj_Name = t_key,
+                            IP_Range_Length = IP_Ranges_for_DB[t_key][1]
+                            )
+            insert_stmt = Top_IP_Range.insert().values(**Insert_Vals)
+            with engine.begin() as connection:
+                results = connection.execute(insert_stmt)
+
         engine.dispose()
 
     for i in range(0,len(t_html_file)):

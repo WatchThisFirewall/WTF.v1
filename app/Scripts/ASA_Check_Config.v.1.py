@@ -78,12 +78,12 @@ DEBUG_LEVEL           = 1      #[0 = verbose]
 ARGS_SEE_ELAPSED      = True   #[                                                (-e default = True)]
 ARGS_FETCH_CONFIG     = True   #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
 ARGS_REBUILD_VARS     = True   #[True=Rebuild Variables, False=Skip this session (-r default = True)]
-ARGS_PARRALEL_PROCESS = False  #[                                               (-p default = False)]
+ARGS_PARRALEL_PROCESS = False  #[                                                (-p default = False)]
 DELETE_VAR_FILES      = True
 TEST_THIS_ONLY   = [0]
 TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,      12,         16,17,18]
-#TEST_THIS_ONLY   = [7]
+#TEST_THIS_ONLY   = [17]
 #----------------------------------------------------------------------------------------
 start_time = time.time()
 pd.set_option('display.max_rows', 500)
@@ -772,14 +772,6 @@ if DB_Available:
 # =======================================================================================================================
 # =======================================================================================================================
 
-
-
-
-
-# hostname = 'LEG-FW-01/FW-NC-LEG-DB' processed in
-
-
-
     # le ACL utilizzate sono anche dentro " split-tunnel-network-list XXX" nelle "group-policy YYY attributes"
 
     # gestire inactive line in "no log for acl"
@@ -793,66 +785,22 @@ if DB_Available:
     # in generale rimuovere tutti i "object-group" con dentro una sola entry, sia service che network
 
 
-
-    #http://patorjk.com/software/taag/#p=display&f=Bulbhead&t=LEG-FW-01
+    #http://patorjk.com/software/taag/#p=display&f=Bulbhead&t=FW-ALPHA-01
 
     #mettere questo "OBJ_NAME_REPO_DF = pd.read_excel(my_file, sheet_name='OBJ_Names')" in un DB e fare il check li sopra
-
-    # 1)  migliorare la gestione dei log sulle acl, controllando interva, level log alla fine della linea end so on
-
 
 # analizzare anchce gli show nat (older than...)
 # fare funzione per ACL self shadowing
 
-# controllare acl expanded con hitcount = 0 e suggerire remediation
-
-# aggiungere alla dashboard il numero di linee totale di config e di nat per ogni apparato
-
 #link graph python charts echarts grafici plot
 #https://echarts.apache.org/examples/en/index.html#chart-type-graphGL
-
-
-#https://www.youtube.com/watch?v=0W8BtIwh824
-
-#COMPETITORS:
-    #https://www.manageengine.com/products/firewall/rule-reorder-recommendation.html
-
-# fare tabela dove fa vedere le acl per routing table in modo dad vedere i
-#    flussi est-ovest e nord-sud velocemente (solo flussi attivi)
 
 # i numeri di ACL in NoLogForAcl e in DB for acl non sono gli stessi... come mai?
 ## perche' db4acl tiene in pancia anche la acl not applied to any interface...
 
-
 # nella tabella "Check Acl Destination Vs Routing Table" aggoingere una colonna con l'hit count cumulativo della riga
 
-# nella dashboard , alla fine aggiungere il tab 'check this only'
-
-
-# in check shadowing se ci sono dei range destination port in sovrapposizione viene stampata la riga per tutte le porte in overlap... fare che si fa il check if already printed.
+# Move to the end the top most wide ACL
 
 
 
-
-
-###### ricontrollare @ Check_Config da linea 6293
-
-
-##
-##
-##
-##capire come lanciare i task con Background Tasks (1.2.8)
-##
-##
-
-
-
-# nel data masking rimuovere tutti gli show... rimuovere password e username
-# controllare anche la history di django\admin per eventuali rollback non desiderati
-
-
-#Log_Message = (f'@ ACL_GROSS: Device {t_bad_hostname} has been deleted!')
-#print(Log_Message); Config_Change.append(Log_Message)
-#with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f: f.write(Log_Message)
-#row = {'TimeStamp':datetime.datetime.now().astimezone(), 'Level':'INFO', 'Message':Log_Message}
-#with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))

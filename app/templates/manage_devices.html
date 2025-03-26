@@ -78,16 +78,13 @@
                             <th class="text-center" data-toggle="tooltip" title="Custom Password">Pwd</th>
                             <th class="text-center" data-toggle="tooltip" title="Device Model">Type</th>
                             <th class="text-center" data-toggle="tooltip" title="Device Enabled"><i class="far fa-check-circle"></i></th>
-
                             <th class="text-center" data-toggle="tooltip" title="Scheduled Scan Day"><i class="far fa-calendar-alt text-primary"></i></th>
                             <th class="text-center" data-toggle="tooltip" title="Scheduled Scan Time"><i class="far fa-clock text-primary"></i></th>
                             <th class="text-center" data-toggle="tooltip" title="Scheduled Enabled"><i class="far fa-check-square text-primary"></i></th>
-
                             <th class="text-center" data-toggle="tooltip" title="Last Check (Elapsed Days)"><i class="far fa-calendar-check"></i></th>
                             <th class="text-center" data-toggle="tooltip" title="Processing Time"><i class="fas fa-spinner"></i></th>
                             <th class="text-center" data-toggle="tooltip" title="Fetching Config"><i class="fas fa-eye-dropper"></i></th>
                             <th class="text-center" data-toggle="tooltip" title="Processing Config"><i class="fas fa-cog"></i></th>
-                            <!--<th class="text-center" data-toggle="tooltip" title="Schedule Scan"><i class="far fa-calendar-alt"></i></th>-->
                             <th class="text-center" data-toggle="tooltip" title="Edit Device"><i class="fas fa-pencil-alt"></i></th>
                             <th class="text-center" data-toggle="tooltip" title="Delete Device"><i class="far fa-trash-alt"></i></th>
                         </tr>
@@ -147,30 +144,6 @@
                                         <div id="Processing_Conf_Spinner_{{t_device.HostName}}" class="spinner-border text-primary" role="status" data-toggle="tooltip" title="Processing Config"></div>
                                     </div>
                                 </td>
-                                <!--
-                                <td>
-                                    <div class="d-flex justify-content-center"> 
-                                        <a href="{% url 'edit_device' t_device.IP_Address%}" 
-                                            {% for t_group in user.groups.all %}
-                                                {% if 'Admin' in t_group.name %}
-                                                    class="btn btn-sm btn-outline-primary" 
-                                                {% else %}
-                                                    class="btn btn-sm btn-outline-primary disabled" 
-                                                {% endif %}
-                                            {% empty %}
-                                                {% if user.is_superuser %}
-                                                    class="btn btn-sm btn-outline-primary" 
-                                                {% else %}
-                                                    class="btn btn-sm btn-outline-primary disabled" 
-                                                {% endif %}
-                                            {% endfor %}  
-                                            data-toggle="tooltip" title="Schedule Jobs">
-                                            <span class="icon"> <i class="far fa-calendar-alt"></i> </span>
-                                        </a>
-                                    </div>
-                                </td>  
-                                -->
-
 
                                 <td>
                                     <div class="d-flex justify-content-center"> 
@@ -195,11 +168,6 @@
                                 </td>                                
                                 <td>
                                     <div class="d-flex justify-content-center"> 
-                                        <!--
-                                        <a href="{% url 'delete_device' t_device.IP_Address %}" class="btn btn-sm btn-outline-danger" data-toggle="tooltip" title="Delete Device">
-                                            <span class="icon"> <i class="fas fa-trash"></i> </span>
-                                        </a>
-                                        -->
                                         <a href="#" 
                                             {% for t_group in user.groups.all %}
                                                 {% if 'Admin' in t_group.name %}
@@ -264,31 +232,6 @@
                                         </div>
                                     </div>
                                     <!-- End Delete Modal Second -->                                         
-                                    <!-- Delete Modal-->
-                                    <!--
-                                    <div class="modal fade" id="DeleteModal{{t_device.HostName}}" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                                        <div class="modal-dialog" role="document">
-                                            <div class="modal-content">
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="exampleModalLabel">Are You Sure?</h5>
-                                                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                                                        <span aria-hidden="true">×</span>
-                                                    </button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    Select "Delete" if you want to remove the device <br><br>
-                                                    <ul><li>{{t_device.HostName}}@{{t_device.IP_Address}}<br></li></ul>
-                                                    from the database.
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                                                    <a class="btn btn-primary" href="{% url 'delete_device' t_device.IP_Address %}">Yes Delete</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    -->
-                                    <!-- End Delete Modal-->
                                 </td>
                             </tr>
 

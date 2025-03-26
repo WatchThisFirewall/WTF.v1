@@ -471,6 +471,96 @@ class ACL_GROSS(models.Model):
         return str(self.Name)
 
 #----------------------------------------------------------------------------------------------------------
+class ACL_Most_Expanded(models.Model):
+    HostName    = models.CharField(max_length=120, null=True, blank=True, default='')
+    ACL_Line    = models.TextField()
+    ACL_ELength = models.PositiveBigIntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'ACL_Most_Expanded'
+        verbose_name = 'ACL_Most_Expanded'
+        verbose_name_plural = 'ACL_Most_Expanded'
+
+    def __str__(self):
+        return str(self.ACL_Line)
+    
+#----------------------------------------------------------------------------------------------------------
+class Top_IP_Range(models.Model):
+    HostName    = models.CharField(max_length=120, null=True, blank=True, default='')
+    Obj_Name    = models.CharField(max_length=130, null=True, blank=True, default='')
+    IP_Range_Length = models.PositiveBigIntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'Top_IP_Range'
+        verbose_name = 'Top_IP_Range'
+        verbose_name_plural = 'Top_IP_Range'
+
+    def __str__(self):
+        return str(self.HostName + ' ' + self.Obj_Name)
+
+#----------------------------------------------------------------------------------------------------------
+class Top_ICMP_Open_Detail(models.Model):
+    HostName      = models.CharField(max_length=120, null=True, blank=True, default='')
+    ACL_Line      = models.TextField(null=True, blank=True, default='')
+    ICMP_Open_Val = models.PositiveBigIntegerField(null=True, blank=True, default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'Top_ICMP_Open_Detail'
+        verbose_name = 'Top_ICMP_Open_Detail'
+        verbose_name_plural = 'Top_ICMP_Open_Detail'
+
+    def __str__(self):
+        return str(self.HostName + '|' + self.ACL_Line)
+
+#----------------------------------------------------------------------------------------------------------
+class Top_TCP_Open_Detail(models.Model):
+    HostName      = models.CharField(max_length=120, null=True, blank=True, default='')
+    ACL_Line      = models.TextField(null=True, blank=True, default='')
+    TCP_Open_Val  = models.DecimalField(max_digits=50, decimal_places=0, null=True, blank=True, default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'Top_TCP_Open_Detail'
+        verbose_name = 'Top_TCP_Open_Detail'
+        verbose_name_plural = 'Top_TCP_Open_Detail'
+
+    def __str__(self):
+        return str(self.HostName + '|' + self.ACL_Line)
+
+#----------------------------------------------------------------------------------------------------------
+class Top_UDP_Open_Detail(models.Model):
+    HostName      = models.CharField(max_length=120, null=True, blank=True, default='')
+    ACL_Line      = models.TextField(null=True, blank=True, default='')
+    UDP_Open_Val  = models.DecimalField(max_digits=50, decimal_places=0, null=True, blank=True, default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'Top_UDP_Open_Detail'
+        verbose_name = 'Top_UDP_Open_Detail'
+        verbose_name_plural = 'Top_UDP_Open_Detail'
+
+    def __str__(self):
+        return str(self.HostName + '|' + self.ACL_Line)
+
+#----------------------------------------------------------------------------------------------------------
+class Top_IP_Open_Detail(models.Model):
+    HostName      = models.CharField(max_length=120, null=True, blank=True, default='')
+    ACL_Line      = models.TextField(null=True, blank=True, default='')
+    IP_Open_Val   = models.DecimalField(max_digits=50, decimal_places=0, null=True, blank=True, default=0)
+
+    class Meta:
+        managed = True
+        db_table = 'Top_IP_Open_Detail'
+        verbose_name = 'Top_IP_Open_Detail'
+        verbose_name_plural = 'Top_IP_Open_Detail'
+
+    def __str__(self):
+        return str(self.HostName + '|' + self.ACL_Line)
+
+#----------------------------------------------------------------------------------------------------------
 class WTF_Log(models.Model):
     TimeStamp = models.DateTimeField(null=True, blank=True, default=datetime.datetime(2000, 1, 1, 1, 0))
     #TimeStamp = models.DateTimeField(auto_now_add=True)

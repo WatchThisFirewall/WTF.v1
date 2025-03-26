@@ -36,7 +36,7 @@ def VAR_Show_Nameif(t_device, Config_Change, log_folder):
     global WTF_Error_FName
 
     try:
-        with open("%s/%s___Show_Nameif.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Nameif.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             l = f.readlines()
     except:
         print('file %s/%s___Show_Nameif.log not found! @ VAR_Show_Nameif' %(log_folder,hostname___))
@@ -71,7 +71,7 @@ def VAR_Show_Run_ACGR(t_device, Config_Change, log_folder):
     global WTF_Error_FName
 
     try:
-        with open("%s/%s___Show_Run_Access-Group.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Run_Access-Group.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             l = f.readlines()
     except:
         print('file %s/%s___Show_Run_Access-Group.log not found! @ VAR_Show_Run_ACGR' %(log_folder,hostname___))
@@ -129,7 +129,7 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
     try:
-        with open("%s/%s___Show_Running-Config.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Running-Config.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             t_file = f.readlines()
     except:
         print('file %s/%s___Show_Running-Config.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
@@ -353,114 +353,151 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
             f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Crypto_MAP_ACL_List')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Crypto_MAP_ACL_List)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Crypto_MAP_ACL_List'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_OBJ_NET')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Declared_OBJ_NET)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Declared_OBJ_NET'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_OBJ_GRP_NET')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Declared_OBJ_GRP_NET)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Declared_OBJ_GRP_NET'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Used_Object_List')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Used_Object_List)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Used_Object_List'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Obejct_by_value_Dict')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Obejct_by_value_Dict)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Obejct_by_value_Dict'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Undeclared_NetObj_List')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Undeclared_NetObj_List)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Undeclared_NetObj_List'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_Object_service')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Declared_Object_service)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Declared_Object_service'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Obj_Net_Dic')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Obj_Net_Dic)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Obj_Net_Dic'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ACL_SplitTunnel_List')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ACL_SplitTunnel_List)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'ACL_SplitTunnel_List'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'logging_monitor_line')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,logging_monitor_line)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'logging_monitor_line'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ServicePolicy_Lst')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ServicePolicy_Lst)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'ServicePolicy_Lst'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'PolicyMap_Dct')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,PolicyMap_Dct)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'PolicyMap_Dct'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ClassMap_Dct')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ClassMap_Dct)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'ClassMap_Dct'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_GRP_NET_Dic')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_GRP_NET_Dic)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'OBJ_GRP_NET_Dic'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_GRP_SVC_Dic')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_GRP_SVC_Dic)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'OBJ_GRP_SVC_Dic'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_GRP_PRT_Dic')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_GRP_PRT_Dic)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'OBJ_GRP_PRT_Dic'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Name_dic')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Name_dic)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'Name_dic'))
+            f.write(err_line)
+        print(err_line)
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_SVC_Dic')
+    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_SVC_Dic)
     if retries == 3:
         with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run\n' %(log_folder,hostname___,'OBJ_SVC_Dic'))
+            f.write(err_line)
+        print(err_line)
 
     DB_Available = True
     import sqlalchemy as db
@@ -490,7 +527,7 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
 
 
     try:
-        with open("%s/%s___Show_Access-List.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Access-List.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             t_file = f.readlines()
     except:
         print('file %s/%s___Show_Access-List.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
@@ -697,6 +734,7 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
         engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
+            ACL_Most_Expanded = db.Table('ACL_Most_Expanded', db.MetaData(), autoload_with=engine)
     except Exception as e:
         print(f"error is: {e}")
         print('=================[ Warning ]==================')
@@ -714,6 +752,20 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
         query = db.update(My_Devices).where(My_Devices.c.HostName==hostname___).values(**Updated_Vals)
         with engine.begin() as connection:
             results = connection.execute(query)
+
+        delete_stmt = db.delete(ACL_Most_Expanded).where(ACL_Most_Expanded.c.HostName == hostname___)
+        with engine.begin() as connection:
+            result = connection.execute(delete_stmt)
+
+        for t_row in Expanded_ACL_df.itertuples():
+            Insert_Vals = dict(
+                            HostName = hostname___,
+                            ACL_Line = t_row.ACL,
+                            ACL_ELength = t_row.X_Lines
+                            )
+            insert_stmt = ACL_Most_Expanded.insert().values(**Insert_Vals)
+            with engine.begin() as connection:
+                results = connection.execute(insert_stmt)
 
         engine.dispose()
 
@@ -796,7 +848,7 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
 
     Fix_FName = hostname___ + '-X_Expanded_ACL-Fix.html'
     try:
-        with open("%s/%s"%(html_folder,Fix_FName),mode="w") as html_file:
+        with open("%s/%s"%(html_folder,Fix_FName), mode="w", encoding="utf-8") as html_file:
             for t in t_html_file:
                 html_file.write(t)
         print('... saved file "%s/%s" '%(html_folder,Fix_FName))
@@ -872,7 +924,7 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
     #print('----- VAR Show Route -----')
 
     try:
-        with open("%s/%s___Show_Route.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Route.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             t_file = f.readlines()
     except:
         print('file %s/%s___Show_Route.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
@@ -885,8 +937,6 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
     for n in range(1,len(t_file)):
         if ((t_file[n][0:4] in Prefix1) or (t_file[n][0:4] in Prefix2)):
             temp_line = t_file[n]
-            if '10.255.144.0' in temp_line:
-                print('stop')
             if ' connected by VPN ' in t_file[n]:
                 temp_line = re_space.sub(' ', temp_line)
                 temp_line = temp_line.strip().replace(' connected by VPN (advertised), ', ' ') + ' -'
@@ -973,7 +1023,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
     log_folder = log_folder + '/' + hostname___
 
     try:
-        with open("%s/%s___Show_Nat_Detail.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Nat_Detail.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             t_file = f.readlines()
     except:
         print('file %s/%s___Show_Nat_Detail.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
@@ -1226,7 +1276,7 @@ def VAR_Show_Crypto(t_device, Config_Change, log_folder):
     log_folder = log_folder + '/' + hostname___
 
     try:
-        with open("%s/%s___Show_Crypto_Ipsec_Sa_Entry.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Crypto_Ipsec_Sa_Entry.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             t_file = f.readlines()
     except:
         print('file %s/%s___Show_Crypto_Ipsec_Sa_Entry.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
@@ -1293,7 +1343,7 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
     global WTF_Error_FName
 
     try:
-        with open("%s/%s___Show_Ver.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
+        with open("%s/%s___Show_Ver.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
             l = f.readlines()
     except:
         print('file %s/%s___Show_Ver.log not found! @ VAR_Show_Ver' %(log_folder,hostname___))
@@ -1365,9 +1415,12 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
 
 def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t_device):
     hostname___ = t_device.replace('/','___')
+    #log_folder = log_folder + '/' + hostname___
 
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_Object_List')
     with shelve.open(tf_name) as shelve_obj: Declared_Object_List = shelve_obj['0']
+    tf_name = f"{log_folder}/VAR_{hostname___}___Declared_Object_List"
+    Declared_Object_List = utils_v2.Shelve_Read_Try(tf_name,'')
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Obejct_by_value_Dict')
     with shelve.open(tf_name) as shelve_obj: Obejct_by_value_Dict = shelve_obj['0']
 
@@ -1420,11 +1473,11 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
         Splitted_ACL.append('<_BTN_><a class="btn btn-secondary btn-icon-split btn-sm"><span class="text">Triggered SVC      </span><span class="icon text-white-50" style="width:50px;">{:<4}</span></a>'.format(len(Triggered_Svc_and_Port_List)) )
         Splitted_ACL.append('<_BTN_><a class="btn btn-secondary btn-icon-split btn-sm"><span class="text">Zero Hit SVC       </span><span class="icon text-white-50" style="width:50px;">{:<4}</span></a><br>'.format(len(Svc_and_Port_List)-len(Triggered_Svc_and_Port_List)) )
 
-        Splitted_ACL.append('Triggered SRC = %s' %Triggered_Src)
-        Splitted_ACL.append('Zero_Hit  SRC = %s' %Expanded_Src)
-        Splitted_ACL.append('Triggered DST = %s' %Triggered_Dst)
-        Splitted_ACL.append('Zero_Hit  DST = %s' %Expanded_Dst)
-        Splitted_ACL.append('Triggered SVC = %s' %Triggered_Svc_and_Port_List)
+        Splitted_ACL.append('<b>Triggered SRC</b> = %s' %Triggered_Src)
+        Splitted_ACL.append('<b>Zero_Hit  SRC</b> = %s' %Expanded_Src)
+        Splitted_ACL.append('<b>Triggered DST</b> = %s' %Triggered_Dst)
+        Splitted_ACL.append('<b>Zero_Hit  DST</b> = %s' %Expanded_Dst)
+        Splitted_ACL.append('<b>Triggered SVC</b> = %s' %Triggered_Svc_and_Port_List)
 
         OK_SRC_List = []
         if len(Triggered_Src) > 0:
@@ -1637,7 +1690,7 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
 
 
 
-        # WARNING if spurce port in ACL....
+        # WARNING if source port in ACL....
 
 
         tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_Object_List')

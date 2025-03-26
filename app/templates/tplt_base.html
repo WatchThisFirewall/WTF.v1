@@ -11,14 +11,9 @@
     <meta name="author" content="">
     <title>Watch This Firewall</title>
     <link rel="icon" type="image/x-icon" href="{% static 'img/WTF_Favicon.ico' %}">
-    <!-- Custom fonts for this template-->
     <link href="{% static 'vendor/fontawesome-free/css/all.min.css' %}" rel="stylesheet" type="text/css">
-    <!-- <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet"> -->
-    <!-- Custom styles for this template-->
-
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
-    <!--<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
     <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
 </head>
 
@@ -56,11 +51,7 @@
                 </a>
                 <div id="collapseTools" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <!--<h6 class="collapse-header">General Settings</h6>-->
                         <a class="collapse-item" href="{% url 'submask_table' %}"><i class="fas fa-theater-masks fa-sm fa-fw"></i>&nbsp;Netmasks</a>
-                        <!--
-                        <a class="collapse-item" href="{% url 'subnetting' %}"><i class="fas fa-hand-scissors fa-sm fa-fw"></i>&nbsp;Subnetting</a>
-                        -->
                     </div>
                 </div>
             </li>            
@@ -82,37 +73,12 @@
                 </a>
                 <div id="collapseUtilities" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <!--<h6 class="collapse-header">General Settings</h6>-->
-                        <!--
-                        <a class="collapse-item" href="{% url 'db_settings' %}"><i class="fas fa-database fa-sm fa-fw"></i>&nbsp;DB Settings</a>
-                        -->
                         <a class="collapse-item" href="{% url 'global_settings' %}"><i class="fas fa-cog fa-sm fa-fw"></i>&nbsp;Global Settings</a>
                         <a class="collapse-item" href="{% url 'manage_devices' %}"><i class="fas fa-fire fa-sm fa-fw"></i>&nbsp;Device Settings</a>
                         <a class="collapse-item" href="{% url 'manage_users' %}"><i class="fas fa-user fa-sm fa-fw"></i>&nbsp;User Settings</a>
                     </div>
                 </div>
             </li>
-
-
-            <!-- Nav Item - Pages Collapse Menu -->
-             <!--
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTwo"
-                    aria-expanded="true" aria-controls="collapseTwo">
-                    <i class="fas fa-fw fa-cog"></i>
-                    <span>Components</span>
-                </a>
-                <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Custom Components:</h6>
-                        <a class="collapse-item" href="buttons.html">Buttons</a>
-                        <a class="collapse-item" href="cards.html">Cards</a>
-                    </div>
-                </div>
-            </li>
-            -->
-
-
 
             <!-- Divider -->
             <hr class="sidebar-divider">
@@ -185,71 +151,14 @@
         <i class="fas fa-angle-up"></i>
     </a>
 
-    <!-- Logout Modal-->
-    <!--
-    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
-                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">×</span>
-                    </button>
-                </div>
-                <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
-                <div class="modal-footer">
-                    <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
-                    <a class="btn btn-primary" href="{% url 'logout_user' %}">Logout</a>
-                </div>
-            </div>
-        </div>
-    </div>
-    -->
-
-
-
-
     <!-- Bootstrap core JavaScript-->
     <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
     <script src="{% static 'vendor/bootstrap/js/bootstrap.bundle.min.js' %}" ></script>
-
-    <!-- Core plugin JavaScript-->
-    <!--<script src="{% static 'vendor/jquery-easing/jquery.easing.min.js' %}" ></script> -->
-
-    <!-- Custom scripts for all pages-->
     <script src="{% static 'js/sb-admin-2.min.js' %}" ></script>
-    <!--
-    <script src="{% static 'js/sb-admin-2.js' %}" ></script>
-    -->
-
-    
-    <!-- Page level plugins -->
     <script src="{% static 'vendor/chart.js/Chart.min.js' %}" ></script>
-
-    <!-- Page level custom scripts -->
-    <!--
-    <script src="{% static 'js/demo/chart-area-demo.js' %}" ></script>
-    -->
     <script src="{% static 'js/demo/chart-pie-demo.js' %}" ></script>
-    <!-- da qui in poi e' test per la tabella-->
-    <!--
-    <script src="{% static 'js/anychart-core.min.js' %}" ></script>
-    <script src="{% static 'js/plotly-2.32.0.min.js' %}" ></script>
-    <script src="{% static 'js/anychart-sankey.min.js' %}" ></script>
-    -->
-    <!-- <script type="text/javascript" src="{% static 'js/chart_loader.js' %}"></script> -->
-    
-
     {% block javascript %} 
     {% endblock javascript %}
-    <!--
-        
-    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js'%}"></script>
-    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
-    <link  href="{% static 'vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet"' %}">
-    -->
 
 </body>
 

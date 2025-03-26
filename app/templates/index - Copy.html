@@ -778,332 +778,42 @@
                 </table>
             </div>
         </div>
-        <!-- Content Row --> 
-
-        <!-- ACL Most Triggered -->
-        <br>
-        <div class="card shadow mb-4">
-            <div class="card-header py-3 d-sm-flex align-items-center justify-content-between bg-gradient-info text-white">
-                <h6 class="m-0 font-weight-bold ">
-                    <i style="font-size:30px" class="fas fa-sort-amount-up"></i>
-                    <i style="font-size:30px"> &nbsp; Top 200</i>
-                </h6>
-            </div>
-        </div>          
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">ACL Lines Triggering </h6>
-            </div>
-            <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_0xcf53cbed" width="100%" cellspacing="0" data-page-length="10" >
-                    <thead>
-                        <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">&#916; HitCnt</th>
-                            <th class="px-2">ACL Line</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t_line in Top_100_HitCnt %}
-                            <tr>
-                                <td class="text-nowrap px-2">&nbsp;{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.Delta_HitCnt }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
-                                
-                            </tr>
-                        {% endfor %}                                        
-                    </tbody>
-                </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_0xcf53cbed').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>                
-            </div>
-        </div>
         <!-- Content Row -->
 
-
-        <!-- Top 100 Deny Triggered -->
-        <br>     
+        <!-- ACL Most Triggered -->
+         <br>
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">ACL Deny Triggering </h6>
+                <h6 class="m-0 font-weight-bold text-primary">ACL Lines Most Triggering </h6>
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_100Deny" width="100%" cellspacing="0" data-page-length="10" >
+                <table class="table-bordered table-condensed table-striped" id="TAB_0xad464761" width="100%" cellspacing="0" data-order='[[ 0, "desc" ]]' data-page-length="50" >
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">&#916; HitCnt</th>
-                            <th class="px-2">ACL Line</th>
+                            <th>&nbsp;HostName</th>
+                            <th>&nbsp;HitCnt&nbsp;</th>
+                            <th>&nbsp;ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {% for t_line in Top_100_Deny %}
+                        {% for t_line in Top_20_HitCnt %}
                             <tr>
-                                <td class="text-nowrap">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.Delta_HitCnt }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td>&nbsp;{{ t_line.HostName }}</td>
+                                <td>&nbsp;{{ t_line.Delta_HitCnt }}</td>
+                                <td>&nbsp;{{ t_line.Name }} {{ t_line.Line }} {{ t_line.Type }} {{ t_line.Action }}
+                                    {{ t_line.Service }} {{ t_line.Source }} {{ t_line.S_Port }} {{ t_line.Dest }}
+                                    {{ t_line.D_Port }} {{ t_line.Rest }} ({{ t_line.Hash }})
+
+                                </td>
                                 
                             </tr>
                         {% endfor %}                                        
                     </tbody>
                 </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_100Deny').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>                
             </div>
         </div>
         <!-- Content Row -->        
-
-
-        <!-- Most Expanded ACLs -->
-        <br>
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">Expanding ACL Lines </h6>
-            </div>
-            <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_Expand" width="100%" cellspacing="0" data-page-length="10" >
-                    <thead>
-                        <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">ACL_ELength</th>
-                            <th class="px-2">ACL Line</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t_line in Top_100_Expand %}
-                            <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.ACL_ELength }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_Expand').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>                
-            </div>
-        </div>
-        <!-- Content Row -->
-        
-
-        <!-- IP Ranges -->
-        <br>
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">IP Ranges </h6>
-            </div>
-            <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_IP_Ranges" width="100%" cellspacing="0" data-page-length="10" >
-                    <thead>
-                        <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">IP Range</th>
-                            <th class="px-2">Object Name</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t_line in Top_IP_Ranges %}
-                            <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.IP_Range_Length }}</td>
-                                <td class="px-2">{{ t_line.Obj_Name }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_IP_Ranges').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>                
-            </div>
-        </div>
-        <!-- Content Row -->
-
-        <!-- Top ICMP Opening ACL Lines -->
-        <br>
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">ICMP Opening </h6>
-            </div>
-            <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_ICMP_Opening" width="100%" cellspacing="0" data-page-length="10" >
-                    <thead>
-                        <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t_line in Top_ICMP_Open_Details %}
-                            <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.ICMP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_ICMP_Opening').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>                
-            </div>
-        </div>
-        <!-- Content Row -->
-         
-        <!-- Top TCP Opening ACL Lines -->
-        <br>
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">TCP Opening </h6>
-            </div>
-            <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_TCP__Opening" width="100%" cellspacing="0" data-page-length="10" >
-                    <thead>
-                        <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t_line in Top_TCP_Open_Details  %}
-                            <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.TCP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_TCP__Opening').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>
-            </div>
-        </div>
-        <!-- Content Row -->
-
-        <!-- Top UDP Opening ACL Lines -->
-        <br>
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">UDP Opening </h6>
-            </div>
-            <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_UDP__Opening" width="100%" cellspacing="0" data-page-length="10" >
-                    <thead>
-                        <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t_line in Top_UDP_Open_Details  %}
-                            <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.UDP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_UDP__Opening').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>
-            </div>
-        </div>
-        <!-- Content Row -->
-
-        <!-- Top IP Opening ACL Lines -->
-        <br>
-        <div class="card shadow">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">IP Opening </h6>
-            </div>
-            <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_IP__Opening" width="100%" cellspacing="0" data-page-length="10" >
-                    <thead>
-                        <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for t_line in Top_IP_Open_Details  %}
-                            <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.IP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                <script>
-                    $(document).ready(function() {
-                        // Initialize DataTable with pageLength set to 10
-                        var table = $('#TAB_IP__Opening').DataTable({
-                            "pageLength": 10,   // Set default page length to 10 entries
-                            "ordering": false   // Disable sorting for all columns
-                        });
-                    });
-                </script>                
-            </div>
-        </div>
-        <!-- Content Row -->   
 
 
 
@@ -1135,17 +845,3 @@ document.getElementById("defaultOpen").click();
 </script>
 
 {% endblock %}
-
-
-{% autoescape on %}
-    {% block javascript %}
-
-    {{ block.super }}
-
-    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
-    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
-    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
-
-    
-    {% endblock javascript %}
-{% endautoescape %}

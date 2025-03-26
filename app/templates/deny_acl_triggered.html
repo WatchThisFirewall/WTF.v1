@@ -61,7 +61,56 @@
   
                 <div class="card-body">
                     The following deny rules are among the top...<br> consider checking who is.<br>
-                    {% include deny_acl_triggered_Fname_htm%}
+
+                    
+                    <div class="card-body">
+
+                        <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "desc" ]]' data-page-length="50" >
+             
+                               <thead><tr>
+                        <th>Diff_HitCnt</th>
+                        <th>%</th>
+                        <th>ACL</th>
+                    </tr></thead>
+                    <tbody>
+                    <tr>
+                        <td>4646079</td>
+                        <td>100.0%</td>
+                        <td><font color="#1e25ba"> access-list </font>VRF-TRANSIT_MGMT_access_in <font color="#995c00"> line </font>1616 <font color="#8f1489"> extended </font><font color="#ba1e28"> deny </font><font color="#ba1e28"> ip </font><font color="#ba1e28"> any </font><font color="#ba1e28"> any </font><font color="#1cb836"> log </font>informational interval 300 (hitcnt=345636516) 0x3f64e260 </td>
+                    </tr>
+                    <tr>
+                        <td>141197</td>
+                        <td>100.0%</td>
+                        <td><font color="#1e25ba"> access-list </font>ACL_STG_MGMT_DB2 <font color="#995c00"> line </font>35 <font color="#8f1489"> extended </font><font color="#ba1e28"> deny </font><font color="#ba1e28"> ip </font><font color="#ba1e28"> any </font><font color="#ba1e28"> any </font>(hitcnt=10427942) 0x16e59fb6 </td>
+                    </tr>
+                    <tr>
+                        <td>42079</td>
+                        <td>100.0%</td>
+                        <td><font color="#1e25ba"> access-list </font>ACL_NP01_MGMT <font color="#995c00"> line </font>45 <font color="#8f1489"> extended </font><font color="#ba1e28"> deny </font><font color="#ba1e28"> ip </font><font color="#ba1e28"> any </font><font color="#ba1e28"> any </font>(hitcnt=3068922) 0x47637584 </td>
+                    </tr>
+                    <tr>
+                        <td>5456</td>
+                        <td>100.0%</td>
+                        <td><font color="#1e25ba"> access-list </font>VRF-PCI_APP_MGMT_access_in <font color="#995c00"> line </font>50 <font color="#8f1489"> extended </font><font color="#ba1e28"> deny </font><font color="#ba1e28"> ip </font><font color="#ba1e28"> any </font><font color="#ba1e28"> any </font><font color="#1cb836"> log </font>informational interval 300 (hitcnt=335846) 0x0b0bf5ea </td>
+                    </tr>
+                    <tr>
+                        <td>75</td>
+                        <td>35.71%</td>
+                        <td><font color="#1e25ba"> access-list </font>ACL_PRD_MGMT_DB3 <font color="#995c00"> line </font>6 <font color="#8f1489"> extended </font><font color="#ba1e28"> deny </font><font color="#ba1e28"> ip </font><font color="#ba1e28"> any </font><font color="#ba1e28"> any </font>(hitcnt=5787) 0xc5256a47 </td>
+                    </tr>
+                    <tr>
+                        <td>9</td>
+                        <td>100.0%</td>
+                        <td><font color="#1e25ba"> access-list </font>ACL_PRD_MGMT_DB2 <font color="#995c00"> line </font>45 <font color="#8f1489"> extended </font><font color="#ba1e28"> deny </font><font color="#ba1e28"> ip </font><font color="#ba1e28"> any </font><font color="#ba1e28"> any </font>(hitcnt=9) 0x6150cfe6 </td>
+                    </tr>
+                    </tbody>
+                </table>
+             </div>
+             
+
+
+
+
                 </div>
             </div>
         </div>

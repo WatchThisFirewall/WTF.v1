@@ -16,7 +16,7 @@ import datetime
 def Get_Args():
     """
     Parse command line arguments
-    example: -d FW-M-PE-01 -f -r
+    example: -d FW-ALPHA-01 -f -r
     """
 
     parser = argparse.ArgumentParser(description=(''))
@@ -345,10 +345,14 @@ def ASA_ACL_Obj_to_Net(IN_ACL_Obj):
     elif 'range' in IN_ACL_Obj:
         first_host = IN_ACL_Obj.split()[1]
         last_host  = IN_ACL_Obj.split()[2]
-        temp = ipaddress.IPv4Address(first_host)
-        while ipaddress.IPv4Address(temp) <= ipaddress.IPv4Address(last_host):
-            this_host.append(str(ipaddress.IPv4Address(temp))+' 255.255.255.255')
-            temp = temp + 1
+        if (int(ipaddress.IPv4Address(last_host))-int(ipaddress.IPv4Address(first_host))) < 1024:
+            temp = ipaddress.IPv4Address(first_host)
+            while ipaddress.IPv4Address(temp) <= ipaddress.IPv4Address(last_host):
+                this_host.append(str(ipaddress.IPv4Address(temp))+' 255.255.255.255')
+                temp = temp + 1
+        else:
+            print(f'ERROR in ASA_ACL_Obj_to_Net! - IP RANGE > 1024 for {IN_ACL_Obj}')
+            this_host = ['%s 255.255.255.255' %IN_ACL_Obj.split()[1]]
 
     elif IN_ACL_Obj.count('.') == 6:
         if len(IN_ACL_Obj.split()) == 2:
@@ -397,10 +401,14 @@ def ASA_ACL_Obj_to_IP(IN_ACL_Obj):
     elif 'range' in IN_ACL_Obj:
         first_host = IN_ACL_Obj.split()[1]
         last_host  = IN_ACL_Obj.split()[2]
-        temp = ipaddress.IPv4Address(first_host)
-        while ipaddress.IPv4Address(temp) <= ipaddress.IPv4Address(last_host):
-            this_host.append(str(ipaddress.IPv4Address(temp))+'/32')
-            temp = temp + 1
+        if (int(ipaddress.IPv4Address(last_host))-int(ipaddress.IPv4Address(first_host))) < 1024:
+            temp = ipaddress.IPv4Address(first_host)
+            while ipaddress.IPv4Address(temp) <= ipaddress.IPv4Address(last_host):
+                this_host.append(str(ipaddress.IPv4Address(temp))+'/32')
+                temp = temp + 1
+        else:
+            print(f'ERROR in ASA_ACL_Obj_to_IP! - IP RANGE > 1024 for {IN_ACL_Obj}')
+            this_host = ['%s/32' %IN_ACL_Obj.split()[1]]
 
     elif IN_ACL_Obj.count('.') == 6:
         if len(IN_ACL_Obj.split()) == 2:
@@ -443,10 +451,14 @@ def ASA_ACL_Obj_to_DecIP(IN_ACL_Obj):
     elif 'range' in IN_ACL_Obj:
         first_host = IPv4_to_DecList(IN_ACL_Obj.split()[1], '255.255.255.255')[0]
         last_host  = IPv4_to_DecList(IN_ACL_Obj.split()[2], '255.255.255.255')[0]
-        while first_host <= last_host:
-            this_host.append([first_host, 4294967295])
-            first_host = first_host + 1
-        return this_host
+        if (last_host - first_host) < 1024:
+            while first_host <= last_host:
+                this_host.append([first_host, 4294967295])
+                first_host = first_host + 1
+            return this_host
+        else:
+            print(f'ERROR in ASA_ACL_Obj_to_DecIP! - IP RANGE > 1024 for {IN_ACL_Obj}')
+            this_host = [first_host, 4294967295]
 
     elif IN_ACL_Obj.count('.') == 6:
         this_host = IPv4_to_DecList(IN_ACL_Obj.split()[0], IN_ACL_Obj.split()[1])

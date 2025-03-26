@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from .models import My_Devices,ACL_Summary,Global_Settings,Active_Capture,Show_NAT_DB, Default_Credentials, WTF_Log, Devices_Model
+from .models import My_Devices,ACL_GROSS,ACL_Summary,Global_Settings,Active_Capture,Show_NAT_DB, Default_Credentials, WTF_Log, Devices_Model,ACL_Most_Expanded
+from .models import Top_IP_Range,Top_ICMP_Open_Detail,Top_TCP_Open_Detail,Top_UDP_Open_Detail,Top_IP_Open_Detail
 from django.db.models import Max,Q,Sum
 from django.utils import timezone
 from django.utils.timezone import make_aware, utc
@@ -407,7 +408,51 @@ def index(request):
         N_Erro_Logs = WTF_Log.objects.filter(Q(Level='ERROR')).count()
         N_Warn_Logs = WTF_Log.objects.filter(Q(Level='WARNING')).count()
         N_Info_Logs = WTF_Log.objects.filter(Q(Level='INFO')).count()
-        return render (request, 'index.html', 
+        Top_Size = 300
+        Top_100_HitCnt = ACL_GROSS.objects.order_by('-Delta_HitCnt')[:Top_Size]
+        for t_line in Top_100_HitCnt:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.ACL_Line = f'{t_line.Name} {t_line.Line} {t_line.Type} {t_line.Action} {t_line.Service} {t_line.Source} {t_line.S_Port} {t_line.Dest} {t_line.D_Port} {t_line.Rest} (hitcnt={t_line.Hitcnt}) {t_line.Hash}'
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+        Top_100_Expand = ACL_Most_Expanded.objects.order_by('-ACL_ELength')[:Top_Size]
+        for t_line in Top_100_Expand:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+        Top_100_Deny = ACL_GROSS.objects.filter(Action='deny').order_by('-Delta_HitCnt')[:Top_Size]
+        for t_line in Top_100_Deny:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.ACL_Line = f'{t_line.Name} {t_line.Line} {t_line.Type} {t_line.Action} {t_line.Service} {t_line.Source} {t_line.S_Port} {t_line.Dest} {t_line.D_Port} {t_line.Rest} (hitcnt={t_line.Hitcnt}) {t_line.Hash}'
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+        Top_IP_Ranges = Top_IP_Range.objects.order_by('-IP_Range_Length')[:Top_Size]
+        for t_line in Top_IP_Ranges:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+        Top_ICMP_Open_Details = Top_ICMP_Open_Detail.objects.order_by('-ICMP_Open_Val')[:Top_Size]
+        MAX_ICMP_Open_Val = list(Top_ICMP_Open_Detail.objects.all().aggregate(Max('ICMP_Open_Val')).values())[0]
+        for t_line in Top_ICMP_Open_Details:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.ICMP_Open_Val = round(100*t_line.ICMP_Open_Val/MAX_ICMP_Open_Val, 2) if not (MAX_ICMP_Open_Val==0) else 0
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+        Top_TCP_Open_Details = Top_TCP_Open_Detail.objects.order_by('-TCP_Open_Val')[:Top_Size]
+        MAX_TCP_Open_Val = list(Top_TCP_Open_Detail.objects.all().aggregate(Max('TCP_Open_Val')).values())[0]
+        for t_line in Top_TCP_Open_Details:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.TCP_Open_Val = round(100*t_line.TCP_Open_Val/MAX_TCP_Open_Val, 2) if not (MAX_TCP_Open_Val==0) else 0
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+        Top_UDP_Open_Details = Top_UDP_Open_Detail.objects.order_by('-UDP_Open_Val')[:Top_Size]
+        MAX_UDP_Open_Val = list(Top_UDP_Open_Detail.objects.all().aggregate(Max('UDP_Open_Val')).values())[0]
+        for t_line in Top_UDP_Open_Details:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.UDP_Open_Val = round(100*t_line.UDP_Open_Val/MAX_UDP_Open_Val, 2) if not (MAX_UDP_Open_Val==0) else 0
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+        Top_IP_Open_Details = Top_IP_Open_Detail.objects.order_by('-IP_Open_Val')[:Top_Size]
+        MAX_IP_Open_Val = list(Top_IP_Open_Detail.objects.all().aggregate(Max('IP_Open_Val')).values())[0]
+        for t_line in Top_IP_Open_Details:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.IP_Open_Val = round(100*t_line.IP_Open_Val/MAX_IP_Open_Val, 2) if not (MAX_IP_Open_Val==0) else 0
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+    
+        return render (request, 'index.html',
+                       
             {
             'Devices_list'              : Devices_list,
             'Max_N_ACL_Lines'           : Max_N_ACL_Lines,
@@ -422,6 +467,14 @@ def index(request):
             'N_Erro_Logs'               : N_Erro_Logs,
             'N_Warn_Logs'               : N_Warn_Logs,
             'N_Info_Logs'               : N_Info_Logs,
+            'Top_100_HitCnt'            : Top_100_HitCnt,
+            'Top_100_Expand'            : Top_100_Expand,
+            'Top_100_Deny'              : Top_100_Deny,
+            'Top_IP_Ranges'             : Top_IP_Ranges,
+            'Top_ICMP_Open_Details'     : Top_ICMP_Open_Details,
+            'Top_TCP_Open_Details'      : Top_TCP_Open_Details,
+            'Top_UDP_Open_Details'      : Top_UDP_Open_Details,
+            'Top_IP_Open_Details'       : Top_IP_Open_Details,
             })
     else:
         return redirect('login_user')        
@@ -1381,3 +1434,33 @@ def get_python_path():
     
     print(f"Using Python path: {python_path}")
     return python_path
+
+
+#=================================================================================================================
+def Color_Line(IN_Line):
+    Red_Words    = ['no', 'NEW','|','i','ip','any','any4','clear','tcp','udp','ip','icmp','deny','(hitcnt=0)','inactive','shutdown','address','standby','route','ssh','circular-buffer','[Capturing','0']
+    Blu_Words    = ['interface','access-group','access-list','host','network','nat','route','show','run','unidirectional']
+    Green_Words  = ['in','log','description','logging','permit']
+    Purple_Words = ['configure', 'extended', 'service','protocol','capture']
+    Brown_Words  = ['network-object','source','dynamic','static','destination','object-group','object','port-object','policy-map','match','to','eq','line','range']
+    Red_Color    = '#ba1e28'
+    Blu_Color    = '#1e25ba'
+    Green_Color  = '#1cb836'
+    Purple_Color = '#8f1489'
+    Brown_Color  = '#995c00'
+
+    OUT_Line = ''
+    for t_word in IN_Line.split():
+        if t_word in Blu_Words:
+            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Blu_Color, t_word)
+        elif t_word in Red_Words:
+            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Red_Color, t_word)
+        elif t_word in Green_Words:
+            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Green_Color, t_word)
+        elif t_word in Purple_Words:
+            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Purple_Color, t_word)
+        elif t_word in Brown_Words:
+            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Brown_Color, t_word)
+        else:
+            OUT_Line = OUT_Line + '%s ' %t_word
+    return OUT_Line
