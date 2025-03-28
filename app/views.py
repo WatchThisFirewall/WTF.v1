@@ -161,6 +161,14 @@ def dashboard(request, FW_NAME):
         Prct_TCP_Space_Sum = My_Devices.objects.filter(HostName=FW_NAME).values('Prct_ACL_Space_TCP').values_list('Prct_ACL_Space_TCP', flat=True).first()
         Prct_UDP_Space_Sum = My_Devices.objects.all().filter(HostName=FW_NAME).values('Prct_ACL_Space_UDP').values_list('Prct_ACL_Space_UDP', flat=True).first()
         Prct_ICMP_Space_Sum = My_Devices.objects.all().filter(HostName=FW_NAME).values('Prct_ACL_Space_ICMP').values_list('Prct_ACL_Space_ICMP', flat=True).first()
+        Top_IP_Open_Details = Top_IP_Open_Detail.objects.all().filter(HostName=FW_NAME)
+        MAX_IP_Open_Val = list(Top_IP_Open_Detail.objects.all().filter(HostName=FW_NAME).aggregate(Max('IP_Open_Val')).values())[0]
+        for t_line in Top_IP_Open_Details:
+            t_line.HostName = t_line.HostName.replace("___", "/")
+            t_line.ACL_Name = (t_line.ACL_Line).split()[1]
+            #t_line.IP_Open_Val = round(100*t_line.IP_Open_Val/MAX_IP_Open_Val, 10) if not (MAX_IP_Open_Val==0) else 0
+            t_line.IP_Open_Val = t_line.IP_Open_Val
+            t_line.ACL_Line = Color_Line(t_line.ACL_Line)        
         
         return render (request, 'dashboard.html', 
             {
@@ -183,6 +191,7 @@ def dashboard(request, FW_NAME):
             'Prct_TCP_Space_Sum' : Prct_TCP_Space_Sum,
             'Prct_UDP_Space_Sum' : Prct_UDP_Space_Sum,
             'Prct_ICMP_Space_Sum' : Prct_ICMP_Space_Sum,
+            'Top_IP_Open_Details': Top_IP_Open_Details,
             })
     else:
         return redirect('login_user')

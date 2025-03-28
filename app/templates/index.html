@@ -795,26 +795,27 @@
                 <h6 class="m-0 font-weight-bold text-primary">ACL Lines Triggering </h6>
             </div>
             <div class="card-body">
-              
-                <table class="table-bordered table-condensed table-striped" id="TAB_0xcf53cbed" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_0xcf53cbed" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">&#916; HitCnt</th>
-                            <th class="px-2">ACL Line</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">&#916; HitCnt</th>
+                            <th class="px-2 text-nowrap">ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_100_HitCnt %}
                             <tr>
-                                <td class="text-nowrap px-2">&nbsp;{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.Delta_HitCnt }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.Delta_HitCnt }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_Line|safe }}</td>
                                 
                             </tr>
                         {% endfor %}                                        
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
@@ -837,25 +838,27 @@
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_100Deny" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_100Deny" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">&#916; HitCnt</th>
-                            <th class="px-2">ACL Line</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">&#916; HitCnt</th>
+                            <th class="px-2 text-nowrap">ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_100_Deny %}
                             <tr>
-                                <td class="text-nowrap">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.Delta_HitCnt }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.Delta_HitCnt }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_Line|safe }}</td>
                                 
                             </tr>
                         {% endfor %}                                        
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
@@ -878,24 +881,26 @@
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_Expand" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_Expand" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">ACL_ELength</th>
-                            <th class="px-2">ACL Line</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">ACL_ELength</th>
+                            <th class="px-2 text-nowrap">ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_100_Expand %}
                             <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.ACL_ELength }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_ELength }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_Line|safe }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
@@ -918,24 +923,26 @@
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_IP_Ranges" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_IP_Ranges" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">IP Range</th>
-                            <th class="px-2">Object Name</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">IP Range</th>
+                            <th class="px-2 text-nowrap">Object Name</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_IP_Ranges %}
                             <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.IP_Range_Length }}</td>
-                                <td class="px-2">{{ t_line.Obj_Name }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.IP_Range_Length }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.Obj_Name }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
@@ -953,28 +960,30 @@
         <br>
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">ICMP Opening </h6>
+                <h6 class="m-0 font-weight-bold text-primary">ICMP Space </h6>
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_ICMP_Opening" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_ICMP_Opening" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">Opening</th>
+                            <th class="px-2 text-nowrap">ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_ICMP_Open_Details %}
                             <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.ICMP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ICMP_Open_Val }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_Line|safe }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
@@ -992,28 +1001,30 @@
         <br>
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">TCP Opening </h6>
+                <h6 class="m-0 font-weight-bold text-primary">TCP Space </h6>
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_TCP__Opening" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_TCP__Opening" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">Opening</th>
+                            <th class="px-2 text-nowrap">ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_TCP_Open_Details  %}
                             <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.TCP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.TCP_Open_Val }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_Line|safe }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
@@ -1031,28 +1042,30 @@
         <br>
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">UDP Opening </h6>
+                <h6 class="m-0 font-weight-bold text-primary">UDP Space </h6>
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_UDP__Opening" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_UDP__Opening" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">Opening</th>
+                            <th class="px-2 text-nowrap">ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_UDP_Open_Details  %}
                             <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.UDP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.UDP_Open_Val }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_Line|safe }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
@@ -1070,28 +1083,30 @@
         <br>
         <div class="card shadow">
             <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">IP Opening </h6>
+                <h6 class="m-0 font-weight-bold text-primary">IP Space </h6>
             </div>
             <div class="card-body">
               
-                <table class="table-bordered table-condensed table-striped" id="TAB_IP__Opening" width="100%" cellspacing="0" data-page-length="10" >
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_IP__Opening" cellspacing="0" data-page-length="10" style="table-layout: auto;">
                     <thead>
                         <tr>
-                            <th class="px-2">HostName</th>
-                            <th class="px-2">Opening</th>
-                            <th class="px-2">ACL Line</th>
+                            <th class="px-2 text-nowrap">HostName</th>
+                            <th class="px-2 text-nowrap">Opening</th>
+                            <th class="px-2 text-nowrap">ACL Line</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for t_line in Top_IP_Open_Details  %}
                             <tr>
-                                <td class="text-nowrap px-2">{{ t_line.HostName }}</td>
-                                <td class="px-2">{{ t_line.IP_Open_Val }}</td>
-                                <td class="px-2">{{ t_line.ACL_Line|safe }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.HostName }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.IP_Open_Val }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.ACL_Line|safe }}</td>
                             </tr>
                         {% endfor %}
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         // Initialize DataTable with pageLength set to 10
