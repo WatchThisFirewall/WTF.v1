@@ -49,6 +49,7 @@ _LABELS_GOES_HERE_
       pointBorderWidth: 2,
 _DATA_GOES_HERE_      
       //data: [, , , , , , , , , , , ,, , , , , , , ,NAN , ,13176, 13176,],
+      spanGaps: true // This enables interpolation for missing points      
     }],
   },
   options: {

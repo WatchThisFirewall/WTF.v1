@@ -780,13 +780,14 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
         with open("%s/%s"%(html_folder,Watch_FName),mode="w") as html_file:
             html_file.write('<div class="card-body">\n')
             html_file.write('''
-               <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "desc" ]]' data-page-length="50" >\n
+               <div style="max-width: 100%; overflow-x: auto;">
+               <table class="table-bordered table-condensed table-striped w-auto" id="dataTable" cellspacing="0" data-page-length="50" data-order='[[ 0, "desc" ]]' style="table-layout: auto;">
                ''')
             my_index = 0
             N_Cols = Expanded_ACL_df.shape[1]
             html_file.write('       <thead><tr>\n')
             for t_col_index in range(0,N_Cols):
-                html_file.write('           <th>%s</th>\n' %Expanded_ACL_df.columns[t_col_index])
+                html_file.write('           <th class="px-2 text-nowrap">%s</th>\n' %Expanded_ACL_df.columns[t_col_index])
             html_file.write('       </tr></thead>\n')
             html_file.write('       <tbody>\n')
             for row in Expanded_ACL_df.itertuples():
@@ -795,12 +796,13 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
                     if t_col_index == N_Cols-1:
                         t_line = Expanded_ACL_df.iloc[row.Index][t_col_index]
                         t_line = utils_v2.Color_Line(t_line)
-                        html_file.write('           <td>%s</td>\n' %t_line)
+                        html_file.write('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
                     else:
-                        html_file.write('           <td>%s</td>\n' %Expanded_ACL_df.iloc[row.Index][t_col_index])
+                        html_file.write('           <td class="px-2 text-nowrap">%s</td>\n' %Expanded_ACL_df.iloc[row.Index][t_col_index])
                 html_file.write('       </tr>\n')
             html_file.write('       </tbody>\n')
             html_file.write('   </table>\n')
+            html_file.write('</div>\n')
             html_file.write('</div>\n')
         print('... saved file "%s/%s" '%(html_folder,Watch_FName))
     except:
