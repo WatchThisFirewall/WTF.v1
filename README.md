@@ -163,6 +163,6 @@ Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/
 ```"watch-this-firewall_at_gmail.com".replace('_at_','@').replace('-','')```
 
 # Demo
-A static demo cam be found at [http://wtf.infinityfreeapp.com/index.html](http://wtf.infinityfreeapp.com/index.html)
+A static demo can be found at [http://wtf.infinityfreeapp.com/index.html](http://wtf.infinityfreeapp.com/index.html)
 
 
