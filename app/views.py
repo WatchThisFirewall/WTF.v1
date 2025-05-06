@@ -45,6 +45,21 @@ def wtf_logs(request):
         return redirect('login_user')
 
 #=================================================================================================================
+def scheduler(request):
+    if request.user.is_authenticated:
+        Devices_list = My_Devices.objects.all().order_by('HostName')
+        My_Global_Settings = list(Global_Settings.objects.all().filter(Name='Global_Settings').values())[0]
+        time_choices = [(f"{hour:02}:{minute:02}") for hour in range(24) for minute in (0, 30)]
+        return render (request, 'scheduler.html', 
+            {
+            'Devices_list'              : Devices_list,
+            'My_Global_Settings'        : My_Global_Settings,
+            'time_choices'              : time_choices,
+            })
+    else:
+        return redirect('login_user')
+
+#=================================================================================================================
 def test_table(request):
     if request.user.is_authenticated:
         Devices_list = My_Devices.objects.all().order_by('HostName')
@@ -56,6 +71,7 @@ def test_table(request):
         MAX_SUM_OBJ_Declared = list(My_Devices.objects.all().aggregate(Max('SUM_OBJ_Declared')).values())[0]
         MAX_UpTime = list(My_Devices.objects.all().aggregate(Max('UpTime')).values())[0]
         My_Global_Settings = list(Global_Settings.objects.all().filter(Name='Global_Settings').values())[0]
+        time_choices = [(f"{hour:02}:{minute:02}") for hour in range(24) for minute in (0, 30)]
         return render (request, 'test_table.html', 
             {
             'Devices_list'              : Devices_list,
@@ -67,6 +83,7 @@ def test_table(request):
             'MAX_SUM_OBJ_Declared'      : MAX_SUM_OBJ_Declared,
             'My_Global_Settings'        : My_Global_Settings,
             'MAX_UpTime'                : MAX_UpTime,
+            'time_choices'              : time_choices,
             })
     else:
         return redirect('login_user')

@@ -1,0 +1,282 @@
+{% extends 'tplt_base.html' %}
+
+{% block MainContent %}
+{% load static %}
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">Settings</h1>
+        </div>
+
+     
+
+        <!-- ACL SummaryDataTales -->
+       
+        
+        <!-- ACL SummaryDataTales -->
+        <div class="card shadow">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Device Scheduling</h4>
+            </div>            
+            <div class="card-body">
+                <div class="alert alert-primary" role="alert">
+                    Check the time scheduling for devices
+                </div>
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="TAB_Scheduling" cellspacing="0" data-page-length="50" >
+                <thead>
+                    <tr>
+                        <th class="text-center">time</th>
+                        <th class="text-center">Mon</th>
+                        <th class="text-center">Tue</th>
+                        <th class="text-center">Wed</th>
+                        <th class="text-center">Thu</th>
+                        <th class="text-center">Fri</th>
+                        <th class="text-center">Sat</th>
+                        <th class="text-center">Sun</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t_Time in time_choices %}
+                    <tr>
+                        {% if t_Time|slice:"-2:" == "00" %}
+                        <td class="text-center bg-gradient-light  "><div class="text-danger px-2"><strong>{{ t_Time }}</strong></div></td>
+                        {% else %}
+                        <td class="text-center bg-gradient-light  "><div class="px-2"><strong>{{ t_Time }}</strong></div></td>
+                        {% endif %}
+                        <td class="text-center bg-gradient-warning text-nowrap">
+                            <!--<strong>FW-ALPHA</strong></div><div class="text-white"><strong>FW-BRAVO</strong>-->
+                            {% for t_device in Devices_list %}
+                                {% if t_device.RUN_Day_of_Week == 'MON' %}
+                                    {% if t_device.RUN_Time_of_Day == t_Time %}
+                                    <div class="text-white"><strong>
+                                        {% for t_group in user.groups.all %}
+                                            {% if 'Admin' in t_group.name %}
+                                            <a href="{% url 'edit_device' t_device.IP_Address%}" class="text-white">{{ t_device.HostName_slash }}</a>
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% empty %}
+                                            {% if user.is_superuser %}
+                                            {{ t_device.HostName_slash }}
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% endfor %} 
+                                    </strong></div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="text-center bg-gradient-orange text-nowrap">
+                            {% for t_device in Devices_list %}
+                                {% if t_device.RUN_Day_of_Week == 'TUE' %}
+                                    {% if t_device.RUN_Time_of_Day == t_Time %}
+                                    <div class="text-white"><strong>
+                                        {% for t_group in user.groups.all %}
+                                            {% if 'Admin' in t_group.name %}
+                                            <a href="{% url 'edit_device' t_device.IP_Address%}" class="text-white">{{ t_device.HostName_slash }}</a>
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% empty %}
+                                            {% if user.is_superuser %}
+                                            {{ t_device.HostName_slash }}
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% endfor %} 
+                                    </strong></div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="text-center bg-gradient-success text-nowrap">
+                            {% for t_device in Devices_list %}
+                                {% if t_device.RUN_Day_of_Week == 'WED' %}
+                                    {% if t_device.RUN_Time_of_Day == t_Time %}
+                                    <div class="text-white"><strong>
+                                        {% for t_group in user.groups.all %}
+                                            {% if 'Admin' in t_group.name %}
+                                            <a href="{% url 'edit_device' t_device.IP_Address%}" class="text-white">{{ t_device.HostName_slash }}</a>
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% empty %}
+                                            {% if user.is_superuser %}
+                                            {{ t_device.HostName_slash }}
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% endfor %} 
+                                    </strong></div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}                            
+                        </td>
+                        <td class="text-center bg-gradient-info text-nowrap">
+                            {% for t_device in Devices_list %}
+                                {% if t_device.RUN_Day_of_Week == 'THU' %}
+                                    {% if t_device.RUN_Time_of_Day == t_Time %}
+                                    <div class="text-white"><strong>
+                                        {% for t_group in user.groups.all %}
+                                            {% if 'Admin' in t_group.name %}
+                                            <a href="{% url 'edit_device' t_device.IP_Address%}" class="text-white">{{ t_device.HostName_slash }}</a>
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% empty %}
+                                            {% if user.is_superuser %}
+                                            {{ t_device.HostName_slash }}
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% endfor %} 
+                                    </strong></div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}                            
+                        </td>
+                        <td class="text-center bg-gradient-primary text-nowrap">
+                            {% for t_device in Devices_list %}
+                                {% if t_device.RUN_Day_of_Week == 'FRI' %}
+                                    {% if t_device.RUN_Time_of_Day == t_Time %}
+                                    <div class="text-white"><strong>
+                                        {% for t_group in user.groups.all %}
+                                            {% if 'Admin' in t_group.name %}
+                                            <a href="{% url 'edit_device' t_device.IP_Address%}" class="text-white">{{ t_device.HostName_slash }}</a>
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% empty %}
+                                            {% if user.is_superuser %}
+                                            {{ t_device.HostName_slash }}
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% endfor %} 
+                                    </strong></div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="text-center bg-gradient-secondary text-nowrap">
+                            {% for t_device in Devices_list %}
+                                {% if t_device.RUN_Day_of_Week == 'SAT' %}
+                                    {% if t_device.RUN_Time_of_Day == t_Time %}
+                                    <div class="text-white"><strong>
+                                        {% for t_group in user.groups.all %}
+                                            {% if 'Admin' in t_group.name %}
+                                            <a href="{% url 'edit_device' t_device.IP_Address%}" class="text-white">{{ t_device.HostName_slash }}</a>
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% empty %}
+                                            {% if user.is_superuser %}
+                                            {{ t_device.HostName_slash }}
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% endfor %} 
+                                    </strong></div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td class="text-center bg-gradient-dark text-nowrap">
+                            {% for t_device in Devices_list %}
+                                {% if t_device.RUN_Day_of_Week == 'SUN' %}
+                                    {% if t_device.RUN_Time_of_Day == t_Time %}
+                                    <div class="text-white"><strong>
+                                        {% for t_group in user.groups.all %}
+                                            {% if 'Admin' in t_group.name %}
+                                            <a href="{% url 'edit_device' t_device.IP_Address%}" class="text-white">{{ t_device.HostName_slash }}</a>
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% empty %}
+                                            {% if user.is_superuser %}
+                                            {{ t_device.HostName_slash }}
+                                            {% else %}
+                                            {{ t_device.HostName_slash }}
+                                            {% endif %}
+                                        {% endfor %} 
+                                    </strong></div>
+                                    {% endif %}
+                                {% endif %}
+                            {% endfor %}
+                        </td>                        
+                    </tr>
+
+
+
+
+                    {% endfor %}
+
+
+                </tbody>  
+                </table>
+                </div>
+                <script>
+                    $(document).ready(function() {
+                        // Initialize DataTable with pageLength set to 10
+                        var table = $('#TAB_Scheduling').DataTable({
+                            "pageLength": 50,   // Set default page length to 10 entries
+                            "ordering": false   // Disable sorting for all columns
+                        });
+                    });
+                </script>                 
+            </div>
+        </div>
+
+
+        
+
+    </div>
+    <!-- /.container-fluid -->
+
+
+</div>
+<!-- End of Main Content -->
+
+
+
+<style>
+    table tfoot {
+        display: table-header-group;
+    }
+</style>
+
+{% endblock %}
+<!--
+{% autoescape on %}
+    {% block javascript %}
+
+    {{ block.super }}
+
+    <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+    <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+
+    
+    {% endblock javascript %}
+{% endautoescape %}
+-->

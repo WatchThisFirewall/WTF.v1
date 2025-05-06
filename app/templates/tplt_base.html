@@ -15,7 +15,22 @@
     <link href="{% static 'css/sb-admin-2.min.css' %}" rel="stylesheet">
     <link href="{% static 'vendor/datatables/dataTables.bootstrap4.min.css' %}" rel="stylesheet">
     <script src="{% static 'vendor/jquery/jquery.min.js' %}"></script>
+    <style>
+        .sidebar .nav-item {
+          margin-bottom: 0.1rem; /* reduce vertical spacing */
+        }
+      
+        .sidebar .collapse-inner .collapse-item {
+          padding-top: 0.1rem;
+          padding-bottom: 0.1rem;
+        }
+      
+        .sidebar .collapse-inner {
+          padding: 0.1rem 0.1rem;
+        }
+      </style>    
 </head>
+
 
 <body id="page-top">
 
@@ -75,6 +90,7 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="{% url 'global_settings' %}"><i class="fas fa-cog fa-sm fa-fw"></i>&nbsp;Global Settings</a>
                         <a class="collapse-item" href="{% url 'manage_devices' %}"><i class="fas fa-fire fa-sm fa-fw"></i>&nbsp;Device Settings</a>
+                        <a class="collapse-item" href="{% url 'scheduler' %}"><i class="far fa-calendar-alt fa-sm fa-fw"></i>&nbsp;Device Scheduling</a>
                         <a class="collapse-item" href="{% url 'manage_users' %}"><i class="fas fa-user fa-sm fa-fw"></i>&nbsp;User Settings</a>
                     </div>
                 </div>

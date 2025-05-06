@@ -83,6 +83,8 @@ class My_Devices(models.Model):
     Password    = models.CharField(max_length=120, null=True, blank=True)
     Enabled     = models.BooleanField(default=True)
     Type        = models.ForeignKey(Devices_Model, on_delete=models.CASCADE)
+    Hardware    = models.CharField(max_length=120, null=True, blank=True)
+    SW_Version  = models.CharField(max_length=120, null=True, blank=True)
     # -------------- dashboard variables start ----------------
     Last_Check               = models.DateField(null=True, blank=True, default=datetime.date(2000, 1, 1))
     TimeStamp_t0             = models.DateTimeField(null=True, blank=True, default=datetime.datetime(2000, 1, 1, 1, 0))
@@ -444,7 +446,7 @@ class Show_NAT_DB(models.Model):
 #----------------------------------------------------------------------------------------------------------
 class ACL_GROSS(models.Model):
     ID          = models.BigAutoField(primary_key=True)  
-    HostName    = models.TextField()  
+    HostName    = models.TextField(db_index=True)  
     First_Seen  = models.DateField()
     Name        = models.TextField()
     Line        = models.TextField()

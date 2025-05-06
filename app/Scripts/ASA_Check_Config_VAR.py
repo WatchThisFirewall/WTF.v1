@@ -1356,6 +1356,8 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
 
     Root_hostname = hostname___.split('__')[0]
     t_UpTime = 0
+    hardware_model = ''
+    asa_version = ''
     for n in l:
         if n.startswith('%s up ' %Root_hostname):
             if 'years' in n:
@@ -1384,6 +1386,12 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
             else:
                 t_UpTime = 0
 
+        elif n.startswith('Hardware:'):
+            hardware_model = n.split()[1]
+
+        elif 'Software Version' in n:
+            asa_version = n.split('Software Version')[1].strip()
+
     DB_Available = True
     import sqlalchemy as db
     try:
@@ -1398,9 +1406,13 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
         Config_Change.append('DB not connected, some feature is unavailable\n')
         DB_Available = False
 
+    Updated_Vals = dict(
+                        UpTime = t_UpTime,
+                        SW_Version = asa_version,
+                        Hardware = hardware_model
+                        )
     if DB_Available:
-        query = db.update(My_Devices).values(UpTime=t_UpTime)
-        query = query.where(My_Devices.columns.HostName==hostname___)
+        query = db.update(My_Devices).where(My_Devices.c.HostName == hostname___).values(**Updated_Vals)
         with engine.begin() as connection:
             results = connection.execute(query)
         connection.close()

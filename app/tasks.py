@@ -9,9 +9,7 @@ from pathlib import Path
 import subprocess
 import logging
 
-
 logger = logging.getLogger(__name__)
-
 
 @background(schedule=60)
 def check_device_schedules():
@@ -21,14 +19,23 @@ def check_device_schedules():
     db_Run_Script_Bkgnd_WTF_dic = {}
     try:
         db_tasks = Task.objects.all()
+        devices = My_Devices.objects.all()
         for t_task in db_tasks:
             #print(f"Task ID: {t_task.id}, Task Name: {t_task.task_name}, Scheduled Time: {t_task.run_at}, Parameters: {t_task.task_params}")
             if t_task.task_name == 'app.tasks.Run_Script_Bkgnd_WTF':
-                t_device_IP = t_task.task_params.split('"')[1]
-                if t_device_IP not in db_Run_Script_Bkgnd_WTF_dic.keys():
-                    db_Run_Script_Bkgnd_WTF_dic[t_device_IP] = 1
+                t_task_device_IP = t_task.task_params.split('"')[1]
+                # # check for device deleted or with ip changed
+                # ip_list = list(My_Devices.objects.values_list('IP_Address', flat=True))
+                # if t_task_device_IP not in ip_list:
+                #     tasks_to_del = Task.objects.filter(task_params=[[f'{t_task_device_IP}'], {}])
+                #     if tasks_to_del.exists():
+                #         logger.info(f"{_now_} - Deleting Task for {t_task_device_IP}.")
+                #         tasks_to_del.delete()
+                        
+                if t_task_device_IP not in db_Run_Script_Bkgnd_WTF_dic.keys():
+                    db_Run_Script_Bkgnd_WTF_dic[t_task_device_IP] = 1
                 else:
-                    db_Run_Script_Bkgnd_WTF_dic[t_device_IP] = db_Run_Script_Bkgnd_WTF_dic[t_device_IP] + 1
+                    db_Run_Script_Bkgnd_WTF_dic[t_task_device_IP] = db_Run_Script_Bkgnd_WTF_dic[t_task_device_IP] + 1
         #print(f"db_Run_Script_Bkgnd_WTF_dic = {db_Run_Script_Bkgnd_WTF_dic}")
     except Exception as e:
         logger.error(f"{_now_} - CDS - Error while fetching device schedules from DB: {str(e)}")
@@ -131,6 +138,7 @@ def Run_Script_Bkgnd_WTF(t_IP_Address):
     except Exception as e:
         logger.error(f"{_now_} - RSB - Error while fetching device schedules from DB: {str(e)}")    
 
+    logger.info(f'----- Looking for IP Address: {t_IP_Address} -----')
     t_device  = My_Devices.objects.get(IP_Address=t_IP_Address)
     t_hostName = t_device.HostName
 

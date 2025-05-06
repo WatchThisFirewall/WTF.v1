@@ -746,9 +746,11 @@
                     <thead>
                         <tr>
                             <th>HostName</th>
+                            <th>Model</th>
+                            <th>SW</th>
                             <th>Last Check</th>
                             <th>Conf Lines</th>
-                            <th>N° Interfaces</th>
+                            <th>N° IF</th>
                             <th>N° ACL</th>
                             <th>N° ACL Lines</th>
                             <th>N° ACL Lines X</th>
@@ -761,17 +763,19 @@
                     <tbody>
                         {% for t_device in Devices_list %}
                             <tr>
-                                <td>{{ t_device.HostName_slash }}</td>
+                                <td class="px-2 text-nowrap">{{ t_device.HostName_slash }}</td>
+                                <td class="px-2 text-nowrap">{{ t_device.Hardware }}</td>
+                                <td class="px-2 text-nowrap">{{ t_device.SW_Version }}</td>
                                 <td>{{ t_device.Last_Check|date:"d M Y" }}</td>
-                                <td>{{ t_device.Config_Total_Lines }}</td>
-                                <td>{{ t_device.N_Interfaces }}</td>
-                                <td>{{ t_device.Declared_ACL }}</td>
-                                <td>{{ t_device.N_ACL_Lines }}</td>
-                                <td>{{ t_device.N_ACL_Lines_Expanded }}</td>
-                                <td>{{ t_device.N_ACL_NoLog }}</td>
-                                <td>{{ t_device.N_ACL_Inactive }}</td>
-                                <td>{{ t_device.N_ACL_HitCnt_Zero }}</td>
-                                <td>{{ t_device.N_NAT_Lines }}</td>
+                                <td class="text-center">{{ t_device.Config_Total_Lines }}</td>
+                                <td class="text-center">{{ t_device.N_Interfaces }}</td>
+                                <td class="text-center">{{ t_device.Declared_ACL }}</td>
+                                <td class="text-center">{{ t_device.N_ACL_Lines }}</td>
+                                <td class="text-center">{{ t_device.N_ACL_Lines_Expanded }}</td>
+                                <td class="text-center">{{ t_device.N_ACL_NoLog }}</td>
+                                <td class="text-center">{{ t_device.N_ACL_Inactive }}</td>
+                                <td class="text-center">{{ t_device.N_ACL_HitCnt_Zero }}</td>
+                                <td class="text-center">{{ t_device.N_NAT_Lines }}</td>
                             </tr>
                         {% endfor %}                                        
                     </tbody>

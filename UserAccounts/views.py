@@ -148,6 +148,13 @@ def register_user(request):
                         #user = authenticate(username=username, password=password)
                         messages.success(request, f'User "{username}" Added')
                         return redirect('manage_users')
+                    else:
+                        # Return even if form is invalid
+                        #messages.success(request, f"Form is not Valid!")
+                        return render(request, 'register_user.html', {
+                            'form': form,
+                            'Devices_list': Devices_list,
+                        })
                 else:
                     form = RegisterUserForm()
                     return render(request, 'register_user.html', 

@@ -14,6 +14,7 @@ urlpatterns = [
     path('run_Script_WTF_Shell/<t_IP_Address>', views.run_Script_WTF_Shell, name='run_Script_WTF_Shell'),
     #path('Test_Streaming/<slug:FW_NAME>/', views.Test_Streaming, name='Test_Streaming'),
     path('test_table/', views.test_table, name='test_table'),
+    path('scheduler/', views.scheduler, name='scheduler'),
     path('submask_table/', views.submask_table, name='submask_table'),
     path('subnetting/', views.subnetting, name='subnetting'),
     path('wtf_logs', views.wtf_logs, name='wtf_logs'),
