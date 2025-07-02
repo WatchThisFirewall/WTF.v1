@@ -123,22 +123,30 @@ Once it is OK you can run the Check manually or wait for the scheduler to do the
 # Dependencies
 ```
 asgiref==3.8.1
+astroid==3.3.8
 bcrypt==4.2.0
 cffi==1.17.0
-cryptography==43.0.0
-Django==4.2.15
+colorama==0.4.6
+cryptography==44.0.1
+dill==0.3.9
+Django==4.2.23
 django-background-tasks==1.2.8
 et-xmlfile==1.1.0
 future==1.0.0
 greenlet==3.0.3
+isort==6.0.0
+mccabe==0.7.0
 netmiko==4.4.0
 ntc_templates==6.0.0
 numpy==1.23.5
 openpyxl==3.1.5
 pandas==1.5.3
 paramiko==3.4.1
+platformdirs==4.3.6
 psycopg2==2.9.9
+psycopg2-binary==2.9.5
 pycparser==2.22
+pylint==3.3.4
 PyNaCl==1.5.0
 pyserial==3.5
 python-dateutil==2.9.0.post0
@@ -147,12 +155,12 @@ PyYAML==6.0.2
 scp==0.15.0
 six==1.16.0
 SQLAlchemy==2.0.32
-psycopg2-binary==2.9.5
 sqlparse==0.5.1
 tabulate==0.9.0
 textfsm==1.1.3
+tomlkit==0.13.2
 typing_extensions==4.12.2
-tzdata==2024.1  
+tzdata==2024.1
 ```
 # Supported Network Devices
 - Cisco ASA
