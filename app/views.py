@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import My_Devices,ACL_GROSS,ACL_Summary,Global_Settings,Active_Capture,Show_NAT_DB, Default_Credentials, WTF_Log, Devices_Model,ACL_Most_Expanded
-from .models import Top_IP_Range,Top_ICMP_Open_Detail,Top_TCP_Open_Detail,Top_UDP_Open_Detail,Top_IP_Open_Detail
+from .models import Top_IP_Range,Top_ICMP_Open_Detail,Top_TCP_Open_Detail,Top_UDP_Open_Detail,Top_IP_Open_Detail,Bad_News
 from django.db.models import Max,Q,Sum
 from django.utils import timezone
 from django.utils.timezone import make_aware, utc
@@ -9,6 +9,7 @@ from django.contrib import messages
 import datetime
 from .forms import Add_Device_Form, Edit_Device_Form, Global_Settings_Form, Default_Credentials_Form
 from django.contrib.auth.models import User, Group
+from datetime import timedelta
 
 # test for background task START -------------
 # from .models import TaskStatus
@@ -180,6 +181,10 @@ def dashboard(request, FW_NAME):
         Prct_ICMP_Space_Sum = My_Devices.objects.all().filter(HostName=FW_NAME).values('Prct_ACL_Space_ICMP').values_list('Prct_ACL_Space_ICMP', flat=True).first()
         Top_IP_Open_Details = Top_IP_Open_Detail.objects.all().filter(HostName=FW_NAME)
         MAX_IP_Open_Val = list(Top_IP_Open_Detail.objects.all().filter(HostName=FW_NAME).aggregate(Max('IP_Open_Val')).values())[0]
+        has_bad_news = Bad_News.has_bad_news()
+        
+        
+        
         for t_line in Top_IP_Open_Details:
             t_line.HostName = t_line.HostName.replace("___", "/")
             t_line.ACL_Name = (t_line.ACL_Line).split()[1]
@@ -207,8 +212,9 @@ def dashboard(request, FW_NAME):
             't_Max_Capture_Age'  : t_Max_Capture_Age,
             'Prct_TCP_Space_Sum' : Prct_TCP_Space_Sum,
             'Prct_UDP_Space_Sum' : Prct_UDP_Space_Sum,
-            'Prct_ICMP_Space_Sum' : Prct_ICMP_Space_Sum,
+            'Prct_ICMP_Space_Sum': Prct_ICMP_Space_Sum,
             'Top_IP_Open_Details': Top_IP_Open_Details,
+            'has_bad_news'       : has_bad_news,
             })
     else:
         return redirect('login_user')
@@ -476,6 +482,7 @@ def index(request):
             t_line.HostName = t_line.HostName.replace("___", "/")
             t_line.IP_Open_Val = round(100*t_line.IP_Open_Val/MAX_IP_Open_Val, 2) if not (MAX_IP_Open_Val==0) else 0
             t_line.ACL_Line = Color_Line(t_line.ACL_Line)
+        has_bad_news = Bad_News.has_bad_news()
     
         return render (request, 'index.html',
                        
@@ -501,6 +508,7 @@ def index(request):
             'Top_TCP_Open_Details'      : Top_TCP_Open_Details,
             'Top_UDP_Open_Details'      : Top_UDP_Open_Details,
             'Top_IP_Open_Details'       : Top_IP_Open_Details,
+            'has_bad_news'              : has_bad_news,
             })
     else:
         return redirect('login_user')        
@@ -1026,6 +1034,36 @@ def manage_devices(request):
             })
     else:
         return redirect('login_user')
+
+#=================================================================================================================
+def badnews(request):
+    My_Bad_News = Bad_News.objects.all().order_by('Tmiestamp')
+    for t_line in My_Bad_News:
+        t_line.Content = Color_Line(t_line.Content)    
+        if t_line.Flag == True:
+            t_line.Flag = '<font class="text-danger">True</font>'
+    # Calculate cutoff date (today - 6 months)
+    cutoff_date = timezone.now().date() - timedelta(days=180)  # ~6 months
+    # Delete all entries older than cutoff
+    Bad_News.objects.filter(Tmiestamp__lt=cutoff_date).delete()
+    
+    if request.user.is_authenticated:
+        Devices_list = My_Devices.objects.all().order_by('HostName')
+        #My_Bad_News = Bad_News.objects.all().order_by('Tmiestamp')
+        #has_bad_news = Bad_News.objects.filter(Flag=True).exists()
+        return render (request, 'badnews.html', 
+            {
+            'Devices_list'  : Devices_list,
+            'has_bad_news'  : Bad_News.has_bad_news(),
+            'My_Bad_News'   : My_Bad_News,
+            })
+    else:
+        return redirect('login_user')
+    
+    
+def reset_all_flags(request):
+    Bad_News.objects.update(Flag=False)
+    return redirect("badnews")  # redirect back to your dashboard
     
 #=================================================================================================================
 def delete_device(request, t_IP_Address):
@@ -1464,11 +1502,11 @@ def get_python_path():
 
 #=================================================================================================================
 def Color_Line(IN_Line):
-    Red_Words    = ['no', 'NEW','|','i','ip','any','any4','clear','tcp','udp','ip','icmp','deny','(hitcnt=0)','inactive','shutdown','address','standby','route','ssh','circular-buffer','[Capturing','0']
-    Blu_Words    = ['interface','access-group','access-list','host','network','nat','route','show','run','unidirectional']
+    Red_Words    = ['no', 'NEW','True','|','i','ip','any','any4','clear','tcp','udp','ip','icmp','deny','(hitcnt=0)','inactive','shutdown','address','standby','route','ssh','circular-buffer','[Capturing','0','password','+','-']
+    Blu_Words    = ['interface','access-group','access-list','host','network','nat','route','show','run','unidirectional','username']
     Green_Words  = ['in','log','description','logging','permit']
     Purple_Words = ['configure', 'extended', 'service','protocol','capture']
-    Brown_Words  = ['network-object','source','dynamic','static','destination','object-group','object','port-object','policy-map','match','to','eq','line','range']
+    Brown_Words  = ['network-object','source','dynamic','static','destination','object-group','object','port-object','policy-map','match','to','eq','line','range']    
     Red_Color    = '#ba1e28'
     Blu_Color    = '#1e25ba'
     Green_Color  = '#1cb836'

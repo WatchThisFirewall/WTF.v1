@@ -57,6 +57,32 @@
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
             </li>
+
+            <!-- Nav Item - Pages Collapse Menu -->
+            <li class="nav-item">
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseNews"
+                    aria-expanded="true" aria-controls="collapseNews">
+                    <i class="fas fa-bell 
+                        {% if has_bad_news %}
+                            text-warning
+                        {% endif %}">
+                    </i>
+                    {% if has_bad_news %}
+                    <span><font class="text-warning">Bad News</font></span>
+                    {% else %}
+                    <span>Bad News</span>
+                    {% endif %}
+                </a>
+                <div id="collapseNews" class="collapse" aria-labelledby="headingUtilities" data-parent="#accordionSidebar">
+                    <div class="bg-white py-2 collapse-inner rounded">
+                        <a class="collapse-item" href="{% url 'badnews' %}"><i class="fas fa-bell fa-sm fa-fw"></i>&nbsp;Bad News</a>
+                    </div>
+                </div>
+            </li>            
+
+            <!-- Divider -->
+            <hr class="sidebar-divider">
+
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapseTools"

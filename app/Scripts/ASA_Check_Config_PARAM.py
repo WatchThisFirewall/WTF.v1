@@ -41,7 +41,7 @@ WTF_Error_List = []
 
 Max_Capture_Age      = 20 #days                                          ==> in Global_Settings
 # Parameters for Config_Diff
-Max_Diff_Log_Age     = 30 #days (Config_Diff older than X are deleted)
+Max_Diff_Log_Age     = 180 #days (Config_Diff older than X are deleted)
 Conf_Length_History  = 24 #month to display config length history
 
 # Parameters for Show_NAT_DB
@@ -73,3 +73,5 @@ Blu_Color    = '#1e25ba'
 Green_Color  = '#1cb836'
 Purple_Color = '#8f1489'
 Brown_Color  = '#995c00'
+#=================================================================================================
+Bad_Words = ['range','interface','password','username','any','any4','0.0.0.0']

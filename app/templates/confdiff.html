@@ -42,15 +42,15 @@
                     <i style="font-size:30px"> &nbsp; Config Diff</i>
                 </h6>
             </div>
-
-            <script
-            new DataTable('#example', {
-                order: [[2, 'asc']]
-            });></script>
-            
+            <style type="text/css">
+                div.scroll {
+                overflow-x: scroll;
+                overflow-y: hidden;
+                white-space: nowrap;
+                }
+            </style>
+            <script new DataTable('#example', {order: [[2, 'asc']]});></script>
             {% include confdiff_Fname%}
-
-              
         </div>
     </div>
 </div>

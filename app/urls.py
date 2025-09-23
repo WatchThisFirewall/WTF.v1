@@ -61,10 +61,10 @@ urlpatterns = [
     path('manage_devices', views.manage_devices, name='manage_devices'),
     path('add_device.html', views.add_device, name='add_device'),
     path('edit_device/<t_IP_Address>', views.edit_device, name='edit_device'),
+    path('badnews', views.badnews, name='badnews'),
     
     #actions
-    
-    
+    path("reset-flags/", views.reset_all_flags, name="reset_flags"),
     path('Fetching_Config_Spinner/<str:FW_NAME>/', views.get_Fetching_Config_Spinner_status, name='Fetching_Config_Spinner'),
     path('Processing_Conf_Spinner/<str:FW_NAME>/', views.get_Processing_Conf_Spinner_status, name='Processing_Conf_Spinner'),    
 ]

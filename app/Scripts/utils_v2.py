@@ -587,8 +587,8 @@ def File_Save_Try2(g_DestFileFullName, g_List, g_ErrFileFullName, Config_Change)
 
 #=============================================================================================================================
 def Color_Line(IN_Line):
-    Red_Words    = ['no', 'NEW','|','i','ip','any','any4','clear','tcp','udp','ip','icmp','deny','(hitcnt=0)','inactive','shutdown','address','standby','route','ssh','circular-buffer','[Capturing','0']
-    Blu_Words    = ['interface','access-group','access-list','host','network','nat','route','show','run','unidirectional']
+    Red_Words    = ['no', 'NEW','|','i','ip','any','any4','clear','tcp','udp','ip','icmp','deny','(hitcnt=0)','inactive','shutdown','address','standby','route','ssh','circular-buffer','[Capturing','0','password','+','-']
+    Blu_Words    = ['interface','access-group','access-list','host','network','nat','route','show','run','unidirectional','username']
     Green_Words  = ['in','log','description','logging','permit']
     Purple_Words = ['configure', 'extended', 'service','protocol','capture']
     Brown_Words  = ['network-object','source','dynamic','static','destination','object-group','object','port-object','policy-map','match','to','eq','line','range']

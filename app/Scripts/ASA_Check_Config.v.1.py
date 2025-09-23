@@ -74,16 +74,25 @@ from tabulate import tabulate
 # ACL_Dest_Vs_Routing_Table     = 17
 # Check_Range                   = 18
 
+# prod params -------
 DEBUG_LEVEL           = 1      #[0 = verbose]
 ARGS_SEE_ELAPSED      = True   #[                                                (-e default = True)]
 ARGS_FETCH_CONFIG     = True   #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
 ARGS_REBUILD_VARS     = True   #[True=Rebuild Variables, False=Skip this session (-r default = True)]
 ARGS_PARRALEL_PROCESS = False  #[                                                (-p default = False)]
 DELETE_VAR_FILES      = True
-TEST_THIS_ONLY   = [0]
-TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
+
+#TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,      12,         16,17,18]
-#TEST_THIS_ONLY   = [17]
+
+### debug params -------
+##DEBUG_LEVEL           = 1      #[0 = verbose]
+##ARGS_SEE_ELAPSED      = True   #[                                                (-e default = True)]
+##ARGS_FETCH_CONFIG     = False   #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
+##ARGS_REBUILD_VARS     = False   #[True=Rebuild Variables, False=Skip this session (-r default = True)]
+##ARGS_PARRALEL_PROCESS = False  #[                                                (-p default = False)]
+##DELETE_VAR_FILES      = False
+##TEST_THIS_ONLY   = [2]
 #----------------------------------------------------------------------------------------
 start_time = time.time()
 pd.set_option('display.max_rows', 500)
@@ -561,7 +570,7 @@ def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VAR
         text = ('Create Variables @ %s' %t_device)
         utils_v2.Text_in_Frame (text, Config_Change_Dic[t_device], Print_also=1)
 
-        Config_Diff         (t_device, Config_Change_Dic[t_device], log_folder)
+        #Config_Diff         (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Ver        (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Nameif     (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Run_ACGR   (t_device, Config_Change_Dic[t_device], log_folder)
@@ -570,6 +579,8 @@ def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VAR
         VAR_Show_Run        (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Nat        (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Access_List(t_device, Config_Change_Dic[t_device], log_folder)
+
+    Config_Diff         (t_device, Config_Change_Dic[t_device], log_folder)
 
     if (1 in TEST_THIS_ONLY) or (0 in TEST_THIS_ONLY):
         start = datetime.datetime.now()
@@ -716,7 +727,8 @@ def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VAR
         #delete all local variable files
         DEL_Dir_Path = Path(log_folder_new)
         extensions_to_delete = {'.bak', '.dat', '.dir', '.log'}
-        excluded_file = "Diff_Only_DF"
+        #excluded_file = "Diff_Only_DF"
+        excluded_file = ""
 
         # Iterate through all files in the directory and subdirectories
         Deleted_Flag = False

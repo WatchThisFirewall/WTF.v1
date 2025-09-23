@@ -377,6 +377,7 @@ def Config_Diff(Device, Config_Change, log_folder):
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
+            Bad_News   = db.Table('Bad_News',   db.MetaData(), autoload_with=engine)
     except Exception as e:
         print(f"error is: {e}")
         print('=================[ Warning ]==================')
@@ -400,73 +401,45 @@ def Config_Diff(Device, Config_Change, log_folder):
     Delta_ShowRun_file = FW_log_folder + '/' + hostname___ + '.CFG.Delta.txt'
     Delta_ShowRun_html = hostname___ + '.CFG.Delta.html'
     html_folder = FW_log_folder
+    old_file = ''
 
+    # ----- load current data -----
     try:
         with open("%s/%s___Show_Running-Config.log" %(FW_log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
             new_file = f.readlines()
     except Exception as e:
         print(f"error is: {e}")
         print(f'file "{hostname___}___Show_Running-Config.log" for compare missing')
+
+    # --- Load previous state or handle first run ---
+    if os.path.isfile(T_0_ShowRun_file):
+        with open(T_0_ShowRun_file, "r", encoding="utf-8", errors='replace') as f:
+            old_file = f.readlines()
+    else:
+        # First run: save current file as baseline and exit
+        try:
+            with open(T_0_ShowRun_file, mode="w", encoding='utf-8', errors='replace') as f:
+                f.writelines(line for line in new_file)
+        except Exception as e:
+            print(f"error is: {e}")
+            print(f'Can not write to destination file "{T_0_ShowRun_file}"')
+            Config_Change.append(f"error is: {e}")
+            Config_Change.append(f'Can not write to destination file "{T_0_ShowRun_file}"')
+            return Config_Change
+
+    # --- Find differences ---
+    Delta_File = []
+    differ = Differ()
+    Line_Number = 0
+    Diff_Only = []
     Num_Added_Lines = 0
     Num_Remvd_Lines = 0
-    Diff_Only = []
-# old starts here -----------------------------------------
-    if not os.path.isfile(T_0_ShowRun_file):
-        # this is the first run
-        try:
-            with open(T_0_ShowRun_file, mode="w", encoding='utf-8', errors='replace') as f:
-                for n in new_file:
-                    f.write(n)
-        except Exception as e:
-            print(f"error is: {e}")
-            print(f'Can not write to destination file "{T_0_ShowRun_file}"')
+    Diff_Only_DF = pd.DataFrame()
 
-        try:
-            with open("%s/%s"%(html_folder,Delta_ShowRun_html), mode="w", encoding='utf-8', errors='replace') as html_file:
-                html_file.write('\n')
-            print('... saved file "%s/%s" '%(html_folder,Delta_ShowRun_html))
-        except Exception as e:
-            print(f"error is: {e}")
-            raise OSError("Can't write to destination file (%s/%s)!" % (html_folder,Delta_ShowRun_html))
-
-    else:
-        try:
-            with open(T_0_ShowRun_file, mode='r', encoding='utf-8', errors='replace') as f:
-                t0_file = f.readlines()
-        except Exception as e:
-            print(f"error is: {e}")
-            print(f'file "{T_0_ShowRun_file}" for compare is missing')
-
-        try:
-            with open(T_1_ShowRun_file, mode="w", encoding='utf-8', errors='replace') as f:
-                for n in t0_file:
-                    f.write(n)
-        except Exception as e:
-            print(f"error is: {e}")
-            print(f'Can not write to destination file "{T_1_ShowRun_file}"')
-
-        try:
-            with open(T_0_ShowRun_file, mode="w", encoding='utf-8', errors='replace') as f:
-                for n in new_file:
-                    f.write(n)
-        except Exception as e:
-            print(f"error is: {e}")
-            print(f'Can not write to destination file "{T_0_ShowRun_file}"')
-
-        Delta_File = []
-        try:
-            with open(T_1_ShowRun_file, mode='r', encoding='utf-8', errors='replace') as f:
-                old_file = f.readlines()
-
-                differ = Differ()
-                Line_Number = 0
-                for line in differ.compare(old_file, new_file):
-                    Delta_File.append([Line_Number, line.strip()])
-                    Line_Number += 1
-        except Exception as e:
-            print(f"error is: {e}")
-            print('old file "%s" for compare missing' %T_1_ShowRun_file)
-            old_file = ''
+    if old_file:
+        for line in differ.compare(old_file, new_file):
+            Delta_File.append([Line_Number, line.strip()])
+            Line_Number += 1
 
         for item in Delta_File:
             if item[1].startswith('+'):
@@ -482,79 +455,115 @@ def Config_Diff(Device, Config_Change, log_folder):
                     Diff_Only.append(item)
                     Num_Remvd_Lines +=1
 
-    if DB_Available:
-        Updated_Vals = dict(
-                            Config_Diff_Added_Lines = Num_Added_Lines,
-                            Config_Diff_Remvd_Lines = Num_Remvd_Lines,
-                            Config_Total_Lines = len(new_file)
-                            )
-        query = db.update(My_Devices).where(My_Devices.c.HostName==hostname___).values(Updated_Vals)
-        with engine.begin() as connection:
-            results = connection.execute(query)
+        if DB_Available:
+            Updated_Vals = dict(
+                                Config_Diff_Added_Lines = Num_Added_Lines,
+                                Config_Diff_Remvd_Lines = Num_Remvd_Lines,
+                                Config_Total_Lines = len(new_file)
+                                )
+            query = db.update(My_Devices).where(My_Devices.c.HostName==hostname___).values(Updated_Vals)
+            with engine.begin() as connection:
+                results = connection.execute(query)
 
+    # --- Clean old logs (remove NEW + purge old entries) ---
+    cutoff = datetime.datetime.now() - datetime.timedelta(days=Max_Diff_Log_Age)
+    #if os.path.exists(Delta_ShowRun_file):
+    if os.path.exists(Delta_ShowRun_file) and os.path.getsize(Delta_ShowRun_file) > 0:
+        with open(Delta_ShowRun_file, "r", encoding="utf-8", errors='replace') as f:
+            lines = f.readlines()
+        # --- parse the tabulated to dataframe ---
+        data_lines = []
+        for line in lines:
+            if line.startswith("+") or line.startswith("|-"):
+                continue
+            line = line.strip().strip('|')
+            data_lines.append(line)
+        rows = []
+        for line in data_lines:
+            # skip empty lines
+            if not line:
+                continue
+            # split by '|' and strip spaces
+            parts = [x.strip() for x in line.split("|")]
+            #print(parts)
+            if parts[0] != 'Date':
+                ts = datetime.datetime.strptime(parts[0], "%Y.%m.%d-%H:%M:%S")
+                if ts >= cutoff:
+                    if ts.date() != datetime.datetime.today().date():
+                        rows.append([parts[0], parts[1], '', parts[3]])
+                    else:
+                        rows.append(parts)
+            else:
+                rows.append(parts)
+        if rows:  # only build dataframe if rows exist
+            headers = rows[0]
+            data = rows[1:]
+            Delta_ShowRun_df = pd.DataFrame(data, columns=headers)
+        else:
+            Delta_ShowRun_df = pd.DataFrame()  # empty dataframe
+    else:
+        # File missing or empty
+        Delta_ShowRun_df = pd.DataFrame()
 
-    t_now = datetime.datetime.now().strftime('%Y.%m.%d-%H:%M:%S')
-
-    OLD_Diff_File_Exists = False
-    Diff_Only_DF = pd.DataFrame()
-    try:
-        tf_name = f"{FW_log_folder}/VAR_{hostname___}___Diff_Only_DF"
-        OLD_Diff_Only_DF = utils_v2.Shelve_Read_Try(tf_name,'')
-        if OLD_Diff_Only_DF != None:
-            OLD_Diff_File_Exists = True
-    except:
-        pass
-    # if date file older than X, delete old log
-    today = datetime.datetime.now().strftime('%Y-%m-%d')
-    t_today = datetime.date(int(today.split('-')[0]),int(today.split('-')[1]),int(today.split('-')[2]))
-
-    if OLD_Diff_File_Exists == True:
-        # reset column 'NEW'
-        OLD_Diff_Only_DF['New'] = ''
-        # delete too old lines
-        for row in OLD_Diff_Only_DF[::-1].itertuples():
-            temp = row.Date.split('-')[0]
-            t_read_date = datetime.date(int(temp.split('.')[0]),int(temp.split('.')[1]),int(temp.split('.')[2]))
-            if (t_today-t_read_date).days >= Max_Diff_Log_Age:
-                OLD_Diff_Only_DF=OLD_Diff_Only_DF.drop(row.Index)
-
-    if len(Diff_Only) > 0:
+    # --- If no changes ---
+    if (Num_Added_Lines + Num_Remvd_Lines) == 0:
+        try:
+            with open(Delta_ShowRun_file, mode="w", encoding='utf-8', errors='replace') as txt_file:
+                txt_file.write(tabulate(Delta_ShowRun_df,Delta_ShowRun_df,tablefmt='psql',showindex=False))
+        except Exception as e:
+            print(f"error is: {e}")
+            print('Erron when writing to file "%s" in tabulate' %Delta_ShowRun_file)
+        Diff_Only_DF = Delta_ShowRun_df
+    else:
+        # Add new changes
+        t_now = datetime.datetime.now().strftime('%Y.%m.%d-%H:%M:%S')
         col_names = ['Line_N','Line']
         NEW_Diff_Only_DF = pd.DataFrame(Diff_Only, columns = col_names)
         NEW_Diff_Only_DF.insert(0,'Date',t_now)
         NEW_Diff_Only_DF.insert(2,'New','NEW')
-        if OLD_Diff_File_Exists:
-            Diff_Only_DF = pd.concat([NEW_Diff_Only_DF, OLD_Diff_Only_DF], ignore_index=True)
+        if os.path.exists(Delta_ShowRun_file):
+            Diff_Only_DF = pd.concat([NEW_Diff_Only_DF, Delta_ShowRun_df], ignore_index=True)
         else:
             Diff_Only_DF = NEW_Diff_Only_DF
-
-        Config_Change.append(tabulate(Diff_Only_DF,Diff_Only_DF,tablefmt='psql',showindex=False))
-        #print(tabulate(Diff_Only_DF,Diff_Only_DF,tablefmt='psql',showindex=False))
-
-        tf_name = "%s/VAR_%s___%s"%(FW_log_folder, hostname___, 'Diff_Only_DF')
-        retries = utils_v2.Shelve_Write_Try(tf_name, Diff_Only_DF)
-        if retries == 3:
-            with open("%s/%s"%(Err_folder, WTF_Error_FName),"a+") as f:
-                f.write('Cannot write file %s/VAR_%s___%s! @ Config_Diff\n' %(FW_log_folder, hostname___, 'Diff_Only_DF'))
-
+        # Save updated log in tabular form
         try:
             with open(Delta_ShowRun_file, mode="w", encoding='utf-8', errors='replace') as txt_file:
                 txt_file.write(tabulate(Diff_Only_DF,Diff_Only_DF,tablefmt='psql',showindex=False))
         except Exception as e:
             print(f"error is: {e}")
             print('Erron when writing to file "%s" in tabulate' %Delta_ShowRun_file)
-    else:
-        if OLD_Diff_File_Exists == True:
-            #first run or no diff... different handling?
-            tf_name = "%s/VAR_%s___%s"%(FW_log_folder, hostname___, 'Diff_Only_DF')
-            file_path = Path(tf_name)
-            if file_path.exists():
-                Diff_Only_DF = utils_v2.Shelve_Read_Try(tf_name, '')
-                if not Diff_Only_DF.empty:
-                    if Diff_Only_DF.shape[0] > 0:
-                        Diff_Only_DF['New'] = ''
-        else:
-            Diff_Only_DF = pd.DataFrame()
+        Config_Change.append(tabulate(Diff_Only_DF,Diff_Only_DF,tablefmt='psql',showindex=False))
+    # --- Save new state ---
+    try:
+        with open(T_0_ShowRun_file, mode="w", encoding='utf-8', errors='replace') as f:
+            f.writelines(line for line in new_file)
+    except Exception as e:
+        print(f"error is: {e}")
+        print(f'Can not write to destination file "{T_0_ShowRun_file}"')
+        Config_Change.append(f"error is: {e}")
+        Config_Change.append(f'Can not write to destination file "{T_0_ShowRun_file}"')
+
+    # --- Check for Bad Words ---
+    for line in Diff_Only:
+        Processed_Line = False
+        for t_word in Bad_Words:
+            if t_word in line[1]:
+                if Processed_Line == False:
+                    if DB_Available:
+                        row = dict(
+                                  HostName = Device,
+                                  Tmiestamp = datetime.datetime.now().astimezone(),
+                                  Content = line[1],
+                                  Flag = True
+                                  )
+                        insert_stmt = Bad_News.insert().values(**row)
+                        with engine.begin() as connection:
+                            connection.execute(insert_stmt)
+                        Processed_Line = True
+                        print(f'_____ Bad_News @ {line}"')
+                        Config_Change.append(f'_____ Bad_News @ {line}"')
+
+
 
     # OUTPUT HTML FILE
     if not os.path.exists(html_folder):
@@ -566,7 +575,7 @@ def Config_Diff(Device, Config_Change, log_folder):
     t_html_file = []
     t_html_file.append('<div class="card-body">\n')
     t_html_file.append('''
-       <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "desc" ]]' data-page-length="50" >\n
+       <table class="table-bordered table-condensed table-striped table-responsive" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "desc" ]]' data-page-length="50" >\n
        ''')
     my_index = 0
     if not Diff_Only_DF.empty:
@@ -585,7 +594,7 @@ def Config_Diff(Device, Config_Change, log_folder):
                     new_line = ''
                     new_line = utils_v2.Color_Line(Diff_Only_DF.iloc[row.Index][t_col_index])
                     new_line = new_line.encode('ascii', errors='replace').decode('ascii')
-                    t_html_file.append('           <td>%s</td>\n' %new_line)
+                    t_html_file.append('           <td class="text-nowrap mr-2">%s</td>\n' %new_line)
                 elif t_col_index == 0:
                     t_html_file.append('           <td>%s</td>\n' %Diff_Only_DF.iloc[row.Index][t_col_index])
                 else :
@@ -1614,10 +1623,12 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 ##    Duplicated_Object_List = []
     Duplicated_Object_Dic = {}
     for t_key in OBJ_GRP_NET_Dic.keys():
-        if 'DM_INLINE_NETWORK_120' in t_key:
+        if 'DB_PAAS_AZURE_10.164.24.8' in t_key:
             print('stop')
         t_vals = []
         for t_item in OBJ_GRP_NET_Dic[t_key]:
+            if 'DB_PAAS_AZURE_10.164.24.8' in t_item:
+                print('stop')
             if 'network-object host ' in t_item:
 ##                if t_item.split()[-1] in t_vals:
 ##                    print(f'Duplicated Object in {t_key}: {t_item.split()[-1]}')
@@ -1628,14 +1639,20 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
                 else:
                     Duplicated_Object_Dic[f'{t_key}|{t_item.split()[-1]}'].append(f'{t_key} => {t_item}')
             elif 'network-object object ' in t_item:
-                temp = Obj_Net_Dic[t_item.split()[-1]]
-                temp = temp.replace('host ','')
-                temp = temp.replace('range ','')
-                temp = temp.replace('subnet ','')
-                temp = temp.replace('fqdn ','')
-##                if temp in t_vals:
-##                    print(f'Duplicated Object in {t_key}: {temp}')
-##                    Duplicated_Object_List.append(f'{t_key}: {temp}')
+                if (t_item.split()[-1]) in Obj_Net_Dic:
+                    temp = Obj_Net_Dic[t_item.split()[-1]]
+                    temp = temp.replace('host ','')
+                    temp = temp.replace('range ','')
+                    temp = temp.replace('subnet ','')
+                    temp = temp.replace('fqdn ','')
+    ##                if temp in t_vals:
+    ##                    print(f'Duplicated Object in {t_key}: {temp}')
+    ##                    Duplicated_Object_List.append(f'{t_key}: {temp}')
+                else:
+                    print(f"Key not found: {t_item.split()[-1]}")
+                    print(f"network-object object {t_item} # can be safely removed from {t_key}")
+                    Config_Change.append(f"Key not found: {t_item.split()[-1]}\n")
+                    Config_Change.append(f"network-object object {t_item} # can be safely removed from {t_key}\n")
                 t_vals.append(temp)
                 if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
                     Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {t_item}']
@@ -1654,11 +1671,17 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
                         else:
                             Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {tt_item}')
                     elif 'network-object object ' in tt_item:
-                        temp = Obj_Net_Dic[tt_item.split()[-1]]
-                        temp = temp.replace('host ','')
-                        temp = temp.replace('range ','')
-                        temp = temp.replace('subnet ','')
-                        temp = temp.replace('fqdn ','')
+                        if (tt_item.split()[-1]) in Obj_Net_Dic:
+                            temp = Obj_Net_Dic[tt_item.split()[-1]]
+                            temp = temp.replace('host ','')
+                            temp = temp.replace('range ','')
+                            temp = temp.replace('subnet ','')
+                            temp = temp.replace('fqdn ','')
+                        else:
+                            print(f"Key not found: {tt_item.split()[-1]}")
+                            print(f"network-object object {tt_item} # can be safely removed from {tt_key}")
+                            Config_Change.append(f"Key not found: {tt_item.split()[-1]}\n")
+                            Config_Change.append(f"network-object object {tt_item} # can be safely removed from {tt_key}\n")
 ##                        if temp in t_vals:
 ##                            print(f'Duplicated Object in {t_key}: {temp}')
 ##                            Duplicated_Object_List.append(f'{t_key}: {temp}')
@@ -1680,11 +1703,17 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
                                 else:
                                     Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}')
                             elif 'network-object object ' in ttt_item:
-                                temp = Obj_Net_Dic[ttt_item.split()[-1]]
-                                temp = temp.replace('host ','')
-                                temp = temp.replace('range ','')
-                                temp = temp.replace('subnet ','')
-                                temp = temp.replace('fqdn ','')
+                                if (ttt_item.split()[-1]) in Obj_Net_Dic:
+                                    temp = Obj_Net_Dic[ttt_item.split()[-1]]
+                                    temp = temp.replace('host ','')
+                                    temp = temp.replace('range ','')
+                                    temp = temp.replace('subnet ','')
+                                    temp = temp.replace('fqdn ','')
+                                else:
+                                    print(f"Key not found: {ttt_item.split()[-1]}")
+                                    print(f"network-object object {ttt_item} # can be safely removed from {ttt_key}")
+                                    Config_Change.append(f"Key not found: {ttt_item.split()[-1]}\n")
+                                    Config_Change.append(f"network-object object {ttt_item} # can be safely removed from {ttt_key}\n")
 ##                                if temp in t_vals:
 ##                                    print(f'Duplicated Object in {t_key}: {temp}')
 ##                                    Duplicated_Object_List.append(f'{t_key}: {temp}')
@@ -2863,14 +2892,17 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
             if row.Service == 'icmp':
                 ACL_Space_ICMP_Detail[t_key] += SRC*DST
+                ACL_Space_IP___Detail[t_key] += SRC*DST
             elif row.Service == 'udp':
                 ACL_Space_UDP__Detail[t_key] += SRC*DST*N_of_Ports
+                ACL_Space_IP___Detail[t_key] += SRC*DST*N_of_Ports
             elif row.Service == 'tcp':
                 ACL_Space_TCP__Detail[t_key] += SRC*DST*N_of_Ports
+                ACL_Space_IP___Detail[t_key] += SRC*DST*N_of_Ports
             elif row.Service == 'ip':
                 ACL_Space_UDP__Detail[t_key] += SRC*DST*N_of_Ports
                 ACL_Space_TCP__Detail[t_key] += SRC*DST*N_of_Ports
-                ACL_Space_IP___Detail[t_key] += SRC*DST*N_of_Ports
+                ACL_Space_IP___Detail[t_key] += SRC*DST*N_of_Ports*2
 
             if this_Dst_Obj[0] in list(Founded_Routes.keys()):
                 if this_Dst_Obj[0] != '0.0.0.0 0.0.0.0':

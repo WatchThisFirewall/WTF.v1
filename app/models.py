@@ -341,7 +341,6 @@ class Active_Capture(models.Model):
     Name        = models.CharField(max_length=120, null=True, blank=True, default='')
     First_Seen  = models.DateField()
     Content     = ArrayField(models.CharField(max_length=200, null=True, blank=True, default=''))
-    
 
     class Meta:
         managed = True
@@ -578,8 +577,28 @@ class WTF_Log(models.Model):
     def __str__(self):
         return str(self.Message)
 
+#----------------------------------------------------------------------------------------------------------
+class Bad_News(models.Model):
+    ID          = models.SmallAutoField(primary_key=True)
+    HostName    = models.CharField(max_length=120, null=True, blank=True, default='')
+    Tmiestamp   = models.DateField(null=True, blank=True, default=datetime.date(2000, 1, 1))
+    Content     = models.TextField(null=True, blank=True, default='')
+    Flag        = models.BooleanField(default=False)
+    
 
+    class Meta:
+        managed = True
+        db_table = 'Bad_News'
+        verbose_name = 'Bad_News'
+        verbose_name_plural = 'Bad_News'
 
+    def __str__(self):
+        #return self.HostName
+        return '%s | %s | %s' % (self.HostName, self.Tmiestamp, self.Content)
+    
+    @classmethod
+    def has_bad_news(cls):
+        return cls.objects.filter(Flag=True).exists()
 
 #----------------------------------------------------------------------------------------------------------
 class TaskStatus(models.Model):

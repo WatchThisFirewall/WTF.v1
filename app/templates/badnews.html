@@ -1,0 +1,135 @@
+{% extends 'tplt_base.html' %}
+
+
+
+{% block MainContent %}
+{% load static %}
+
+
+<!-- Main Content -->
+<div id="content">
+
+    {% include 'topbar.html' %}
+
+    <!-- Begin Page Content -->
+    <div class="container-fluid">
+
+        <!-- Page Heading -->
+        <div class="d-sm-flex align-items-center justify-content-between mb-4">
+            <h1 class="h3 mb-0 text-gray-800">
+                Bad News
+            </h1>
+        </div>
+        <!-- Content Row -->
+
+        {% if messages %}
+            {%  for message in messages %}
+                <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                    <strong>{{ message}}</strong>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <style type="text/css"> 
+            a.custom-card:hover {
+            color: none;
+            text-decoration: none;
+            }
+        </style>
+        <!-- ACL SummaryDataTales -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h4 class="h4 m-0 font-weight-bold text-primary">Bad News</h4>
+                {% for t_group in user.groups.all %}
+                    {% if 'Admin' in t_group.name %}
+                         <form action="{% url 'reset_flags' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="d-block p-2 btn btn-primary shadow-sm">
+                                <i class="fas fa-undo text-white-50"></i>
+                                Reset All Flags
+                            </button>
+                        </form>
+                    {% else %}
+                        <button type="submit" class="d-block p-2 btn btn-primary shadow-sm disabled" data-toggle="tooltip" title="You are not an Admin User" aria-disabled="true">
+                            <i class="fas fa-undo text-white-50"></i>
+                            Reset All Flags
+                        </button>
+                    {% endif %}
+                {% empty %}
+                    <button type="submit" class="d-block p-2 btn btn-primary shadow-sm disabled" data-toggle="tooltip" title="You are not an Admin User" aria-disabled="true">
+                        <i class="fas fa-undo text-white-50"></i>
+                        Reset All Flags
+                    </button>
+                {% endfor %}
+
+            </div>
+            <script>
+                $(document).ready(function(){
+                  $('[data-toggle="tooltip"]').tooltip();   
+                });
+            </script>             
+            <div class="card-body">
+                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 1, "asc" ]]' data-page-length="100">
+                    <thead>
+                        <tr>
+                            <th data-toggle="tooltip" title="Hostname">Hostname</th>
+                            <th data-toggle="tooltip" title="TimeStamp">TimeStamp &nbsp;<i class="far fa-calendar-alt text-primary"></i></th>
+                            <th data-toggle="tooltip" title="Command Line">Command Line</th>
+                            <th data-toggle="tooltip" title="Flag">Flag &nbsp;<i class="far fa-check-square text-primary"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                       
+                        {% for t_line in My_Bad_News %}
+                            <tr>
+                                <td>
+                                    {{ t_line.HostName }}
+
+                                </td>
+                                <td>{{ t_line.Tmiestamp }}</td>
+                                <td>{{ t_line.Content|safe }}</td>
+                                <td>{{ t_line.Flag|safe }}</td>
+                               
+                            </tr>
+                        {% endfor %}
+
+                    </tbody>
+                </table>
+                <script>
+                    $(document).ready(function() {
+                        $('#dataTable').DataTable({
+                            columnDefs: [
+                                { orderable: false, targets: [3] }
+                            ]
+                        });
+                    });
+                </script>                
+            </div>
+        </div>
+        <!-- Content Row -->
+
+
+
+
+    </div>
+    <!-- /.container-fluid -->
+</div>
+<!-- End of Main Content -->
+
+
+
+{% endblock %}
+
+<!--
+{% autoescape on %}
+    {% block javascript %}
+        <script src="{% static 'vendor/datatables/jquery.dataTables.min.js' %}"></script>
+        <script src="{% static 'vendor/datatables/dataTables.bootstrap4.min.js' %}"></script>
+        <script src="{% static 'js/demo/datatables-demo.js' %}" ></script>
+    {% endblock javascript %}
+{% endautoescape %}
+
+-->
