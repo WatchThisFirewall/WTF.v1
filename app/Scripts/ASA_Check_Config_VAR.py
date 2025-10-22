@@ -1,20 +1,29 @@
+# pylint: disable=C0103
+
+import os
+import sys
 import shelve
 import re
 import ipaddress
-import html
 import datetime
 import utils_v2
+import sqlalchemy as db
+import pandas as pd
+import pyarrow
+import json
 
-from tabulate import tabulate
+#from tabulate import tabulate
 from Network_Calc import *
 from ASA_Check_Config_PARAM import *
 
+#from utils_v2 import File_Save_Try
+
 re_space = re.compile(r'  +')
 re_empty = re.compile(r'^\s*$') # empty line
-re1 = re.compile(r'(permit|deny) (tcp|icmp|udp|gre|ip|esp|ah|ipsec|ospf)', re.IGNORECASE)
-re4 = re.compile(r'^  access-list .* line', re.IGNORECASE)
+##re1 = re.compile(r'(permit|deny) (tcp|icmp|udp|gre|ip|esp|ah|ipsec|ospf)', re.IGNORECASE)
+##re4 = re.compile(r'^  access-list .* line', re.IGNORECASE)
 re11 = re.compile(r'^access-list .* line \d* extended', re.IGNORECASE)
-re9 = re.compile(r'\(hitcnt=.*')
+##re9 = re.compile(r'\(hitcnt=.*')
 re3 = re.compile(r'^access-list .* line', re.IGNORECASE)
 re5 = re.compile(r'^\s*$') # empty line
 re2 = re.compile(r'access-list .* element', re.IGNORECASE)
@@ -35,14 +44,24 @@ def VAR_Show_Nameif(t_device, Config_Change, log_folder):
     log_folder = log_folder + '/' + hostname___
     global WTF_Error_FName
 
+    file_path = os.path.join(log_folder, f"{hostname___}___Show_Nameif.log")
+    err_file = os.path.join(Err_folder, WTF_Error_FName)
+
     try:
-        with open("%s/%s___Show_Nameif.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             l = f.readlines()
-    except:
-        print('file %s/%s___Show_Nameif.log not found! @ VAR_Show_Nameif' %(log_folder,hostname___))
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('file %s/%s___Show_Nameif.log not found! @ VAR_Show_Nameif\n' %(log_folder,hostname___))
-        exit(0)
+    except FileNotFoundError:
+        msg = f'File not found: {file_path} @ VAR_Show_Nameif'
+        print(msg)
+        with open(err_file, 'a+', encoding='utf-8') as f:
+            f.write(msg + '\n')
+        sys.exit(msg)
+    except OSError as e:
+        msg = f'Error reading {file_path} @ VAR_Show_Nameif: {e}'
+        print(msg)
+        with open(err_file, 'a+', encoding='utf-8') as f:
+            f.write(msg + '\n')
+        sys.exit(msg)
 
     Nameif_List = []
     for n in range(1,len(l)):
@@ -51,11 +70,11 @@ def VAR_Show_Nameif(t_device, Config_Change, log_folder):
             if (temp_l[0] != 'Interface') and (temp_l[1] != 'Name') and (temp_l[2] != 'Security'):
                 Nameif_List.append(temp_l[1])
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Nameif_List')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Nameif_List")
     retries = utils_v2.Shelve_Write_Try(tf_name,Nameif_List)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Nameif\n' %(log_folder,hostname___,'Nameif_List'))
+        with open(os.path.join(Err_folder, WTF_Error_FName), "a+", encoding="utf-8") as f:
+            f.write(f"Cannot write file {os.path.join(log_folder, f'VAR_{hostname___}___Nameif_List')}! @ VAR_Show_Nameif\n")
 
 #=============================================================================================================================
 #  _  ___  ___    _  _  __    ____                 ___  _   _  _____  _    _       ____  __  __  _  _         __    ___  ___  ____  ___  ___        ___  ____  _____  __  __  ____    ___  ___  _
@@ -70,14 +89,24 @@ def VAR_Show_Run_ACGR(t_device, Config_Change, log_folder):
     log_folder = log_folder + '/' + hostname___
     global WTF_Error_FName
 
+    file_path = os.path.join(log_folder, f"{hostname___}___Show_Run_Access-Group.log")
+    err_path = os.path.join(Err_folder, WTF_Error_FName)
+
     try:
-        with open("%s/%s___Show_Run_Access-Group.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             l = f.readlines()
-    except:
-        print('file %s/%s___Show_Run_Access-Group.log not found! @ VAR_Show_Run_ACGR' %(log_folder,hostname___))
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('file %s/%s___Show_Run_Access-Group.log not found! @ VAR_Show_Run_ACGR\n' %(log_folder,hostname___))
-        exit(0)
+    except FileNotFoundError:
+        msg = f"File not found: {file_path} @ VAR_Show_Run_ACGR"
+        print(msg)
+        with open(err_path, 'a+', encoding='utf-8') as err_file:
+            err_file.write(msg + '\n')
+        sys.exit(msg)
+    except OSError as e:
+        msg = f"Error reading {file_path} @ VAR_Show_Run_ACGR: {e}"
+        print(msg)
+        with open(err_path, 'a+', encoding='utf-8') as err_file:
+            err_file.write(msg + '\n')
+        sys.exit(msg)
 
     Accessgroup_Dic_by_if = {}
     Accessgroup_Dic_by_ACL = {}
@@ -90,23 +119,26 @@ def VAR_Show_Run_ACGR(t_device, Config_Change, log_folder):
             else:
                 Global_ACL_Dic['global'] = l[n].split()[1]
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Accessgroup_Dic_by_if')
-    retries = utils_v2.Shelve_Write_Try(tf_name,Accessgroup_Dic_by_if)
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Accessgroup_Dic_by_if")
+    retries = utils_v2.Shelve_Write_Try(tf_name, Accessgroup_Dic_by_if)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run_ACGR\n' %(log_folder,hostname___,'Accessgroup_Dic_by_if'))
+        msg = f"Cannot write file {tf_name}! @ VAR_Show_Run_ACGR\n"
+        with open(err_file, "a+", encoding="utf-8") as f:
+            f.write(msg)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Accessgroup_Dic_by_ACL')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Accessgroup_Dic_by_ACL")
     retries = utils_v2.Shelve_Write_Try(tf_name,Accessgroup_Dic_by_ACL)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run_ACGR\n' %(log_folder,hostname___,'Accessgroup_Dic_by_ACL'))
+        msg = f"Cannot write file {tf_name}! @ VAR_Show_Run_ACGR\n"
+        with open(err_file, "a+", encoding="utf-8") as f:
+            f.write(msg)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Global_ACL_Dic')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Global_ACL_Dic")
     retries = utils_v2.Shelve_Write_Try(tf_name,Global_ACL_Dic)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Run_ACGR\n' %(log_folder,hostname___,'Global_ACL_Dic'))
+        msg = f"Cannot write file {tf_name}! @ VAR_Show_Run_ACGR\n"
+        with open(err_file, "a+", encoding="utf-8") as f:
+            f.write(msg)
 
 
 #=============================================================================================================================
@@ -118,22 +150,29 @@ def VAR_Show_Run_ACGR(t_device, Config_Change, log_folder):
 #=============================================================================================================================
 
 def VAR_Show_Run(t_device, Config_Change, log_folder):
-    from utils_v2 import File_Save_Try
+
     hostname___ = t_device.replace('/','___')
     Err_folder = log_folder
     log_folder = log_folder + '/' + hostname___
     global WTF_Error_FName
-    Not_ascii_L = []
 
-    text = ('VAR_Show_Run @ %s' %hostname___)
+    text = f'VAR_Show_Run @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
+    file_path = os.path.join(log_folder, f"{hostname___}___Show_Running-Config.log")
+    err_file = os.path.join(Err_folder, WTF_Error_FName)
+
     try:
-        with open("%s/%s___Show_Running-Config.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             t_file = f.readlines()
-    except:
-        print('file %s/%s___Show_Running-Config.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
-        exit(0)
+    except FileNotFoundError:
+        msg = f"File not found: {file_path} @ CREATE VARIABLES"
+        print(msg)
+        sys.exit(msg)
+    except OSError as e:
+        msg = f"Error reading {file_path} @ CREATE VARIABLES: {e}"
+        print(msg)
+        sys.exit(msg)
 
     Declared_Object_List = []
     Declared_OBJ_NET = []
@@ -181,12 +220,12 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
         elif t_file[n].startswith('policy-map '):
             temp = []
             if l.split()[1] == 'type':
-                print ('\nWARNING from "VAR_Show_Run" for %s' %hostname___)
-                print ('        ... line "%s" not processed' % l)
+                print (f'\nWARNING from "VAR_Show_Run" for {hostname___}')
+                print (f'        ... line "{l}" not processed')
             else:
                 this_pm = l.split()[1]
                 nn = n+1
-                while (t_file[nn].startswith(' ')):
+                while t_file[nn].startswith(' '):
                     if t_file[nn].startswith(' class '):
                         temp.append(t_file[nn].split()[1])
                     nn = nn+1
@@ -209,11 +248,11 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
             this_OBJ_SVC = l.split(' service ')[1]
             if this_OBJ_SVC not in Declared_Object_service:
                 Declared_Object_service.append(this_OBJ_SVC)
-            if this_OBJ_SVC not in OBJ_SVC_Dic.keys():
+            if this_OBJ_SVC not in OBJ_SVC_Dic:
                 OBJ_SVC_Dic[this_OBJ_SVC] = t_file[n+1].strip()
             else:
                 print('WARNING!!!!')
-                print('%s already in OBJ_SVC_Dic.keys()' %this_OBJ_SVC)
+                print(f'{this_OBJ_SVC} already in OBJ_SVC_Dic')
 
         elif t_file[n].startswith('object-group service '):
             temp = []
@@ -244,12 +283,12 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
             elif t_file[n+1].startswith(' nat ('):
                 pass
             else:
-                print('Object "%s" already declared! check it out' %l.split(' network ')[1])
+                print(f'Object "{l.split(" network ")[1]}" already declared! check it out')
 
         # collect "object-group network"
         elif t_file[n].startswith('object-group network '):
             temp = []
-            t_key = (l.split(' network ')[1])
+            t_key = l.split(' network ')[1]
             nn = n+1
             while not (t_file[nn].startswith('object-group ') or t_file[nn].startswith('access-list ')):
                 if t_file[nn].startswith(' group-object ') or t_file[nn].startswith(' network-object ') :
@@ -261,7 +300,7 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
                 Declared_Object_List.append((l.split(' network ')[1]))
                 Declared_OBJ_GRP_NET.append((l.split(' network ')[1]))
             else:
-                print('Object "%s" already declared! check it out' %l.split(' network ')[1])
+                print(f'Object "{l.split(" network ")[1]}" already declared! check it out')
 
         # collect Used_Object_List
         elif t_file[n].startswith(' network-object object '):
@@ -296,14 +335,14 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
             t_object = this_line.split()
             for m in t_object:
                 if m.strip() not in Used_Object_List:
-                     Used_Object_List.append(m.strip())
+                    Used_Object_List.append(m.strip())
 
         elif t_file[n].startswith(' nat ('):
             this_line = re_nat.sub('', t_file[n])
             t_object = this_line.split()
             for m in t_object:
                 if m.strip() not in Used_Object_List:
-                     Used_Object_List.append(m.strip())
+                    Used_Object_List.append(m.strip())
 
         # collect undeclared network-object used in "object-group network"
         elif t_file[n].startswith(' network-object host '):
@@ -317,14 +356,14 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
         # collect Obejct_by_value_Dict
         elif t_file[n].startswith(' host '):
             t_key = (t_file[n].split(' host ')[1]).strip()
-            if t_key not in Obejct_by_value_Dict.keys():
+            if t_key not in Obejct_by_value_Dict:
                 Obejct_by_value_Dict[t_key] = [(t_file[n-1].split(' network ')[1]).strip()]
             else:
                 Obejct_by_value_Dict[t_key].append(t_file[n-1].split(' network ')[1].strip())
         elif t_file[n].startswith(' range '):
             t_key = (t_file[n].split(' range ')[1]).strip()
             t_val = (t_file[n-1].split(' network ')[1]).strip()
-            if t_key not in Obejct_by_value_Dict.keys():
+            if t_key not in Obejct_by_value_Dict:
                 Obejct_by_value_Dict[t_key] = [t_val]
             else:
                 Obejct_by_value_Dict[t_key].append(t_val)
@@ -332,13 +371,13 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
             if ' network ' in t_file[n-1]:
                 t_key = (t_file[n].split(' fqdn ')[1]).strip()
                 t_val = (t_file[n-1].split(' network ')[1]).strip()
-                if t_key not in Obejct_by_value_Dict.keys():
+                if t_key not in Obejct_by_value_Dict:
                     Obejct_by_value_Dict[t_key] = [t_val]
                 else:
                     Obejct_by_value_Dict[t_key].append(t_val)
         elif t_file[n].startswith(' subnet '):
             t_key = (t_file[n].split(' subnet ')[1]).strip()
-            if t_key not in Obejct_by_value_Dict.keys():
+            if t_key not in Obejct_by_value_Dict:
                 t_key = (t_file[n].split(' subnet ')[1]).strip()
                 Obejct_by_value_Dict[t_key] = [(t_file[n-1].split(' network ')[1]).strip()]
             else:
@@ -347,290 +386,242 @@ def VAR_Show_Run(t_device, Config_Change, log_folder):
         elif re.match(r'^crypto map .* match address', t_file[n]):
             Crypto_MAP_ACL_List.append(t_file[n].strip().split()[-1])
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_Object_List')
-    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Declared_Object_List")
+    err_line = f"Can Not Write File {tf_name} @ VAR_Show_Run\n"
     retries = utils_v2.Shelve_Write_Try(tf_name,Declared_Object_List)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Crypto_MAP_ACL_List')
-    err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Crypto_MAP_ACL_List")
+    err_line = f"Can Not Write File {tf_name} @ VAR_Show_Run\n"
     retries = utils_v2.Shelve_Write_Try(tf_name,Crypto_MAP_ACL_List)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_OBJ_NET')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Declared_OBJ_NET")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Declared_OBJ_NET)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_OBJ_GRP_NET')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Declared_OBJ_GRP_NET")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Declared_OBJ_GRP_NET)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Used_Object_List')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Used_Object_List")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Used_Object_List)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Obejct_by_value_Dict')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Obejct_by_value_Dict")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Obejct_by_value_Dict)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Undeclared_NetObj_List')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Undeclared_NetObj_List")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Undeclared_NetObj_List)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_Object_service')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Declared_Object_service")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Declared_Object_service)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Obj_Net_Dic')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Obj_Net_Dic")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Obj_Net_Dic)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ACL_SplitTunnel_List')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___ACL_SplitTunnel_List")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ACL_SplitTunnel_List)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'logging_monitor_line')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___logging_monitor_line")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,logging_monitor_line)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ServicePolicy_Lst')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___ServicePolicy_Lst")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ServicePolicy_Lst)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'PolicyMap_Dct')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___PolicyMap_Dct")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,PolicyMap_Dct)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ClassMap_Dct')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___ClassMap_Dct")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ClassMap_Dct)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_GRP_NET_Dic')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___OBJ_GRP_NET_Dic")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_GRP_NET_Dic)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_GRP_SVC_Dic')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___OBJ_GRP_SVC_Dic")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_GRP_SVC_Dic)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_GRP_PRT_Dic')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___OBJ_GRP_PRT_Dic")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_GRP_PRT_Dic)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Name_dic')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Name_dic")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Name_dic)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'OBJ_SVC_Dic')
+    tf_name = os.path.join(log_folder, f"VAR_{hostname___}___OBJ_SVC_Dic")
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Run\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,OBJ_SVC_Dic)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(err_file, "a+", encoding="utf-8") as f:
             f.write(err_line)
         print(err_line)
 
-    DB_Available = True
-    import sqlalchemy as db
     return Config_Change
 
 
-#=======================================================================================================================================================
-#  _  ___  ___    _  _  __    ____                 ___  _   _  _____  _    _      __    ___  ___  ____  ___  ___      __    ____  ___  ____    ___  ___  _
-# / )(___)(___)  ( \/ )/__\  (  _ \               / __)( )_( )(  _  )( \/\/ )    /__\  / __)/ __)( ___)/ __)/ __) ___(  )  (_  _)/ __)(_  _)  (___)(___)( \
-#( (  ___  ___    \  //(__)\  )   / ___  ___  ___ \__ \ ) _ (  )(_)(  )    (    /(__)\( (__( (__  )__) \__ \\__ \(___))(__  _)(_ \__ \  )(     ___  ___  ) )
-# \_)(___)(___)    \/(__)(__)(_)\_)(___)(___)(___)(___/(_) (_)(_____)(__/\__)  (__)(__)\___)\___)(____)(___/(___/    (____)(____)(___/ (__)   (___)(___)(_/
-#=======================================================================================================================================================
-
-
+###=======================================================================================================================================================
+###  _  ___  ___    _  _  __    ____                 ___  _   _  _____  _    _      __    ___  ___  ____  ___  ___      __    ____  ___  ____    ___  ___  _
+### / )(___)(___)  ( \/ )/__\  (  _ \               / __)( )_( )(  _  )( \/\/ )    /__\  / __)/ __)( ___)/ __)/ __) ___(  )  (_  _)/ __)(_  _)  (___)(___)( \
+###( (  ___  ___    \  //(__)\  )   / ___  ___  ___ \__ \ ) _ (  )(_)(  )    (    /(__)\( (__( (__  )__) \__ \\__ \(___))(__  _)(_ \__ \  )(     ___  ___  ) )
+### \_)(___)(___)    \/(__)(__)(_)\_)(___)(___)(___)(___/(_) (_)(_____)(__/\__)  (__)(__)\___)\___)(____)(___/(___/    (____)(____)(___/ (__)   (___)(___)(_/
+###=======================================================================================================================================================
+##
+##
 def VAR_Show_Access_List(t_device, Config_Change, log_folder):
-    re_space = re.compile(r'  +') # two or more spaces
-    import pandas as pd
-    import os
     hostname___ = t_device.replace('/','___')
-    log_folder = log_folder + '/' + hostname___
+    log_folder = f"{log_folder}/{hostname___}"
     html_folder = log_folder
-    text = ('VAR_Show_Access_List @ %s' %hostname___)
-    utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Accessgroup_Dic_by_ACL')
+    text = f'VAR_Show_Access_List @ {hostname___}'
+    utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
+    start = datetime.datetime.now()
+    print(f'start time is {start}')
+
+    tf_name = f"{log_folder}/VAR_{hostname___}___Accessgroup_Dic_by_ACL"
     with shelve.open(tf_name) as shelve_obj: Accessgroup_Dic_by_ACL = shelve_obj['0']
 
-
-    try:
-        with open("%s/%s___Show_Access-List.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
-            t_file = f.readlines()
-    except:
-        print('file %s/%s___Show_Access-List.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
-        exit(0)
-
-    Source_ACL_Obj_List = {}    # locale
-    Show_run_ACL_NoLog_Lst = [] #locale
     Show_ACL_Lines = []
     ACL_List_Dict = {}
     ACL_List = []
     ACL_remark_Lines = []
 
-    for n in range(1,len(t_file)):
-        this_host = ''
-        l = t_file[n].rstrip()
-        if not l.isascii():
-            continue
+    try:
+        with open(f"{log_folder}/{hostname___}___Show_Access-List.log", 'r', encoding='utf-8', errors='ignore') as f:
+            pass
+    except FileNotFoundError:
+        print(f'File not found: {log_folder}/{hostname___}___Show_Access-List.log @ CREATE VARIABLES')
+        sys.exit(f'File not found: {log_folder}/{hostname___}___Show_Access-List.log @ CREATE VARIABLES')
+    except Exception as e:
+        print(f'Unexpected error reading ACL file: {e}')
+        sys.exit(f'Unexpected error reading ACL file: {e}')
 
-        ##re4 = re.compile('^  access-list .* line', re.IGNORECASE)
-        if re4.match(l):
-            this_ACL = l.split('  access-list ')[1].split()[0]
-            if this_ACL not in Source_ACL_Obj_List.keys():
-                Source_ACL_Obj_List[this_ACL] = []
+    with open(f"{log_folder}/{hostname___}___Show_Access-List.log", 'r', encoding='utf-8', errors='ignore') as f:
+        for line in f:
+            l = line.rstrip()
+            l_parts = l.split()
+            if not l.isascii():
+                continue
 
-            ##re1 = re.compile('(permit|deny) (tcp|icmp|udp|gre|ip|esp|ipsec|ospf)', re.IGNORECASE)
-            this_line = re1.sub('', l)
+            #re11 = re.compile('^access-list .* line \d* extended', re.IGNORECASE)   # seleziona acl extended only
+            if re11.match(l):
+                if l_parts[1] not in ACL_List:
+                    ACL_List.append(l_parts[1])
+                if l_parts[1] in Accessgroup_Dic_by_ACL:
+                    if 'remark' not in l:
+                        Show_ACL_Lines.append(l)
+            #re3 = re.compile('^access-list .* line', re.IGNORECASE) # a questo punto dovrebbero rimanere solo le std acl e remark
+            elif re3.match(l):
+                if l_parts[1] not in ACL_List:
+                    ACL_List.append(l_parts[1])
+                if 'remark' in l:
+                    ACL_remark_Lines.append(l)
 
-            if this_line.split(' extended ')[1].split()[0] == 'host':
-                this_host = '%s 255.255.255.255' %this_line.split(' host ')[1].split()[0]
-                if this_host not in Source_ACL_Obj_List[this_ACL]:
-                    Source_ACL_Obj_List[this_ACL].append(this_host)
-            elif this_line.split(' extended ')[1].split()[0] == 'any':
-                this_host = '0.0.0.0 0.0.0.0'
-                if this_host not in Source_ACL_Obj_List[this_ACL]:
-                    Source_ACL_Obj_List[this_ACL].append(this_host)
-            elif (this_line.split(' extended ')[1].split()[0]).count('.') == 3:
-                this_host = ('%s %s') %(this_line.split(' extended ')[1].split()[0],this_line.split(' extended ')[1].split()[1])
-                if this_host not in Source_ACL_Obj_List[this_ACL]:
-                    Source_ACL_Obj_List[this_ACL].append(this_host)
-            elif this_line.split(' extended ')[1].split()[0] == 'range':
-                first_host = ipaddress.IPv4Address(this_line.split(' extended ')[1].split()[1])
-                last_host  = ipaddress.IPv4Address(this_line.split(' extended ')[1].split()[2])
-                temp = first_host
-                while temp <= last_host:
-                    if (str(temp)+' 255.255.255.255') not in Source_ACL_Obj_List[this_ACL]:
-                        Source_ACL_Obj_List[this_ACL].append(str(temp)+' 255.255.255.255')
-                    temp = temp + 1
-            elif this_line.split(' extended ')[1].split()[0] == 'any4':
-                this_host = '0.0.0.0 0.0.0.0'
-                if this_host not in Source_ACL_Obj_List[this_ACL]:
-                    Source_ACL_Obj_List[this_ACL].append(this_host)
-            else:
-                print ('2. Unhandled exception @ %s' %this_line)
-                Config_Change.append(f'Unhandled Exception: {this_line}')
+            #re5 = re.compile(r'^\s*$') # empty line
+            elif re5.match(l):
+                continue
 
-        ##re11 = re.compile('^access-list .* line \d* extended', re.IGNORECASE)   # seleziona acl extended only
-        elif re11.match(l):
-            if l.split()[1] not in ACL_List:
-                ACL_List.append(l.split()[1])
-                Source_ACL_Obj_List[l.split()[1]] = []
-            ##re9 = re.compile('\(hitcnt=.*')
-            if l.split()[1] in Accessgroup_Dic_by_ACL.keys():
-                if 'remark' not in l:
-                    Show_ACL_Lines.append(l)
-                    if ' inactive' not in l:
-                        if (' log ' not in l):
-                            Show_run_ACL_NoLog_Lst.append(re9.sub('log',l))
-                        elif (' log disable' in l):
-                            Show_run_ACL_NoLog_Lst.append('!The following line was having log disabled')
-                            temp = (re9.sub('',l)).replace(' log disable ', ' log')
-                            Show_run_ACL_NoLog_Lst.append(temp)
+            #re2 = re.compile('access-list .* element', re.IGNORECASE)
+            elif re2.match(l):
+                continue
 
-        ##re3 = re.compile('^access-list .* line', re.IGNORECASE) # a questo punto dovrebbero rimanere solo le std acl
-        elif re3.match(l):
-            if l.split()[1] not in ACL_List:
-                ACL_List.append(l.split()[1])
-                Source_ACL_Obj_List[l.split()[1]] = []
-            if 'remark' in l:
-                ACL_remark_Lines.append(l)
-
-        ##re5 = re.compile(r'^\s*$') # empty line
-        elif re5.match(l):
-            continue
-
-        ##re2 = re.compile('access-list .* element', re.IGNORECASE)
-        elif re2.match(l):
-            continue
-
-        if l.split()[1] in Accessgroup_Dic_by_ACL.keys():
-            ##re12 = re.compile('.*access-list .* line \d* extended')
-            # remove remark
-            if re12.match(l):
-                if l.startswith('access-list '):
-                    if l not in ACL_List_Dict.keys():
-                        if 'object' not in l:
-                            ACL_List_Dict[l] = [l]
-                        else:
-                            ACL_List_Dict[l] = []
-                        t_Key = l
-                        t_ACL_Line = l.split()[3]
-                elif l.startswith('  access-list'):
-                    if l.split()[3] == t_ACL_Line:
-                        ACL_List_Dict[t_Key].append(l)
+            if l_parts[1] in Accessgroup_Dic_by_ACL:
+                # re12 = re.compile('.*access-list .* line \d* extended')
+                # remove remark
+                if re12.match(l):
+                    if '(inactive)' not in l:
+                        if l.startswith('access-list '):
+                            if l not in ACL_List_Dict:
+                                if 'object' not in l:
+                                    ACL_List_Dict[l] = [l]
+                                else:
+                                    ACL_List_Dict[l] = []
+                                t_Key = l
+                                t_ACL_Line = l_parts[3]
+                        elif l.startswith('  access-list'):
+                            if l_parts[3] == t_ACL_Line:
+                                ACL_List_Dict[t_Key].append(l)
 
     Show_ACL_Lines_DF = utils_v2.ASA_ACL_to_DF(Show_ACL_Lines)
 
@@ -640,74 +631,59 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
     Expanded_ACL_List = [] # Expanded_ACL_List = [['X_Lines', 'ACL']]
     Expanded_ACL_List_bis = [] # Expanded_ACL_List = [['X_Lines', 'Name', 'Line#', 'ACL']]
     ACL_Expanded_DF =  pd.DataFrame()
-    for t_key in ACL_List_Dict.keys():
+    cols = ['ACL','Name','Line','Type','Action','Service','Source','S_Port','Dest','D_Port','Rest','Inactive','Hitcnt','Hash']
+    df_list = []
+    #for t_key in ACL_List_Dict:
+
+    def parse_port(val):
+        if isinstance(val, str):
+            parts = val.split()
+            if val.startswith('range '):
+                start = parts[1] if parts[1].isdigit() else Port_Converter.get(parts[1], parts[1])
+                end   = parts[2] if parts[2].isdigit() else Port_Converter.get(parts[2], parts[2])
+                return [int(start), int(end)]
+            if val.startswith('eq '):
+                num = parts[1] if parts[1].isdigit() else Port_Converter.get(parts[1], parts[1])
+                return [int(num)]
+##            else:
+##                #print('ERROR in VAR line 665 -------------------------- ')
+##        else:
+##            #print('ERROR in VAR line 667 --------------------------')
+        return [val]
+
+    for t_key, acl_lines in ACL_List_Dict.items():
         if '(inactive)' not in t_key:
-            t_N_ACL_Lines_Expanded += len(ACL_List_Dict[t_key])
+            t_N_ACL_Lines_Expanded += len(acl_lines)
 
             # Expanded_ACL_List --- start
-            if len(ACL_List_Dict[t_key]) >= Max_ACL_Expand_Ratio:
-                Expanded_ACL_List.append([len(ACL_List_Dict[t_key]), t_key])
+            if len(acl_lines) >= Max_ACL_Expand_Ratio:
+                Expanded_ACL_List.append([len(acl_lines), t_key])
                 temp = utils_v2.ASA_ACL_to_DF([t_key])
                 t_line_N = int(temp.Line[0].split()[1])
-                Expanded_ACL_List_bis.append([len(ACL_List_Dict[t_key]), temp.Name[0], t_line_N, t_key])
-                t_N_ACL_Oversize_Expanded = t_N_ACL_Oversize_Expanded + len(ACL_List_Dict[t_key])
+                Expanded_ACL_List_bis.append([len(acl_lines), temp.Name[0], t_line_N, t_key])
+                t_N_ACL_Oversize_Expanded += len(acl_lines)
             # Expanded_ACL_List --- end
 
-        t_ACL_Expanded_DF = utils_v2.ASA_ACL_to_DF(ACL_List_Dict[t_key])
-        t_ACL_Expanded_DF['Print'] = ''
-        t_ACL_Expanded_DF['Root_Key'] = ''
-        # convert ip and ports of "t_ACL_Expanded_DF"
-        for row1 in t_ACL_Expanded_DF.itertuples():
+        t_ACL_Expanded_DF = utils_v2.ASA_ACL_to_DF(acl_lines)
+        t_ACL_Expanded_DF['Root_Key'] = t_key
+        if t_ACL_Expanded_DF.empty:
+            print("WARNING!!! Some Object in ACL is empty")
+            print(f'----- {t_key}')
+            continue
 
-            t1 = [row1.ACL, row1.Name, row1.Line, row1.Type, row1.Action, row1.Service, row1.Source, row1.S_Port, row1.Dest, row1.D_Port, row1.Rest, row1.Inactive, row1.Hitcnt, row1.Hash]
-
-            t_ACL_Expanded_DF.at[row1.Index, 'Print'] = re_space.sub(' ',' '.join(t1))
-            t_ACL_Expanded_DF.at[row1.Index, 'Root_Key'] = t_key
-
-            t_ACL_Expanded_DF.at[row1.Index, 'Source'] = utils_v2.ASA_ACL_Obj_to_DecIP(row1.Source)
-            t_ACL_Expanded_DF.at[row1.Index, 'Dest'] = utils_v2.ASA_ACL_Obj_to_DecIP(row1.Dest)
-            if 'range ' in row1.S_Port:
-                if (row1.S_Port.split()[1]).isdigit() == True:
-                    Port_Range_Start = row1.S_Port.split()[1]
-                else:
-                    Port_Range_Start = Port_Converter[row1.S_Port.split()[1]]
-                if (row1.S_Port.split()[2]).isdigit() == True:
-                    Port_Range_End = row1.S_Port.split()[2]
-                else:
-                    Port_Range_End = Port_Converter[row1.S_Port.split()[2]]
-                t_ACL_Expanded_DF.at[row1.Index, 'S_Port'] = [int(Port_Range_Start), int(Port_Range_End)]
-            elif 'eq ' in row1.S_Port:
-                if (row1.S_Port.split()[1]).isdigit() == True:
-                    t_ACL_Expanded_DF.at[row1.Index, 'S_Port'] = [int(row1.S_Port.split()[1])]
-                else:
-                    t_ACL_Expanded_DF.at[row1.Index, 'S_Port'] = [int(Port_Converter[row1.S_Port.split()[1]])]
-            else:
-                t_ACL_Expanded_DF.at[row1.Index, 'S_Port'] = [row1.S_Port]
-
-            if 'range ' in row1.D_Port:
-                if (row1.D_Port.split()[1]).isdigit() == True:
-                    Port_Range_Start = row1.D_Port.split()[1]
-                else:
-                    Port_Range_Start = Port_Converter[row1.D_Port.split()[1]]
-                if (row1.D_Port.split()[2]).isdigit() == True:
-                    Port_Range_End = row1.D_Port.split()[2]
-                else:
-                    Port_Range_End = Port_Converter[row1.D_Port.split()[2]]
-                t_ACL_Expanded_DF.at[row1.Index, 'D_Port'] = [int(Port_Range_Start), int(Port_Range_End)]
-            elif 'eq ' in row1.D_Port:
-                if (row1.D_Port.split()[1]).isdigit() == True:
-                    t_ACL_Expanded_DF.at[row1.Index, 'D_Port'] = [int(row1.D_Port.split()[1])]
-                else:
-                    t_ACL_Expanded_DF.at[row1.Index, 'D_Port'] = [int(Port_Converter[row1.D_Port.split()[1]])]
-            else:
-                t_ACL_Expanded_DF.at[row1.Index, 'D_Port'] = [row1.D_Port]
-
-        ACL_Expanded_DF = pd.concat([ACL_Expanded_DF, t_ACL_Expanded_DF], ignore_index=True)
+        t_ACL_Expanded_DF['Print'] = (t_ACL_Expanded_DF[cols].astype(str).agg(' '.join, axis=1).str.replace(r'  +', ' ', regex=True))
+        t_ACL_Expanded_DF['Source'] = t_ACL_Expanded_DF['Source'].apply(utils_v2.ASA_ACL_Obj_to_DecIP)
+        t_ACL_Expanded_DF['Dest']   = t_ACL_Expanded_DF['Dest'].apply(utils_v2.ASA_ACL_Obj_to_DecIP)
+        t_ACL_Expanded_DF['S_Port'] = t_ACL_Expanded_DF['S_Port'].apply(parse_port)
+        t_ACL_Expanded_DF['D_Port'] = t_ACL_Expanded_DF['D_Port'].apply(parse_port)
+        df_list.append(t_ACL_Expanded_DF)
+        #ACL_Expanded_DF = pd.concat(df_list, ignore_index=True)
+    ACL_Expanded_DF = pd.concat(df_list, ignore_index=True)
 
     t_N_ACL_Oversize =  len(Expanded_ACL_List)
     # Expanded_ACL_List --- start
     Expanded_ACL_df = pd.DataFrame(Expanded_ACL_List, columns = ['X_Lines' , 'ACL'])
-    Expanded_ACL_df = Expanded_ACL_df.sort_values('X_Lines', ascending = (False))
+    Expanded_ACL_df = Expanded_ACL_df.sort_values('X_Lines', ascending = False)
 
     # try to split expanded lines......
     # MUST be sorted by descending line number
@@ -728,10 +704,9 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
     # Expanded_ACL_List --- end
 
     # Save values in DB @ MY_Devices
-    import sqlalchemy as db
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             ACL_Most_Expanded = db.Table('ACL_Most_Expanded', db.MetaData(), autoload_with=engine)
@@ -744,74 +719,76 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
         DB_Available = False
 
     if DB_Available:
-        Updated_Vals = dict(
-                            N_ACL_Oversize = t_N_ACL_Oversize,
-                            N_ACL_Oversize_Expanded = t_N_ACL_Oversize_Expanded,
-                            N_ACL_Lines_Expanded = t_N_ACL_Lines_Expanded
-                            )
+        Updated_Vals = {
+                        "N_ACL_Oversize"            : t_N_ACL_Oversize,
+                        "N_ACL_Oversize_Expanded"   : t_N_ACL_Oversize_Expanded,
+                        "N_ACL_Lines_Expanded"      : t_N_ACL_Lines_Expanded
+                        }
         query = db.update(My_Devices).where(My_Devices.c.HostName==hostname___).values(**Updated_Vals)
         with engine.begin() as connection:
-            results = connection.execute(query)
+            connection.execute(query)
 
         delete_stmt = db.delete(ACL_Most_Expanded).where(ACL_Most_Expanded.c.HostName == hostname___)
         with engine.begin() as connection:
-            result = connection.execute(delete_stmt)
+            connection.execute(delete_stmt)
 
         for t_row in Expanded_ACL_df.itertuples():
-            Insert_Vals = dict(
-                            HostName = hostname___,
-                            ACL_Line = t_row.ACL,
-                            ACL_ELength = t_row.X_Lines
-                            )
+            Insert_Vals = {
+                            "HostName"      : hostname___,
+                            "ACL_Line"      : t_row.ACL,
+                            "ACL_ELength"   : t_row.X_Lines
+                            }
             insert_stmt = ACL_Most_Expanded.insert().values(**Insert_Vals)
             with engine.begin() as connection:
-                results = connection.execute(insert_stmt)
+                connection.execute(insert_stmt)
 
         engine.dispose()
 
     # OUTPUT HTML FILE
+
+    html_list = []
+    html_list.append('<div class="card-body">\n')
+    html_list.append('''
+       <div style="max-width: 100%; overflow-x: auto;">
+       <table class="table-bordered table-condensed table-striped w-auto" id="dataTable" cellspacing="0" data-page-length="50" data-order='[[ 0, "desc" ]]' style="table-layout: auto;">
+       ''')
+    N_Cols = Expanded_ACL_df.shape[1]
+    html_list.append('       <thead><tr>\n')
+    for t_col_index in range(0,N_Cols):
+        html_list.append(f'           <th class="px-2 text-nowrap">{Expanded_ACL_df.columns[t_col_index]}</th>\n')
+    html_list.append('       </tr></thead>\n')
+    html_list.append('       <tbody>\n')
+    for row in Expanded_ACL_df.itertuples():
+        html_list.append('       <tr>\n')
+        for t_col_index in range(0,N_Cols):
+            if t_col_index == N_Cols-1:
+                t_line = Expanded_ACL_df.iloc[row.Index][t_col_index]
+                t_line = utils_v2.Color_Line(t_line)
+                html_list.append(f'           <td class="px-2 text-nowrap">{t_line}</td>\n')
+            else:
+                html_list.append(f'           <td class="px-2 text-nowrap">{Expanded_ACL_df.iloc[row.Index][t_col_index]}</td>\n')
+        html_list.append('       </tr>\n')
+    html_list.append('       </tbody>\n')
+    html_list.append('   </table>\n')
+    html_list.append('</div>\n')
+    html_list.append('</div>\n')
+
     Watch_FName = hostname___ + '-X_Expanded_ACL-Watch.html'
     if not os.path.exists(html_folder):
         try:
             os.mkdir(html_folder)
-        except:
-             raise OSError("Can't create destination directory (%s)!" % (html_folder))
+        except OSError as e:
+            raise OSError(f"Can't create destination directory ({html_folder})! {e}") from e
     try:
-        with open("%s/%s"%(html_folder,Watch_FName),mode="w") as html_file:
-            html_file.write('<div class="card-body">\n')
-            html_file.write('''
-               <div style="max-width: 100%; overflow-x: auto;">
-               <table class="table-bordered table-condensed table-striped w-auto" id="dataTable" cellspacing="0" data-page-length="50" data-order='[[ 0, "desc" ]]' style="table-layout: auto;">
-               ''')
-            my_index = 0
-            N_Cols = Expanded_ACL_df.shape[1]
-            html_file.write('       <thead><tr>\n')
-            for t_col_index in range(0,N_Cols):
-                html_file.write('           <th class="px-2 text-nowrap">%s</th>\n' %Expanded_ACL_df.columns[t_col_index])
-            html_file.write('       </tr></thead>\n')
-            html_file.write('       <tbody>\n')
-            for row in Expanded_ACL_df.itertuples():
-                html_file.write('       <tr>\n')
-                for t_col_index in range(0,N_Cols):
-                    if t_col_index == N_Cols-1:
-                        t_line = Expanded_ACL_df.iloc[row.Index][t_col_index]
-                        t_line = utils_v2.Color_Line(t_line)
-                        html_file.write('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
-                    else:
-                        html_file.write('           <td class="px-2 text-nowrap">%s</td>\n' %Expanded_ACL_df.iloc[row.Index][t_col_index])
-                html_file.write('       </tr>\n')
-            html_file.write('       </tbody>\n')
-            html_file.write('   </table>\n')
-            html_file.write('</div>\n')
-            html_file.write('</div>\n')
-        print('... saved file "%s/%s" '%(html_folder,Watch_FName))
-    except:
-        raise OSError("Can't write to destination file (%s/%s)!" % (html_folder,Watch_FName))
+        with open(f"{html_folder}/{Watch_FName}",mode="w", encoding="utf-8") as html_file:
+            html_file.write(''.join(html_list))
+        print(f'... saved file "{html_folder}/{Watch_FName}" ')
+    except OSError as e:
+        raise OSError(f"Can't write to destination file ({html_folder}/{Watch_FName})! {e}") from e
 
     t_html_file = []
     t_html_file.append('<div class="card-body">\n')
     t_html_file.append('<table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-page-length="50" >\n')
-    my_index = 0
     t_html_file.append('''
     <style>
     p.small {
@@ -829,10 +806,10 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
         if row.startswith('<_NO_CODE_>'):
             new_line = row.replace('<_NO_CODE_>','')
             new_line = new_line.replace(' ','&nbsp;')
-            t_html_file.append('              <code class="text-secondary" style="line-height:1.0; font-size: 1rem">%s</code><br>\n' %new_line)
+            t_html_file.append(f'              <code class="text-secondary" style="line-height:1.0; font-size: 1rem">{new_line}</code><br>\n')
         elif row.startswith('<_BTN_>'):
             new_line = row.replace('<_BTN_>','')
-            t_html_file.append('              %s\n' %new_line)
+            t_html_file.append(f'              {new_line}\n')
         elif '___NEW_LINE_STARTS_HERE__' in row:
             t_html_file.append('           <br></td>\n')
             t_html_file.append('       </tr>\n')
@@ -841,7 +818,7 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
         else:
             t_line = row
             t_line = utils_v2.Color_Line(t_line)
-            t_html_file.append('              %s<br>\n' %t_line)
+            t_html_file.append(f'              {t_line}<br>\n')
     t_html_file.append('           <br></td>\n')
     t_html_file.append('       </tr>\n')
     t_html_file.append('       </tbody>\n')
@@ -850,64 +827,63 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
 
     Fix_FName = hostname___ + '-X_Expanded_ACL-Fix.html'
     try:
-        with open("%s/%s"%(html_folder,Fix_FName), mode="w", encoding="utf-8") as html_file:
+        with open(f"{html_folder}/{Fix_FName}", mode="w", encoding="utf-8") as html_file:
             for t in t_html_file:
                 html_file.write(t)
-        print('... saved file "%s/%s" '%(html_folder,Fix_FName))
+        print(f'... saved file "{html_folder}/{Fix_FName}" ')
     except:
-        raise OSError("Can't write to destination file (%s/%s)!" % (html_folder,Fix_FName))
+        raise OSError(f"Can't write to destination file ({html_folder}/{Fix_FName})!")
 
-
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Show_ACL_Lines')
+    tf_name = f'{log_folder}/VAR_{hostname___}___Show_ACL_Lines'
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Access_List\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Show_ACL_Lines)
     if retries == 3:
         print(err_line)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(f'{Err_folder}/{WTF_Error_FName}',"a+") as f:
             f.write(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Show_ACL_Lines_DF')
+    tf_name = f'{log_folder}/VAR_{hostname___}___Show_ACL_Lines_DF'
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Access_List\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,Show_ACL_Lines_DF)
     if retries == 3:
         print(err_line)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(f'{Err_folder}/{WTF_Error_FName}',"a+") as f:
             f.write(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ACL_List_Dict')
+    tf_name = f'{log_folder}/VAR_{hostname___}___ACL_List_Dict'
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Access_List\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ACL_List_Dict)
     if retries == 3:
         print(err_line)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(f'{Err_folder}/{WTF_Error_FName}',"a+") as f:
             f.write(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ACL_List')
+    tf_name = f'{log_folder}/VAR_{hostname___}___ACL_List'
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Access_List\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ACL_List)
     if retries == 3:
         print(err_line)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(f'{Err_folder}/{WTF_Error_FName}',"a+") as f:
             f.write(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ACL_remark_Lines')
+    tf_name = f'{log_folder}/VAR_{hostname___}___ACL_remark_Lines'
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Access_List\n'
     retries = utils_v2.Shelve_Write_Try(tf_name,ACL_remark_Lines)
     if retries == 3:
         print(err_line)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
+        with open(f'{Err_folder}/{WTF_Error_FName}',"a+") as f:
             f.write(err_line)
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ACL_Expanded_DF')
+    tf_name = f'{log_folder}/VAR_{hostname___}___ACL_Expanded_DF'
     err_line = f'Can Not Write File {tf_name} @ VAR_Show_Access_List\n'
-    retries = utils_v2.Shelve_Write_Try(tf_name,ACL_Expanded_DF)
-    if retries == 3:
-        print(err_line)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write(err_line)
+    for c in ["S_Port", "D_Port", "Source", "Dest"]:
+        if c in ACL_Expanded_DF.columns:
+            ACL_Expanded_DF[c] = ACL_Expanded_DF[c].apply(lambda x: json.dumps(x) if isinstance(x, (list, tuple)) else x)
+    ACL_Expanded_DF.to_feather(f"{tf_name}.feather", compression="zstd")
 
+    end = datetime.datetime.now()
+    print(f'VAR Show_Access_List elapsed time is: {str(end-start)}')
     return Config_Change
-
 
 #===============================================================================================================================
 #  _  ___  ___    _  _  __    ____                 ___  _   _  _____  _    _    ____  _____  __  __  ____  ____    ___  ___  _
@@ -917,35 +893,58 @@ def VAR_Show_Access_List(t_device, Config_Change, log_folder):
 #===============================================================================================================================
 
 def VAR_Show_Route(t_device, Config_Change, log_folder):
-    from tabulate import tabulate
-    import pandas as pd
-    hostname___ = t_device.replace('/','___')
-    log_folder = log_folder + '/' + hostname___
 
-    re_space = re.compile(r'  +') # two or more spaces
-    #print('----- VAR Show Route -----')
+    def safe_ipv4network(net):
+        try:
+            return ipaddress.IPv4Network(net)
+        except:
+            try:
+                t_ip_name, t_sm = net.split('/')
+                t_ip = Name_dic.get(t_ip_name)
+                if t_ip:
+                    return ipaddress.IPv4Network(f"{t_ip}/{t_sm}", strict=False)
+            except:
+                return None
+
+    hostname___ = t_device.replace('/', '___')
+    log_folder = f"{log_folder}/{hostname___}"
+    file_path = f"{log_folder}/{hostname___}___Show_Route.log"
+
+    tf_name = f"{log_folder}/VAR_{hostname___}___Name_dic"
+    Name_dic = utils_v2.Shelve_Read_Try(tf_name,'')
+
+    text = f'VAR_Show_Route @ {hostname___}'
+    utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
     try:
-        with open("%s/%s___Show_Route.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as f:
             t_file = f.readlines()
-    except:
-        print('file %s/%s___Show_Route.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
-        exit(0)
+    except FileNotFoundError:
+        msg = f"File not found: {file_path} @ CREATE VARIABLES"
+        print(msg)
+        sys.exit(msg)
+    except OSError as e:
+        msg = f"Error opening file {file_path} @ CREATE VARIABLES: {e}"
+        print(msg)
+        sys.exit(msg)
 
     ROUTE = []      # this will be the routing table (local)
     t_ROUTE = []    # local
-    Prefix1 = ['S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   ']
-    Prefix2 = ['S*  ','R*  ','M*  ','B*  ','D*  ','EX*  ','O*  ','IA*  ','N1*  ','N2*  ','E1*  ','E2*  ','V*  ','i*  ','su*  ','L1*  ','L2*  ','ia*  ','U*  ','o*  ','P*  ']
-    for n in range(1,len(t_file)):
-        if ((t_file[n][0:4] in Prefix1) or (t_file[n][0:4] in Prefix2)):
-            temp_line = t_file[n]
+    #Prefix1 = ['S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   ']
+    #Prefix2 = ['S*  ','R*  ','M*  ','B*  ','D*  ','EX*  ','O*  ','IA*  ','N1*  ','N2*  ','E1*  ','E2*  ','V*  ','i*  ','su*  ','L1*  ','L2*  ','ia*  ','U*  ','o*  ','P*  ']
+    Prefix1 = {'S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   '}
+    Prefix2 = {p.replace('   ', '*  ') for p in Prefix1}  # auto-build * set
+
+    for n in range(1, len(t_file)):
+        temp_line = t_file[n].strip()
+        #temp_line = re_space.sub(' ', temp_line)
+        prefix = temp_line[0:4]
+        if prefix in Prefix1 or prefix in Prefix2:
             if ' connected by VPN ' in t_file[n]:
-                temp_line = re_space.sub(' ', temp_line)
-                temp_line = temp_line.strip().replace(' connected by VPN (advertised), ', ' ') + ' -'
+                temp_line = temp_line.replace(' connected by VPN (advertised), ', ' ') + ' -'
                 t_ROUTE.append(temp_line)
                 continue
             elif ' is directly connected, ' in t_file[n]:
-                temp_line = re_space.sub(' ', temp_line)
                 temp_line = temp_line.replace(' is directly connected, ', ' ') + ' -'
                 t_ROUTE.append(temp_line)
                 #print(temp_line)
@@ -953,63 +952,93 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
             elif ' via ' in t_file[n]:
                 pass
             elif ' connected by VPN ' in t_file[n+1]:
-                temp_line = re_space.sub(' ', temp_line)
-                temp_line = temp_line.strip() + ' ' +t_file[n+1].strip().split()[-1] + ' -'
+                temp_line = temp_line + ' ' + t_file[n+1].strip().split()[-1] + ' -'
                 t_ROUTE.append(temp_line)
                 continue
             elif ' via ' in t_file[n+1]:
-                temp_line = t_file[n].strip() + ' ' + t_file[n+1].strip()
+                temp_line = temp_line + ' ' + t_file[n+1].strip()
             else:
-                print ('   =====> Line split to be handled @ line %s' %n)
-                exit(2)
+                print(f'   =====> Line split to be handled @ line {n}')
+                sys.exit(f'   =====> Line split to be handled @ line {n}')
             temp_line = re_space.sub(' ', temp_line)
-            temp_line = temp_line.replace(' [1/0] ', ' ')
+            temp_line = re.sub(r"\s*\[\d+/0\]\s*", " ", temp_line)
+            #temp_line = temp_line.replace(' [1/0] ', ' ')
             temp_line = temp_line.replace(',', '')
-            t1 = temp_line
-            t1 = t1.split('via')[0]
-            t2 = temp_line
-            t2 = t2.split('via')[1].split()[1]
-            t3 = temp_line
-            t3 = t3.split('via')[1].split()[0]
+            #t1 = temp_line
+            t1 = temp_line.split('via')[0]
+            #t2 = temp_line
+            t2 = temp_line.split('via')[1].split()[1]
+            #t3 = temp_line
+            t3 = temp_line.split('via')[1].split()[0]
             temp_line = t1 + t2 + ' ' + t3
             #print(temp_line)
             t_ROUTE.append(temp_line)
         elif t_file[n].startswith('C       '):
-            temp_line = t_file[n]
             if ' is directly connected, ' in t_file[n]:
-                temp_line = temp_line.strip() + ' -'
+                temp_line = temp_line + ' -'
             elif ' is directly connected, ' in t_file[n+1]:
-                temp_line = t_file[n].strip() + ' ' + t_file[n+1].strip() + ' -'
+                temp_line = temp_line + ' ' + t_file[n+1].strip() + ' -'
             else:
-                print ('   =====> Line split to be handled @ line %s' %n)
-                exit(20)
+                print(f'   =====> Line split to be handled @ line {n}')
+                sys.exit(f'   =====> Line split to be handled @ line {n}')
             #temp_line = temp_line.replace('        ', ' ')
             temp_line = re_space.sub(' ', temp_line)
             temp_line = temp_line.replace(' is directly connected, ', ' ')
             t_ROUTE.append(temp_line)
 
+    ROUTE = [
+        [t_device, t0, t1 + Sub_Mask_2[t2], t3, t4]
+        for t0, t1, t2, t3, t4 in (line.split() for line in t_ROUTE)
+    ]
+    ROUTE_DF = pd.DataFrame(ROUTE, columns=['HostName', 'Type', 'Network', 'Interface', 'NextHop'])
+    # Vectorized conversion
+    ROUTE_DF["Network"] = ROUTE_DF["Network"].apply(safe_ipv4network)
 
-    for n in range(0,len(t_ROUTE)):
-        t_line = t_ROUTE[n].split()
-        t_SM = Sub_Mask_2[t_line[2]]
-        t_line[2] = t_line[1]+t_SM
-        t_line[1] = t_line[0]
-        t_line[0] = t_device
-        t_ROUTE[n] = t_line
+    # Handle failed conversions in bulk
 
-    for n in range(0,len(t_ROUTE)):
-        ROUTE.append(t_ROUTE[n])
+    # Save values in DB @ MY_Devices
+    DB_Available = True
+    try:
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
+        with engine.connect() as connection:
+            WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
+    except Exception as e:
+        print(f"error is: {e}")
+        print('=================[ Warning ]==================')
+        print('DB not connected, some feature is unavailable\n')
+        Config_Change.append('=================[ Warning ]==================')
+        Config_Change.append('DB not connected, some feature is unavailable\n')
+        DB_Available = False
 
-    ROUTE_DF = pd.DataFrame(ROUTE, columns = ['HostName' , 'Type', 'Network', 'Interface','NextHop'])
+    bad_rows = ROUTE_DF[ROUTE_DF["Network"].isna()]
+    if not bad_rows.empty:
+        for _, row in bad_rows.iterrows():
+            msg = f'ERROR 2193 while converting {row.Network} to ipaddress in {t_device}\n'
+            Config_Change.append(msg)
+            print(msg)
+
+            log_entry = {
+                'TimeStamp': datetime.datetime.now().astimezone(),
+                'Level': 'WARNING',
+                'Message': msg
+            }
+            with engine.begin() as connection:
+                connection.execute(WTF_Log.insert().values(**log_entry))
+
+        ROUTE_DF = ROUTE_DF.drop(bad_rows.index)
+
+    # Vectorized prefix length extraction
+    ROUTE_DF["PrefixLength"] = ROUTE_DF["Network"].map(lambda net: net.prefixlen)
+    ROUTE_DF = ROUTE_DF.sort_values(by=['PrefixLength'], ascending=[False]).reset_index(drop=True)
 
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'ROUTE_DF')
+    tf_name = f"{log_folder}/VAR_{hostname___}___ROUTE_DF"
     retries = utils_v2.Shelve_Write_Try(tf_name,ROUTE_DF)
     if retries == 3:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Route\n' %(log_folder,hostname___,'ROUTE_DF'))
-            print  ('Cannot write file %s/VAR_%s___%s! @ VAR_Show_Route\n' %(log_folder,hostname___,'ROUTE_DF'))
-
+        with open(f"{Err_folder}/{WTF_Error_FName}", "a+") as f:
+            msg = f'Cannot write file {tf_name}! @ VAR_Show_Route\n'
+            f.write(msg)
+            print(msg)
 
 #===============================================================================================================================
 #  _  ___  ___    _  _  __    ____                 ___  _   _  _____  _    _    _  _    __   ____    ___  ___  _
@@ -1019,28 +1048,24 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
 #===============================================================================================================================
 
 def VAR_Show_Nat(t_device, Config_Change, log_folder):
-    import pandas as pd
-    from tabulate import tabulate
-    hostname___ = t_device.replace('/','___')
-    log_folder = log_folder + '/' + hostname___
 
+    hostname___ = t_device.replace('/','___')
+    log_folder = os.path.join(log_folder, hostname___)
+
+    file_path = os.path.join(log_folder, f"{hostname___}___Show_Nat_Detail.log")
     try:
-        with open("%s/%s___Show_Nat_Detail.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             t_file = f.readlines()
-    except:
-        print('file %s/%s___Show_Nat_Detail.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
-        exit(0)
+    except FileNotFoundError:
+        msg = f"File not found: {file_path} @ CREATE VARIABLES"
+        print(msg)
+        sys.exit(msg)
 
     Show_NAT = []
     col_names = ['Section','Line_N','IF_IN','IF_OUT','StaDin','SRC_IP','SNAT_IP','DST_IP','DNAT_IP','service','SRVC','DSRVC','inactive','Direction','DESC','Tr_Hit','Un_Hit','Nat_Line','SRC_Origin','SRC_Natted','DST_Origin','DST_Natted']
 
     nat_line0 = re.compile(r'^\d* \((.*?)\) to \((.*?)\) source (static|dynamic) ')
     nat_line1 = re.compile(r'^ *translate_hits = \d+, untranslate_hits = \d+')
-
-    SRC_Origin_re = re.compile('Source - Origin: (.*?) Translated')
-    SRC_Natted_re = re.compile('Translated: (.*?) Destination - Origin')
-    DST_Origin_re = re.compile('Destination - Origin: (.*?) Translated')
-    DST_Natted_re = re.compile('Translated: (.*?) Destination - Origin')
 
     t_Section  = ''
     for n in range(1,len(t_file)):
@@ -1109,7 +1134,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
                 t_DNAT_IP = line0.split('destination static')[1].split()[1]
             if ' service ' in line0:
                 temp = line0.split(' service ')[1].split()[0]
-                if temp in Proto_Map.keys():
+                if temp in Proto_Map:
                     t_service = temp
                     t_SRVC = line0.split(' service ')[1].split()[1]
                     t_DSRVC = line0.split(' service ')[1].split()[2]
@@ -1127,18 +1152,18 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
                 t_Tr_Hit = line1.replace(',','').split()[2]
                 t_Un_Hit = line1.replace(',','').split()[5]
             else:
-                print('nat line counters expected: %s' %line1)
-                exit(222)
+                print(f'nat line counters expected: {line1}')
+                sys.exit(f'nat line counters expected: {line1}')
 
             nn=n+2
             t_line = ''
             line_nn = t_file[nn].strip() # this_line
             line_nn = re.sub(' +', ' ',line_nn) # remove more than one space
 
-            while not(nat_line0.match(line_nn)):
+            while not nat_line0.match(line_nn):
                 if nn == (len(t_file)-1):
                     break
-                elif('Section' in line_nn):
+                elif 'Section' in line_nn:
                     break
                 t_line = t_line.strip() + ', ' + line_nn
                 nn+=1
@@ -1146,7 +1171,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
                 line_nn = re.sub(' +', ' ',line_nn) # remove more than one space
             t_line = re.sub(' \\(PAT\\)', '',t_line)
 
-            if ('Destination - Origin:' in t_line):
+            if 'Destination - Origin:' in t_line:
                 try:
                     Part1 = t_line.split('Source - Origin:')[1].split('Destination - Origin:')[0]
                     Part1 = Part1.replace(',',' ').strip()
@@ -1162,7 +1187,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
                             First_IP = First_IP + 1
                 except:
                     pass
-                if ('Service - Origin:' in t_line):
+                if 'Service - Origin:' in t_line:
                     try:
                         Part2 = t_line.split('Destination - Origin:')[1].split('Service - Origin:')[0]
                         Part2 = Part2.replace(',',' ').strip()
@@ -1171,7 +1196,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
                         DST_Natted = Part2.split('Translated:')[1].strip().split()
                     except:
                         pass
-                elif ('Service - Protocol:' in t_line):
+                elif 'Service - Protocol:' in t_line:
                     try:
                         Part2 = t_line.split('Destination - Origin:')[1].split('Service - Protocol:')[0]
                         Part2 = Part2.replace(',',' ').strip()
@@ -1181,7 +1206,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
                     except:
                         pass
 
-            elif ('Service - Protocol:' in t_line):
+            elif 'Service - Protocol:' in t_line:
                 try:
                     Part1 = t_line.split('Service - Protocol:')[0]
                     Part1 = Part1.replace(',',' ').strip()
@@ -1197,7 +1222,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
                             First_IP = First_IP + 1
                 except:
                     pass
-            elif ('Service - Origin:' in t_line):
+            elif 'Service - Origin:' in t_line:
                 try:
                     Part1 = t_line.split('Service - Origin:')[0]
                     Part1 = Part1.replace(',',' ').strip()
@@ -1237,13 +1262,12 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
     Show_NAT_DF = pd.DataFrame(Show_NAT, columns = col_names)
     # delete all nat in Section0
     Show_NAT_DF = Show_NAT_DF.query("Section != 0")
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Show_NAT_DF')
+    tf_name = f"{log_folder}/VAR_{hostname___}___Show_NAT_DF"
     with shelve.open(tf_name, "c") as shelve_obj: shelve_obj['0'] = Show_NAT_DF
 
     DB_Available = True
-    import sqlalchemy as db
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
     except Exception as e:
@@ -1258,7 +1282,7 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
         query = db.update(My_Devices).values(Declared_NAT=len(Show_NAT_DF))
         query = query.where(My_Devices.columns.HostName==hostname___)
         with engine.begin() as connection:
-            results = connection.execute(query)
+            connection.execute(query)
         engine.dispose()
 
     return Config_Change
@@ -1271,18 +1295,18 @@ def VAR_Show_Nat(t_device, Config_Change, log_folder):
 # \_)(___)(___)    \/(__)(__)(_)\_)(___)(___)(___)(___/(_) (_)(_____)(__/\__)(___)\___)(_)\_) (__) (__)   (__) (_____)  (___)(___)(_/
 #=====================================================================================================================================
 def VAR_Show_Crypto(t_device, Config_Change, log_folder):
-    import pandas as pd
-    from tabulate import tabulate
 
     hostname___ = t_device.replace('/','___')
-    log_folder = log_folder + '/' + hostname___
+    log_folder = os.path.join(log_folder, hostname___)
 
+    file_path = os.path.join(log_folder, f"{hostname___}___Show_Crypto_Ipsec_Sa_Entry.log")
     try:
-        with open("%s/%s___Show_Crypto_Ipsec_Sa_Entry.log"%(log_folder,hostname___),'r', encoding='utf-8', errors='ignore') as f:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             t_file = f.readlines()
-    except:
-        print('file %s/%s___Show_Crypto_Ipsec_Sa_Entry.log not found! @ CREATE VARIABLES' %(log_folder,hostname___))
-        exit(0)
+    except FileNotFoundError:
+        msg = f"File not found: {file_path} @ CREATE VARIABLES"
+        print(msg)
+        sys.exit(msg)
 
     Show_Crypto = []
     col_names = ['Peer_IP', 'Local_IP', 'Crypto_Map', 'ACL', 'Pkts_Encaps','Pkts_Decaps']
@@ -1393,7 +1417,6 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
             asa_version = n.split('Software Version')[1].strip()
 
     DB_Available = True
-    import sqlalchemy as db
     try:
         engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
         with engine.connect() as connection:
@@ -1431,8 +1454,6 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
     hostname___ = t_device.replace('/','___')
     #log_folder = log_folder + '/' + hostname___
 
-    tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_Object_List')
-    with shelve.open(tf_name) as shelve_obj: Declared_Object_List = shelve_obj['0']
     tf_name = f"{log_folder}/VAR_{hostname___}___Declared_Object_List"
     Declared_Object_List = utils_v2.Shelve_Read_Try(tf_name,'')
     tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Obejct_by_value_Dict')
@@ -1501,12 +1522,12 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                 else:
                     n = Triggered_Src[0].split()[1]
                     if 'host ' in Triggered_Src[0]:
-                        if n in Obejct_by_value_Dict.keys():
+                        if n in Obejct_by_value_Dict:
                             OK_SRC_List.append('object %s' %Obejct_by_value_Dict[n][0])
                         else:
                             OK_SRC_List.append('host %s' %n)
                     else:
-                        if n in Obejct_by_value_Dict.keys():
+                        if n in Obejct_by_value_Dict:
                             OK_SRC_List.append('object %s' %Obejct_by_value_Dict[n][0])
                         else:
                             OK_SRC_List.append('%s' %Triggered_Src[0])
@@ -1527,12 +1548,12 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                     else:
                         if 'host ' in n:
                             n = n.split()[1]
-                            if n in Obejct_by_value_Dict.keys():
+                            if n in Obejct_by_value_Dict:
                                 Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
                             else:
                                 Splitted_ACL.append('  network-object host %s' %n)
                         else:
-                            if n in Obejct_by_value_Dict.keys():
+                            if n in Obejct_by_value_Dict:
                                 Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
                             else:
                                 Splitted_ACL.append('  network-object %s' %n)
@@ -1545,12 +1566,12 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                 else:
                     n = Expanded_Src[0].split()[1]
                     if 'host ' in Expanded_Src[0]:
-                        if n in Obejct_by_value_Dict.keys():
+                        if n in Obejct_by_value_Dict:
                             KO_SRC_List.append('object %s' %Obejct_by_value_Dict[n][0])
                         else:
                             KO_SRC_List.append('host %s' %n)
                     else:
-                        if n in Obejct_by_value_Dict.keys():
+                        if n in Obejct_by_value_Dict:
                             KO_SRC_List.append('object %s' %Obejct_by_value_Dict[n][0])
                         else:
                             KO_SRC_List.append('%s' %Expanded_Src[0])
@@ -1571,12 +1592,12 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                     else:
                         if 'host ' in n:
                             n = n.split()[1]
-                            if n in Obejct_by_value_Dict.keys():
+                            if n in Obejct_by_value_Dict:
                                 Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
                             else:
                                 Splitted_ACL.append('  network-object host %s' %n)
                         else:
-                            if n in Obejct_by_value_Dict.keys():
+                            if n in Obejct_by_value_Dict:
                                 Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
                             else:
                                 Splitted_ACL.append('  network-object %s' %n)
@@ -1589,21 +1610,21 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                 else:
                     n = Triggered_Dst[0].split()[1]
                     if 'host ' in Triggered_Dst[0]:
-                        if n in Obejct_by_value_Dict.keys():
+                        if n in Obejct_by_value_Dict:
                             OK_DST_List.append('object %s' %Obejct_by_value_Dict[n][0])
                         else:
                             OK_DST_List.append('host %s' %n)
                     else:
-                        if n in Obejct_by_value_Dict.keys():
+                        if n in Obejct_by_value_Dict:
                             OK_DST_List.append('object %s' %Obejct_by_value_Dict[n][0])
                         else:
                             OK_DST_List.append('%s' %Triggered_Dst[0])
             else:
                 T_index = 1
-                T_Dst_Name_1 = 'Split_Dst_Obj_%s' %T_index
+                T_Dst_Name_1 = f'Split_Dst_Obj_{T_index}'
                 while T_Dst_Name_1 in Declared_Object_List:
                     T_index += 1
-                    T_Dst_Name_1 = 'Split_Dst_Obj_%s' %T_index
+                    T_Dst_Name_1 = f'Split_Dst_Obj_{T_index}'
                 else:
                     Declared_Object_List.append(T_Dst_Name_1)
                 #print('1st Available dst name is %s' %T_Dst_Name_1)
@@ -1611,67 +1632,68 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                 Splitted_ACL.append('\nobject-group network %s' %T_Dst_Name_1)
                 for n in Triggered_Dst:
                     if 'any' in n:
-                        Splitted_ACL.append('%s' %n)
+                        Splitted_ACL.append(n)
                     else:
                         if 'host ' in n:
-                            n = n.split()[1]
-                            if n in Obejct_by_value_Dict.keys():
-                                Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
+                            addr = n.split()[1]
+                            if addr in Obejct_by_value_Dict:
+                                Splitted_ACL.append(f' network-object object {Obejct_by_value_Dict[addr][0]}')
                             else:
-                                Splitted_ACL.append('  network-object host %s' %n)
+                                Splitted_ACL.append(f' network-object host {addr}')
                         else:
-                            if n in Obejct_by_value_Dict.keys():
-                                Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
+                            if n in Obejct_by_value_Dict:
+                                Splitted_ACL.append(f' network-object object {Obejct_by_value_Dict[n][0]}')
                             else:
-                                Splitted_ACL.append('  network-object %s' %n)
+                                Splitted_ACL.append(f' network-object {n}')
 
         KO_DST_List = []
         if len(Expanded_Dst) > 0:
+            dst = Expanded_Dst[0]
             if len(Expanded_Dst) == 1:
-                if 'any' in Expanded_Dst[0]:
-                    KO_DST_List.append('%s' %Expanded_Dst[0])
+                if 'any' in dst:
+                    KO_DST_List.append(dst)
                 else:
-                    n = Expanded_Dst[0].split()[1]
-                    if 'host ' in Expanded_Dst[0]:
-                        if n in Obejct_by_value_Dict.keys():
-                            KO_DST_List.append('object %s' %Obejct_by_value_Dict[n][0])
-                        else:
-                            KO_DST_List.append('host %s' %n)
+                    n = dst.split()[1]
+                    if n in Obejct_by_value_Dict:
+                        KO_DST_List.append(f'object {Obejct_by_value_Dict[n][0]}')
+                    elif 'host ' in dst:
+                        KO_DST_List.append(f'host {n}')
                     else:
-                        if n in Obejct_by_value_Dict.keys():
-                            KO_DST_List.append('object %s' %Obejct_by_value_Dict[n][0])
-                        else:
-                            KO_DST_List.append('%s' %Expanded_Dst[0])
+                        KO_DST_List.append(dst)
+
             else:
                 T_index = 1
-                T_Dst_Name_2 = 'Split_Dst_Obj_%s' %T_index
+                T_Dst_Name_2 = f'Split_Dst_Obj_{T_index}'
                 while T_Dst_Name_2 in Declared_Object_List:
                     T_index += 1
-                    T_Dst_Name_2 = 'Split_Dst_Obj_%s' %T_index
+                    T_Dst_Name_2 = f'Split_Dst_Obj_{T_index}'
                 else:
                     Declared_Object_List.append(T_Dst_Name_2)
                 #print('2nd Available dst name is %s' %T_Dst_Name_2)
-                KO_DST_List.append('object-group %s' %T_Dst_Name_2)
-                Splitted_ACL.append('\nobject-group network %s' %T_Dst_Name_2)
+                KO_DST_List.append(f"object-group {T_Dst_Name_2}")
+                Splitted_ACL.append(f"\nobject-group network {T_Dst_Name_2}")
                 for n in Expanded_Dst:
                     if 'any' in n:
-                        Splitted_ACL.append('%s' %n)
-                    else:
-                        if 'host ' in n:
-                            n = n.split()[1]
-                            if n in Obejct_by_value_Dict.keys():
-                                Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
-                            else:
-                                Splitted_ACL.append('  network-object host %s' %n)
+                        Splitted_ACL.append(n)
+                    elif 'host ' in n:
+                        addr = n.split()[1]
+                        if addr in Obejct_by_value_Dict:
+                            Splitted_ACL.append(f' network-object object {Obejct_by_value_Dict[addr][0]}')
                         else:
-                            if n in Obejct_by_value_Dict.keys():
-                                Splitted_ACL.append('  network-object object %s' %Obejct_by_value_Dict[n][0])
-                            else:
-                                Splitted_ACL.append('  network-object %s' %n)
+                            Splitted_ACL.append(f' network-object host {addr}')
+                    elif n in Obejct_by_value_Dict:
+                        Splitted_ACL.append(f' network-object object {Obejct_by_value_Dict[n][0]}')
+                    else:
+                        Splitted_ACL.append(f' network-object {n}')
 
         #---------------------------------------
-
+        valid_services = {'tcp', 'udp', 'ip', 'icmp'}
+        name = t_ACL_Line_df.Name[0]
+        line = t_ACL_Line_df.Line[0]
+        service = t_ACL_Line_df.Service[0]
+        d_port = t_ACL_Line_df.D_Port[0]
         Splitted_ACL.append('!')
+
         for t_OK_SRC_List in OK_SRC_List:
             for t_OK_DST_List in OK_DST_List:
                 #good lines here (expand ports)
@@ -1685,6 +1707,7 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                 else:
                     for t_Svc_and_Por in Svc_and_Port_List:
                         Splitted_ACL.append('access-list %s %s extended permit %s %s %s %s log' %(t_ACL_Line_df.Name[0], t_ACL_Line_df.Line[0], t_Svc_and_Por[0], t_OK_SRC_List, t_KO_DST_List, t_Svc_and_Por[1]))
+
         for t_KO_SRC_List in KO_SRC_List:
             for t_OK_DST_List in OK_DST_List:
                 #second bad block
@@ -1702,16 +1725,14 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
                     for t_Svc_and_Por in Svc_and_Port_List:
                         Splitted_ACL.append('access-list %s %s extended permit %s %s %s %s log' %(t_ACL_Line_df.Name[0], t_ACL_Line_df.Line[0], t_Svc_and_Por[0], t_KO_SRC_List, t_KO_DST_List, t_Svc_and_Por[1]))
 
-
-
         # WARNING if source port in ACL....
-
-
-        tf_name = "%s/VAR_%s___%s"%(log_folder,hostname___,'Declared_Object_List')
-        retries = utils_v2.Shelve_Write_Try(tf_name,Declared_Object_List)
+        tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Declared_Object_List")
+        retries = utils_v2.Shelve_Write_Try(tf_name, Declared_Object_List)
         if retries == 3:
-            with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-                f.write('Cannot write file %s/VAR_%s___%s! @ Split_Large_ACL\n' %(log_folder,hostname___,'Declared_Object_List'))
+            err_file = os.path.join(Err_folder, WTF_Error_FName)
+            err_msg = f"Cannot write file {tf_name}! @ Split_Large_ACL\n"
+            with open(err_file, "a+", encoding="utf-8") as f:
+                f.write(err_msg)
 
         temp_line = []
         temp_line.append(t_ACL_Line_df.ACL[0])

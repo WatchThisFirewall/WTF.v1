@@ -1512,19 +1512,35 @@ def Color_Line(IN_Line):
     Green_Color  = '#1cb836'
     Purple_Color = '#8f1489'
     Brown_Color  = '#995c00'
+    Marked_Words = ['range','interface','password','username','any','any4','any6','0.0.0.0']
+    
 
     OUT_Line = ''
     for t_word in IN_Line.split():
-        if t_word in Blu_Words:
-            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Blu_Color, t_word)
-        elif t_word in Red_Words:
-            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Red_Color, t_word)
-        elif t_word in Green_Words:
-            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Green_Color, t_word)
-        elif t_word in Purple_Words:
-            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Purple_Color, t_word)
-        elif t_word in Brown_Words:
-            OUT_Line = OUT_Line + '<font color="%s"> %s </font>' %(Brown_Color, t_word)
+        if t_word in Marked_Words:
+            if t_word in Blu_Words:
+                OUT_Line = OUT_Line + f'<mark style="color:{Blu_Color};"> {t_word} </mark>'
+            elif t_word in Red_Words:
+                OUT_Line = OUT_Line + f'<mark style="color:{Red_Color};"> {t_word} </mark>'
+            elif t_word in Green_Words:
+                OUT_Line = OUT_Line + f'<mark style="color:{Green_Color};"> {t_word} </mark>'
+            elif t_word in Purple_Words:
+                OUT_Line = OUT_Line + f'<mark style="color:{Purple_Color};"> {t_word} </mark>'
+            elif t_word in Brown_Words:
+                OUT_Line = OUT_Line + f'<mark style="color:{Brown_Color};"> {t_word} </mark>'
+            else:
+                OUT_Line = OUT_Line + f' {t_word} '
         else:
-            OUT_Line = OUT_Line + '%s ' %t_word
+            if t_word in Blu_Words:
+                OUT_Line = OUT_Line + f'<font color="{Blu_Color}"> {t_word} </font>'
+            elif t_word in Red_Words:
+                OUT_Line = OUT_Line + f'<font color="{Red_Color}"> {t_word} </font>'
+            elif t_word in Green_Words:
+                OUT_Line = OUT_Line + f'<font color="{Green_Color}"> {t_word} </font>'
+            elif t_word in Purple_Words:
+                OUT_Line = OUT_Line + f'<font color="{Purple_Color}"> {t_word} </font>'
+            elif t_word in Brown_Words:
+                OUT_Line = OUT_Line + f'<font color="{Brown_Color}"> {t_word} </font>'
+            else:
+                OUT_Line = OUT_Line + f' {t_word} '
     return OUT_Line

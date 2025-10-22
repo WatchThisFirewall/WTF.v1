@@ -89,23 +89,6 @@ else:
     print("Password not provided for device %s" %d_IP_Address)
     Flag_QUIT = True
 
-##if not d_dev_type is None:
-##    t_dev_type = d_dev_type
-##    if t_dev_type == 3:
-##        t_dev_type = 'cisco_asa'
-##    else:
-##        print('...ERROR!')
-##        print('Device Type "%s" unmanaged' %t_dev_type)
-##        Flag_QUIT = True
-
-#t_Device.append([t_IP_Address, t_Username, t_Password, t_dev_type, d_HostName])
-
-#if Flag_QUIT == True:
-
-
-
-#log_folder = "Output_Log"
-#print('Get_ASA_Commands device = %s' %Device)
 if Flag_QUIT == False:
 
     Device_Info = {

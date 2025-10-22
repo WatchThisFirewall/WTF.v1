@@ -541,25 +541,25 @@
                                 </div>
                                 <div class="col-9">
 
-                                    {% if This_Device.Prct_N_ACL_HitCnt_Zero < 8 %}
+                                    {% if This_Device.Prct_N_ACL_HitCnt_Zero_toDel < 8 %}
                                     <a href="{% url 'deltahitcnt0acl' FW_NAME %}" class="btn btn-success btn-icon-split">
                                         <span class="icon text-white-50">Delta HitCnt = 0</span>
-                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero}}%</span>
+                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero_toDel}}%</span>
                                     </a>
-                                    {%  elif This_Device.Prct_N_ACL_HitCnt_Zero < 24 %}
+                                    {%  elif This_Device.Prct_N_ACL_HitCnt_Zero_toDel < 24 %}
                                     <a href="{% url 'deltahitcnt0acl' FW_NAME %}" class="btn btn-warning btn-icon-split">
                                         <span class="icon text-white-50">Delta HitCnt = 0</span>
-                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero}}%</span>
+                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero_toDel}}%</span>
                                     </a>
-                                    {%  elif This_Device.Prct_N_ACL_HitCnt_Zero < 50 %}
+                                    {%  elif This_Device.Prct_N_ACL_HitCnt_Zero_toDel < 50 %}
                                     <a href="{% url 'deltahitcnt0acl' FW_NAME %}" class="btn btn-orange btn-icon-split">
                                         <span class="icon text-white-50">Delta HitCnt = 0</span>
-                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero}}%</span>
+                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero_toDel}}%</span>
                                     </a>
                                     {%  else %}
                                     <a href="{% url 'deltahitcnt0acl' FW_NAME %}" class="btn btn-danger btn-icon-split">
                                         <span class="icon text-white-50">Delta HitCnt = 0</span>
-                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero}}%</span>
+                                        <span class="text">{{This_Device.Prct_N_ACL_HitCnt_Zero_toDel}}%</span>
                                     </a>
                                     {% endif %}
 
@@ -1897,64 +1897,22 @@
                                 </div>
 
 
-                                <!-- Inactive ACL Card -->
+                                <!-- Top x Hitted ACL -->
                                 <div class="col-xl-3 col-md-6 mb-4">
-                                    <a href="{% url 'inactiveacl' FW_NAME %}" class="custom-card">
-                                    <!--<div class="card border-left-success shadow h-100 py-2">-->
-                                    {% if This_Device.Prct_N_ACL_Inactive < 8 %}
-                                        <div class="card border-left-success shadow h-100 py-2">
-                                    {%  elif This_Device.Prct_N_ACL_Inactive < 24 %}
-                                        <div class="card border-left-warning shadow h-100 py-2">
-                                    {%  elif This_Device.Prct_N_ACL_Inactive < 50 %}
-                                        <div class="card border-left-orange shadow h-100 py-2">
-                                    {%  else %}
-                                        <div class="card border-left-danger shadow h-100 py-2">
-                                    {% endif %}
+                                    <a href="{% url 'Most_Hitted_ACL' FW_NAME %}" class="custom-card">
+                                    <div class="card border-left-info shadow h-100 py-2">                                      
                                         <div class="card-body">
                                             <div class="row no-gutters align-items-center">
                                                 <div class="col mr-2">
                                                     <div class="h5 font-weight-bold text-primary mb-1">
-                                                        Inactive
+                                                        {{ My_Global_Settings.N_ACL_Most_Triggered }} Most Triggered ACL
                                                     </div>
-                                                    <div class="row no-gutters align-items-center">
-                                                        <div class="col-auto">
-                                                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
-                                                                {{This_Device.Prct_N_ACL_Inactive}}%
-                                                            </div>
-                                                        </div>
-                                                        <div class="col">
-                                                            <div class="progress progress-sm mr-2">
-                                                                <div class="progress-bar bg-primary" 
-                                                                    role="progressbar"
-                                                                    style="width: {{This_Device.Prct_N_ACL_Inactive}}%" aria-valuenow="100" 
-                                                                    aria-valuemin="0"
-                                                                    aria-valuemax="100">
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                                <div class="col-auto">
-                                                    {% if This_Device.Prct_N_ACL_Inactive < 8 %}
-                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
-                                                    {%  elif This_Device.Prct_N_ACL_Inactive < 24 %}
-                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
-                                                    {%  elif This_Device.Prct_N_ACL_Inactive < 50 %}
-                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
-                                                    {%  else %}
-                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
-                                                    {% endif %}
                                                 </div>
                                             </div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">
                                                 <table>
                                                     <tr>
-                                                        <th>ACL Total Lines:&nbsp;&nbsp;&nbsp;</th>
-                                                        <th>{{ This_Device.N_ACL_Lines }}</th>
-                                                    </tr>
-                                                    <tr>
-                                                        <th>N Inactive Lines:&nbsp;&nbsp;&nbsp;</th>
-                                                        <th>{{ This_Device.N_ACL_Inactive }}</th>
+                                                        <th>Reorder ACL Lines based on Delta HitCnt</th>
                                                     </tr>
                                                 </table>
                                             </div>
@@ -1962,8 +1920,7 @@
                                     </div>
                                     </a>
                                 </div>
-            
-            
+
                                 <!-- No Log for ACL Card -->
                                 <div class="col-xl-3 col-md-6 mb-4">
                                     <a href="{% url 'nologacl' FW_NAME %}" class="custom-card">
@@ -2165,22 +2122,64 @@
                                 </div>
 
 
-                                <!-- Top x Hitted ACL -->
+                                <!-- Inactive ACL Card -->
                                 <div class="col-xl-3 col-md-6 mb-4">
-                                    <a href="{% url 'Most_Hitted_ACL' FW_NAME %}" class="custom-card">
-                                    <div class="card border-left-info shadow h-100 py-2">                                      
+                                    <a href="{% url 'inactiveacl' FW_NAME %}" class="custom-card">
+                                    <!--<div class="card border-left-success shadow h-100 py-2">-->
+                                    {% if This_Device.Prct_N_ACL_Inactive < 8 %}
+                                        <div class="card border-left-success shadow h-100 py-2">
+                                    {%  elif This_Device.Prct_N_ACL_Inactive < 24 %}
+                                        <div class="card border-left-warning shadow h-100 py-2">
+                                    {%  elif This_Device.Prct_N_ACL_Inactive < 50 %}
+                                        <div class="card border-left-orange shadow h-100 py-2">
+                                    {%  else %}
+                                        <div class="card border-left-danger shadow h-100 py-2">
+                                    {% endif %}
                                         <div class="card-body">
                                             <div class="row no-gutters align-items-center">
                                                 <div class="col mr-2">
                                                     <div class="h5 font-weight-bold text-primary mb-1">
-                                                        {{ My_Global_Settings.N_ACL_Most_Triggered }} Most Triggered ACL
+                                                        Inactive
                                                     </div>
+                                                    <div class="row no-gutters align-items-center">
+                                                        <div class="col-auto">
+                                                            <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800">
+                                                                {{This_Device.Prct_N_ACL_Inactive}}%
+                                                            </div>
+                                                        </div>
+                                                        <div class="col">
+                                                            <div class="progress progress-sm mr-2">
+                                                                <div class="progress-bar bg-primary" 
+                                                                    role="progressbar"
+                                                                    style="width: {{This_Device.Prct_N_ACL_Inactive}}%" aria-valuenow="100" 
+                                                                    aria-valuemin="0"
+                                                                    aria-valuemax="100">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="col-auto">
+                                                    {% if This_Device.Prct_N_ACL_Inactive < 8 %}
+                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_1.jpg' %}">
+                                                    {%  elif This_Device.Prct_N_ACL_Inactive < 24 %}
+                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_2.jpg' %}">
+                                                    {%  elif This_Device.Prct_N_ACL_Inactive < 50 %}
+                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_3.jpg' %}">
+                                                    {%  else %}
+                                                        <img  style="width: 4rem;" src="{% static 'img/Gauge_4.jpg' %}">
+                                                    {% endif %}
                                                 </div>
                                             </div>
                                             <div class="h5 mb-0 font-weight-bold text-gray-800">
                                                 <table>
                                                     <tr>
-                                                        <th>Reorder ACL Lines based on Delta HitCnt</th>
+                                                        <th>ACL Total Lines:&nbsp;&nbsp;&nbsp;</th>
+                                                        <th>{{ This_Device.N_ACL_Lines }}</th>
+                                                    </tr>
+                                                    <tr>
+                                                        <th>N Inactive Lines:&nbsp;&nbsp;&nbsp;</th>
+                                                        <th>{{ This_Device.N_ACL_Inactive }}</th>
                                                     </tr>
                                                 </table>
                                             </div>
@@ -2188,6 +2187,7 @@
                                     </div>
                                     </a>
                                 </div>
+
 
                                 <!-- Deny ACL Triggering too much -->
                                 <div class="col-xl-3 col-md-6 mb-4">

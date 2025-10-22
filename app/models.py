@@ -595,7 +595,10 @@ class Bad_News(models.Model):
     def __str__(self):
         #return self.HostName
         return '%s | %s | %s' % (self.HostName, self.Tmiestamp, self.Content)
-    
+
+    def t_Tmiestamp(self):
+        return self.Tmiestamp.strftime("%Y-%m-%d")
+
     @classmethod
     def has_bad_news(cls):
         return cls.objects.filter(Flag=True).exists()

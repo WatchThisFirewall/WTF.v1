@@ -72,32 +72,33 @@
                 });
             </script>             
             <div class="card-body">
-                <table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-order='[[ 1, "asc" ]]' data-page-length="100">
+                <div style="max-width: 100%; overflow-x: auto;">
+                <table class="table-bordered table-condensed table-striped w-auto" id="dataTable" width="100%" cellspacing="0" data-order='[[ 1, "desc" ]]' data-page-length="100">
                     <thead>
                         <tr>
-                            <th data-toggle="tooltip" title="Hostname">Hostname</th>
-                            <th data-toggle="tooltip" title="TimeStamp">TimeStamp &nbsp;<i class="far fa-calendar-alt text-primary"></i></th>
-                            <th data-toggle="tooltip" title="Command Line">Command Line</th>
-                            <th data-toggle="tooltip" title="Flag">Flag &nbsp;<i class="far fa-check-square text-primary"></i></th>
+                            <th class="px-2 text-nowrap" data-toggle="tooltip" title="Hostname">Hostname</th>
+                            <th class="px-2 text-nowrap" data-toggle="tooltip" title="TimeStamp">TimeStamp &nbsp;<i class="far fa-calendar-alt text-primary"></i></th>
+                            <th class="px-2 text-nowrap" data-toggle="tooltip" title="Flag">Flag &nbsp;<i class="far fa-check-square text-primary"></i></th>
+                            <th class="px-2 text-nowrap" data-toggle="tooltip" title="Command Line">Command Line</th>
                         </tr>
                     </thead>
                     <tbody>
                        
                         {% for t_line in My_Bad_News %}
                             <tr>
-                                <td>
+                                <td class="px-2 text-nowrap">
                                     {{ t_line.HostName }}
 
                                 </td>
-                                <td>{{ t_line.Tmiestamp }}</td>
-                                <td>{{ t_line.Content|safe }}</td>
-                                <td>{{ t_line.Flag|safe }}</td>
-                               
+                                <td class="px-2 text-nowrap">{{ t_line.t_Tmiestamp }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.Flag|safe }}</td>
+                                <td class="px-2 text-nowrap">{{ t_line.Content|safe }}</td>
                             </tr>
                         {% endfor %}
 
                     </tbody>
                 </table>
+                </div>
                 <script>
                     $(document).ready(function() {
                         $('#dataTable').DataTable({

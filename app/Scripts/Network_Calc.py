@@ -1,5 +1,15 @@
+#def NetworkCalc(IP_ADDRESS,SUBNET_MASK)
+#def wildcard_mask_test (test_octet, acl_octet, acl_wildcard_octet)
+#def test_octet (acl_octet, acl_wildcard_octet)
+#def IPv4_to_intList (IpAddr, SubMsk)
+#def IPv4_to_DecList (IpAddr, SubMsk)
+#def Is_Overlapping(ip_a, sm_a, ip_b, sm_b)
+#def Is_Dec_Overlapping(dec_ip_a, dec_ip_b)
+#def INTv4_to_IPv4 (ip_int)
 
 import ipaddress
+import sys
+
 ##re1 = re.compile('(permit|deny) (tcp|icmp|udp|gre|ip|esp|ipsec|ospf)', re.IGNORECASE)
 ##re2 = re.compile('access-list .* element', re.IGNORECASE)
 ##re3 = re.compile('^access-list .* line', re.IGNORECASE)
@@ -343,42 +353,6 @@ def test_octet (acl_octet, acl_wildcard_octet):
             if (wildcard_mask_test(test_octet, acl_octet, acl_wildcard_octet)):
                 matches.append(test_octet)
         return matches
-
-#=============================================================================================================================
-def list_of_matches_acl (acl_address, acl_mask):
-    #Pass in the variables of ACL network and wildcard mask
-    #eg 10.200.128.0 0.0.0.255
-    potential_matches=[]
-    #Split the incoming parameters into 4 octets
-    acl_address_octets = acl_address.split('.')
-    for n in range(0,4):
-        acl_address_octets[n] = int(acl_address_octets[n])
-
-    acl_mask_octets = acl_mask.split('.')
-    for n in range(0,4):
-        acl_mask_octets[n] = int(acl_mask_octets[n])
-
-    #Test the 1st octet
-    matches_octet_1_ref = test_octet(acl_address_octets[0], acl_mask_octets[0])
-    #Test the 2nd octet
-    matches_octet_2_ref = test_octet(acl_address_octets[1], acl_mask_octets[1])
-    #Test the 3rd octet
-    matches_octet_3_ref = test_octet(acl_address_octets[2], acl_mask_octets[2])
-    #Test the 4th octet
-    matches_octet_4_ref = test_octet(acl_address_octets[3], acl_mask_octets[3])
-
-    #Assemble the list of possible matches
-    #Iterating over all options for each octet
-    for n1 in matches_octet_1_ref:
-        for n2 in matches_octet_2_ref:
-            for n3 in matches_octet_3_ref:
-                for n4 in matches_octet_4_ref:
-                    potential_matches.append(str(n1)+'.'+str(n2)+'.'+str(n3)+'.'+str(n4))
-    ip = []
-    for m in potential_matches:
-        ip.append(ipaddress.ip_address(unicode(m)))
-    out = list(ipaddress.collapse_addresses(ip))
-    return out
 
 #=============================================================================================================================
 def IPv4_to_intList (IpAddr, SubMsk):

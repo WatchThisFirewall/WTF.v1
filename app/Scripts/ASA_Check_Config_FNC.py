@@ -1,16 +1,47 @@
-
+#----------------------------------------------------------------------------------------------------
+# def Get_ASA_Commands
+# def Split_Show_run
+# def Config_Diff
+# def ACL_VS_Interface
+# def NO_Log_For_ACL
+# def Unused_ACL
+# def Unused_Object
+# def ObjGrpNet_With1Entry
+# def Duplicated_Objects
+# def ACL_Source_Vs_Routing_Table
+# def ACL_Dest_Vs_Routing_Table
+# def F_Active_Capture
+# def Use_Declared_Objects
+# def Explicit_Deny_IP_Any_Any
+# def DB_For_ACL
+# def Check_Dec_Shadowing
+# def Check_NAT
+# def Check_Range
+# def Where_Used
+#----------------------------------------------------------------------------------------------------
 import os, sys
 import datetime
 import re
-from difflib import Differ
 import utils_v2
-import datetime
+import shelve
+import ipaddress
+import pandas as pd
+import sqlalchemy as db
+import time
+import pyarrow
+import json
+
+from difflib import Differ
 from ASA_Check_Config_PARAM import *
-from utils_v2 import Write_Think_File, File_Save_Try, File_Save_Try2
+from utils_v2 import Write_Think_File, File_Save_Try, File_Save_Try2, timedelta_in_months
 
 from netmiko import ConnectHandler, NetmikoTimeoutException, NetmikoAuthenticationException
 from paramiko.ssh_exception import SSHException, BadHostKeyException
 from pathlib import Path
+
+from Network_Calc import Sub_Mask_2, Sub_Mask_1, IPv4_to_DecList, Is_Dec_Overlapping, Port_Converter
+from Network_Calc import PRTOTOCOLS, Proto_Map
+from tabulate import tabulate
 
 re_space = re.compile(r'[ ]{2,}')
 re_iprange = re.compile(r'\b\d+\.\d+\.\d+\.\d+-\d+\.\d+\.\d+\.\d+\b')
@@ -25,16 +56,14 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
     # return False to order the caller to kill the program
 
     Config_Change.append('\n')
-    t_line = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    Config_Change.append('Timestamp = %s\n' %t_line)
-    print(f'Timestamp = %s\n' %t_line)
+    t_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    Config_Change.append(f'Timestamp = {t_time}\n')
+    print (f'Timestamp = {t_time}\n')
 
-    import shelve
-    import sqlalchemy as db
     DB_Available = True
 
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
     except Exception as e:
@@ -45,7 +74,6 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
         Config_Change.append('DB not connected, some feature is unavailable\n')
         DB_Available = False
 
-    import time
     Commands = []
     Commands.append('term page 0')
     Commands.append('show ver')
@@ -74,39 +102,39 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
             print('trying to connect to %s...' %(Device_Info["host"]))
             Config_Change.append(f'trying to connect to {Device_Info["host"]}...')
             device_connection = ConnectHandler(**Device_Info)
-            if device_connection.is_alive() == False:
-                err_line = f'device_connection.is_alive() == False:'
+            if not device_connection.is_alive():
+                err_line = 'device_connection.is_alive() == False:'
                 print(err_line)
                 Config_Change.append(err_line)
                 return False
             else:
-                err_line = f'device_connection.is_alive() == True:'
+                err_line = 'device_connection.is_alive() == True:'
                 print(err_line)
                 Config_Change.append(err_line)
                 break
         except NetmikoTimeoutException:
-            err_line = f'Connection timed out!'
+            err_line = 'Connection timed out!'
             print(err_line)
             Config_Change.append(err_line)
             row = {'TimeStamp':_now_, 'Level':'ERROR', 'Message':(f'@{Device_Info["host"]} - Connection timed out!')}
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
             retries +=1
         except NetmikoAuthenticationException:
-            err_line = f'Authentication failed!'
+            err_line = 'Authentication failed!'
             print(err_line)
             Config_Change.append(err_line)
             row = {'TimeStamp':_now_, 'Level':'ERROR', 'Message':(f'@{Device_Info["host"]} - Authentication failed!')}
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
             retries +=1
         except BadHostKeyException:
-            err_line = f'The host key is not recognized. Possible man-in-the-middle attack!'
+            err_line = 'The host key is not recognized. Possible man-in-the-middle attack!'
             print(err_line)
             Config_Change.append(err_line)
             row = {'TimeStamp':_now_, 'Level':'ERROR', 'Message':(f'@{Device_Info["host"]} - The host key is not recognized. Possible man-in-the-middle attack!')}
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
             retries +=1
         except SSHException:
-            err_line = f'SSH connection failed!'
+            err_line = 'SSH connection failed!'
             print(err_line)
             Config_Change.append(err_line)
             row = {'TimeStamp':_now_, 'Level':'ERROR', 'Message':(f'@{Device_Info["host"]} - SSH connection failed!')}
@@ -121,7 +149,7 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
             retries +=1
 
     if retries >= 3:
-        err_line = f'_________________________________________________________'
+        err_line = '_________________________________________________________'
         print(err_line)
         Config_Change.append(err_line)
         err_line = f'FAILED TO CONNECT TO {Device[4]}@{Device[0]}'
@@ -198,7 +226,7 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
         if retries == 4:
             Log_Message = (f"UNABLE TO RUN COMMAND {t_Command} on {hostname}"); print(Log_Message)
             Config_Change.append(Log_Message)
-            pritn(Log_Message)
+            print(Log_Message)
             row = {'TimeStamp':_now_, 'Level':'ERROR', 'Message':f'UNABLE TO RUN COMMAND {t_Command} on {hostname}'}
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
             return False
@@ -236,7 +264,6 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
 ##(___/(__)  (____)(____) (__)(___)(___/(_) (_)(_____)(__/\__)(___)(_)\_)(______)(_)\_)
 
 def Split_Show_run(Device, Config_Change, Show_Line, log_folder):
-    import sqlalchemy as db
 
     hostname___ = Device.replace('/','___')
     FW_log_folder = log_folder + '/' + hostname___
@@ -245,8 +272,8 @@ def Split_Show_run(Device, Config_Change, Show_Line, log_folder):
         with open(f"{FW_log_folder}/{hostname___}.log", 'r', encoding='utf-8', errors='replace') as f:
             l = f.readlines()
     except:
-        print('file %s/%s.log not found!' %(FW_log_folder,hostname___))
-        Config_Change_Dic.append(f'file {FW_log_folder}/{hostname___}.log not found!')
+        print(f'file {FW_log_folder}/{hostname___}.log not found!')
+        Config_Change.append(f'file {FW_log_folder}/{hostname___}.log not found!')
 
     for n in range(0,len(l)):
         line = l[n]
@@ -366,10 +393,6 @@ def Split_Show_run(Device, Config_Change, Show_Line, log_folder):
 ## \___)(_____)(_)\_)(__)  (____)\___/  (____/(____)(__)  (__)
 
 def Config_Diff(Device, Config_Change, log_folder):
-    import sqlalchemy as db
-    import pandas as pd
-    import shelve
-    from tabulate import tabulate
 
     DB_Available = True
     try:
@@ -393,11 +416,11 @@ def Config_Diff(Device, Config_Change, log_folder):
     #log_folder = hostname___
     global WTF_Error_FName
 
-    text = ('Config Diff @ %s' %hostname___)
+    text = f'Config Diff @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
     T_0_ShowRun_file   = FW_log_folder + '/' + hostname___ + '.CFG.t-0.txt'
-    T_1_ShowRun_file   = FW_log_folder + '/' + hostname___ + '.CFG.t-1.txt'
+    #T_1_ShowRun_file   = FW_log_folder + '/' + hostname___ + '.CFG.t-1.txt'
     Delta_ShowRun_file = FW_log_folder + '/' + hostname___ + '.CFG.Delta.txt'
     Delta_ShowRun_html = hostname___ + '.CFG.Delta.html'
     html_folder = FW_log_folder
@@ -455,15 +478,15 @@ def Config_Diff(Device, Config_Change, log_folder):
                     Diff_Only.append(item)
                     Num_Remvd_Lines +=1
 
-        if DB_Available:
-            Updated_Vals = dict(
-                                Config_Diff_Added_Lines = Num_Added_Lines,
-                                Config_Diff_Remvd_Lines = Num_Remvd_Lines,
-                                Config_Total_Lines = len(new_file)
-                                )
-            query = db.update(My_Devices).where(My_Devices.c.HostName==hostname___).values(Updated_Vals)
-            with engine.begin() as connection:
-                results = connection.execute(query)
+    if DB_Available:
+        Updated_Vals = dict(
+                            Config_Diff_Added_Lines = Num_Added_Lines,
+                            Config_Diff_Remvd_Lines = Num_Remvd_Lines,
+                            Config_Total_Lines = len(new_file)
+                            )
+        query = db.update(My_Devices).where(My_Devices.c.HostName==hostname___).values(Updated_Vals)
+        with engine.begin() as connection:
+            results = connection.execute(query)
 
     # --- Clean old logs (remove NEW + purge old entries) ---
     cutoff = datetime.datetime.now() - datetime.timedelta(days=Max_Diff_Log_Age)
@@ -498,7 +521,12 @@ def Config_Diff(Device, Config_Change, log_folder):
         if rows:  # only build dataframe if rows exist
             headers = rows[0]
             data = rows[1:]
-            Delta_ShowRun_df = pd.DataFrame(data, columns=headers)
+            try:
+                Delta_ShowRun_df = pd.DataFrame(data, columns=headers)
+            except ValueError as e:
+                print(f"[!] Data mismatch: {e}")
+                print(f"Header count: {len(headers)}, Sample row length: {len(data[0]) if data else 'N/A'}")
+                print(f"data = {data}, headers = {headers}")
         else:
             Delta_ShowRun_df = pd.DataFrame()  # empty dataframe
     else:
@@ -548,7 +576,7 @@ def Config_Diff(Device, Config_Change, log_folder):
         Processed_Line = False
         for t_word in Bad_Words:
             if t_word in line[1]:
-                if Processed_Line == False:
+                if not Processed_Line:
                     if DB_Available:
                         row = dict(
                                   HostName = Device,
@@ -570,14 +598,14 @@ def Config_Diff(Device, Config_Change, log_folder):
         try:
             os.mkdir(html_folder)
         except:
-             raise OSError("Can't create destination directory (%s)!" % (html_folder))
+            raise OSError("Can't create destination directory (%s)!" % (html_folder))
 
     t_html_file = []
     t_html_file.append('<div class="card-body">\n')
     t_html_file.append('''
        <table class="table-bordered table-condensed table-striped table-responsive" id="dataTable" width="100%" cellspacing="0" data-order='[[ 0, "desc" ]]' data-page-length="50" >\n
        ''')
-    my_index = 0
+    #my_index = 0
     if not Diff_Only_DF.empty:
         N_Cols = Diff_Only_DF.shape[1]
         t_html_file.append('       <thead><tr>\n')
@@ -596,7 +624,7 @@ def Config_Diff(Device, Config_Change, log_folder):
                     new_line = new_line.encode('ascii', errors='replace').decode('ascii')
                     t_html_file.append('           <td class="text-nowrap mr-2">%s</td>\n' %new_line)
                 elif t_col_index == 0:
-                    t_html_file.append('           <td>%s</td>\n' %Diff_Only_DF.iloc[row.Index][t_col_index])
+                    t_html_file.append('           <td class="text-nowrap mr-2">%s</td>\n' %Diff_Only_DF.iloc[row.Index][t_col_index])
                 else :
                     t_html_file.append('           <td class="text-center">%s</td>\n' %Diff_Only_DF.iloc[row.Index][t_col_index])
             t_html_file.append('       </tr>\n')
@@ -606,7 +634,7 @@ def Config_Diff(Device, Config_Change, log_folder):
     else:
         t_html_file.append('\n')
 
-    t_DestFileName = (f"{html_folder}/{Delta_ShowRun_html}")
+    t_DestFileName = f"{html_folder}/{Delta_ShowRun_html}"
     log_msg = File_Save_Try2(t_DestFileName, t_html_file, t_ErrFileFullName, Config_Change)
     if log_msg:
         with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
@@ -614,13 +642,12 @@ def Config_Diff(Device, Config_Change, log_folder):
     # ============================================
     # ========= config length line chart =========
     # ============================================
-    from utils_v2 import timedelta_in_months
-    from utils_v2 import File_Save_Try
+
     ConfLenHist_FList = []
-    ConfLenHist_FName = ('%s/%s-ConfLenHist.txt' %(FW_log_folder,hostname___))
+    ConfLenHist_FName = f'{FW_log_folder}/{hostname___}-ConfLenHist.txt'
     t_year_Nbr  = int(datetime.datetime.now().strftime('%Y'))
     t_month_Nbr = int(datetime.datetime.now().strftime('%m'))
-    t_month_Str = datetime.datetime.now().strftime('%b')
+    #t_month_Str = datetime.datetime.now().strftime('%b')
 
     ConfLenHist_Exists = False
     if len(new_file) > 0:
@@ -657,7 +684,7 @@ def Config_Diff(Device, Config_Change, log_folder):
             if log_msg:
                 with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
 
-    if ConfLenHist_Exists == True:
+    if ConfLenHist_Exists:
         if Delta_Months == 0:
             ConfLenHist[-1] = ConfLenHist[-1].split()[0]+ ' ' + str(len(new_file)) + '\n'
             text = ''.join(i for i in ConfLenHist)
@@ -729,7 +756,7 @@ def Config_Diff(Device, Config_Change, log_folder):
             temp = temp + '],\n'
             l[n] = temp
 
-    t_fname = ("%s/chart-area1.js"%(html_folder))
+    t_fname = f"{html_folder}/chart-area1.js"
     File_Save_Try(t_fname,l)
 
     return Config_Change
@@ -742,8 +769,6 @@ def Config_Diff(Device, Config_Change, log_folder):
 ##(__)(__)\___)(____)    \/  (___/  (____)(_)\_)(____) (__) (____)(_)\_)(__)(__)(__)\___)(____)
 
 def ACL_VS_Interface(t_device, Config_Change, log_folder):
-    import time
-    from utils_v2 import Write_Think_File
 
     hostname___ = t_device.replace('/','___')
     Err_folder  = log_folder
@@ -761,13 +786,11 @@ def ACL_VS_Interface(t_device, Config_Change, log_folder):
         try:
             os.mkdir(html_folder)
         except:
-             raise OSError("Can't create destination directory (%s)!" % (html_folder))
+            raise OSError("Can't create destination directory (%s)!" % (html_folder))
 
-    text = ('Acl Vs Ineterface @ %s' %hostname___)
+    text = f'Acl Vs Ineterface @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
-    import shelve
-    import sqlalchemy as db
     DB_Available = True
 
     try:
@@ -803,13 +826,13 @@ def ACL_VS_Interface(t_device, Config_Change, log_folder):
             Nameif_Dic[l[n].split()[1]] = l[n].split()[0]
 
     t_N_Interfaces_NoACL = 0
-    t_N_Interfaces = len(Nameif_Dic.keys())
+    t_N_Interfaces = len(Nameif_Dic)
     Done_Flag = False
-    for n in Nameif_Dic.keys():
-        if n not in Accessgroup_Dic_by_if.keys():
+    for n in Nameif_Dic:
+        if n not in Accessgroup_Dic_by_if:
             if not Done_Flag:
                 #Watch_FList.append('The Following Interfaces have not ACLs applied:<br>')
-                text_line = ('The following Interfaces have not ACLs applied:')
+                text_line = 'The following Interfaces have not ACLs applied:'
                 Done_Flag = True
             Watch_FList.append('%s' %n)
             Think_FList.append('show interface %s' %n)
@@ -826,9 +849,9 @@ def ACL_VS_Interface(t_device, Config_Change, log_folder):
 
     tf_name = f"{FW_log_folder}/VAR_{hostname___}___ACL_List_Dict"
     ACL_List_Dict = utils_v2.Shelve_Read_Try(tf_name,'')
-    Root_ACL_Lines_DF = utils_v2.ASA_ACL_to_DF(ACL_List_Dict.keys())
+    Root_ACL_Lines_DF = utils_v2.ASA_ACL_to_DF(ACL_List_Dict)
 
-    for t_item in Accessgroup_Dic_by_if.keys():
+    for t_item in Accessgroup_Dic_by_if:
         Root_ACL_Lines_DF_Slice = Root_ACL_Lines_DF.loc[Root_ACL_Lines_DF['Name'] == Accessgroup_Dic_by_if[t_item]]
         Root_ACL_Lines_DF_Slice.reset_index(inplace=True, drop=True)
 
@@ -910,10 +933,6 @@ def ACL_VS_Interface(t_device, Config_Change, log_folder):
 ##(_)\_)(_____)  (____)(_____)\___/  (__)  (_____)(_)\_)  (__)(__)\___)(____)
 
 def NO_Log_For_ACL(t_device, Config_Change, log_folder):
-    import shelve
-    import time
-    import sqlalchemy as db
-    from utils_v2 import File_Save_Try
 
     DB_Available = True
     try:
@@ -942,12 +961,12 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
     nologacl_htm_FName = FW_log_folder + '/' + hostname___ + '.nologacl_Fix.html'
     logdisabledacl_htm_FName = FW_log_folder + '/' + hostname___ + '.logdisabledacl_Fix.html'
 
-    text = ('No Log For Acl @ %s' %hostname___)
+    text = f'No Log For Acl @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
-    inactiveacl_htm_FName = FW_log_folder + '/' + hostname___ + '.inactiveacl_Fix.html'
-    text = ('Inactive Acl @ %s' %hostname___)
-    re9 = re.compile(r'(hitcnt=.*)')
+    #inactiveacl_htm_FName = FW_log_folder + '/' + hostname___ + '.inactiveacl_Fix.html'
+    text = f'Inactive Acl @ {hostname___}'
+    #re9 = re.compile(r'(hitcnt=.*)')
 
     try:
         with open("%s/%s___Show_Running-Config.log"%(FW_log_folder,hostname___),'r', encoding='utf-8', errors='replace') as f:
@@ -970,15 +989,15 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
             ACL_NAME = l[n].split()[1]
             if ACL_NAME in list(Accessgroup_Dic_by_if.values()): #sto facendo i controlli solo sulle ACL applicate ad interfacce
                 if ' remark ' not in l[n]:
-                    if (' standard ') not in l[n]:
+                    if ' standard ' not in l[n]:
                         N_Lines_ACL = N_Lines_ACL +1
                         if ' inactive' not in l[n]:
                             N_Lines_ACL_active += 1
-                            if (' log disable' in l[n]):
+                            if ' log disable' in l[n]:
                                 temp = l[n].rstrip().replace(' log disable', ' log')
                                 Show_run_ACL_LogDis_Lst.append(temp)
                                 N_Lines_ACL_LogDis = N_Lines_ACL_LogDis +1
-                            elif (' log ' not in l[n]):
+                            elif ' log ' not in l[n]:
                                 Show_run_ACL_NoLog_Lst.append(l[n].strip() + ' log')
                                 N_Lines_ACL_NoLog = N_Lines_ACL_NoLog +1
                         else:
@@ -995,8 +1014,8 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
     else:
         Config_Change.append('Suggestion!!! no explicit logging monitor level configured')
 
-    percent = round(N_Lines_ACL_NoLog/N_Lines_ACL_active*100,2) if N_Lines_ACL_active else 0
-    percent = round(N_Lines_ACL_LogDis/N_Lines_ACL_active*100,2) if N_Lines_ACL_active else 0
+    #percent = round(N_Lines_ACL_NoLog/N_Lines_ACL_active*100,2) if N_Lines_ACL_active else 0
+    #percent = round(N_Lines_ACL_LogDis/N_Lines_ACL_active*100,2) if N_Lines_ACL_active else 0
 
     Write_Think_File(nologacl_htm_FName, Show_run_ACL_NoLog_Lst)
     Write_Think_File(logdisabledacl_htm_FName, Show_run_ACL_LogDis_Lst)
@@ -1026,9 +1045,6 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
 ##(______)(_)\_)(______)(___/(____)(____/   (__)(__)\___)(____)
 
 def Unused_ACL(t_device, Config_Change, log_folder):
-    import shelve
-    import time
-    import sqlalchemy as db
 
     DB_Available = True
     try:
@@ -1047,7 +1063,7 @@ def Unused_ACL(t_device, Config_Change, log_folder):
     hostname___ = t_device.replace('/','___')
     FW_log_folder = log_folder + '/' + hostname___
     Watch_FList = [' ']
-    Watch_Heading_Text = ('The Following ACLs are not applied:')
+    Watch_Heading_Text = 'The Following ACLs are not applied:'
     Watch_FName = FW_log_folder + '/' + hostname___ + '-Unused_ACL-Watch.html'
     Think_FList = [' ']
     Think_FName = FW_log_folder + '/' + hostname___ + '-Unused_ACL-Think.html'
@@ -1099,7 +1115,7 @@ def Unused_ACL(t_device, Config_Change, log_folder):
 
     for n in ACL_List:
         #if n not in Accessgroup_Dic_by_if.values():
-        if n not in Accessgroup_Dic_by_ACL.keys():
+        if n not in Accessgroup_Dic_by_ACL:
             if n not in ACL_Capture_List:
                 if n not in Used_ACL_ServPol:
                     if n not in ACL_SplitTunnel_List:
@@ -1129,7 +1145,7 @@ def Unused_ACL(t_device, Config_Change, log_folder):
     for n in Unused_ACL_List:
         Think_FList.append('show run | i %s ' %n)
 
-    if (len(Unused_ACL_List) > 0):
+    if len(Unused_ACL_List) > 0:
         for n in Unused_ACL_List:
             Fix_FList.append('clear configure access-list %s' %n)
 
@@ -1150,7 +1166,7 @@ def Unused_ACL(t_device, Config_Change, log_folder):
                     FirstRun = False
 
     FirstRun = True
-    for n in PolicyMap_Dct.keys():
+    for n in PolicyMap_Dct:
         if n not in ServicePolicy_Lst:
             if FirstRun == True:
                 Watch_FList.append('!')
@@ -1188,10 +1204,6 @@ def Unused_ACL(t_device, Config_Change, log_folder):
 ##(______)(_)\_)(______)(___/(____)(____/   (_____)(____/\____) (____)\___) (__)
 
 def Unused_Object(t_device, Config_Change, log_folder):
-    import shelve
-    import time
-    import sqlalchemy as db
-    from utils_v2 import File_Save_Try
 
     DB_Available = True
     try:
@@ -1212,7 +1224,7 @@ def Unused_Object(t_device, Config_Change, log_folder):
     html_folder = FW_log_folder
     global WTF_Error_FName
 
-    text = ('Unused Object @ %s' %hostname___)
+    text = f'Unused Object @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
     Used_Object_List = []
@@ -1240,7 +1252,7 @@ def Unused_Object(t_device, Config_Change, log_folder):
     OBJ_GRP_PRT_Dic = utils_v2.Shelve_Read_Try(tf_name,'')
 
     OBJ_GRP_SVC_Dic_2 = OBJ_GRP_SVC_Dic.copy()
-    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic.keys():
+    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic:
         if len(t_OBJ_GRP_SVC_Dic_key.split()) == 2:
             OBJ_GRP_SVC_Dic_2[t_OBJ_GRP_SVC_Dic_key.split()[0]] = [t_OBJ_GRP_SVC_Dic_key.split()[1], OBJ_GRP_SVC_Dic_2.pop(t_OBJ_GRP_SVC_Dic_key)]
         else:
@@ -1253,7 +1265,7 @@ def Unused_Object(t_device, Config_Change, log_folder):
         if n not in Used_Object_List:
             Count_Obj_Not_Applied += 1
             Unused_Obj_Net.append(n)
-    percent = round(Count_Obj_Not_Applied/len(Declared_OBJ_NET)*100,2) if len(Declared_OBJ_NET) else 0
+    #percent = round(Count_Obj_Not_Applied/len(Declared_OBJ_NET)*100,2) if len(Declared_OBJ_NET) else 0
 
     Unused_ObjGrp_Net = []
     Count_ObjGrp_Not_Applied = 0
@@ -1261,7 +1273,7 @@ def Unused_Object(t_device, Config_Change, log_folder):
         if n not in Used_Object_List:
             Count_ObjGrp_Not_Applied += 1
             Unused_ObjGrp_Net.append(n)
-    percent = round(Count_ObjGrp_Not_Applied/len(Declared_OBJ_GRP_NET)*100,2) if len(Declared_OBJ_GRP_NET) else 0
+    #percent = round(Count_ObjGrp_Not_Applied/len(Declared_OBJ_GRP_NET)*100,2) if len(Declared_OBJ_GRP_NET) else 0
 
     Unused_Obj_Service = []
     Count_ObjSrv_Not_Applied = 0
@@ -1269,22 +1281,22 @@ def Unused_Object(t_device, Config_Change, log_folder):
         if n not in Used_Object_List:
             Count_ObjSrv_Not_Applied += 1
             Unused_Obj_Service.append(n)
-    percent = round(Count_ObjSrv_Not_Applied/len(Declared_Object_service)*100,2) if len(Declared_Object_service) else 0
+    #percent = round(Count_ObjSrv_Not_Applied/len(Declared_Object_service)*100,2) if len(Declared_Object_service) else 0
 
     Unused_ObjGrp_Service = []
     Count_ObjGrpSrv_Not_Applied = 0
     # find in services
-    for n in OBJ_GRP_SVC_Dic_2.keys():
+    for n in OBJ_GRP_SVC_Dic_2:
         if n not in Used_Object_List:
             Count_ObjGrpSrv_Not_Applied += 1
             Unused_ObjGrp_Service.append(n)
     # find in protocols
-    for n in OBJ_GRP_PRT_Dic.keys():
+    for n in OBJ_GRP_PRT_Dic:
         if n not in Used_Object_List:
             Count_ObjGrpSrv_Not_Applied += 1
             Unused_ObjGrp_Service.append(n)
-    LEN_OBJ_SVC = len(OBJ_GRP_SVC_Dic_2.keys()) + len(OBJ_GRP_PRT_Dic.keys())
-    percent = round(Count_ObjGrpSrv_Not_Applied/LEN_OBJ_SVC*100,2) if LEN_OBJ_SVC else 0
+    LEN_OBJ_SVC = len(OBJ_GRP_SVC_Dic_2) + len(OBJ_GRP_PRT_Dic)
+    #percent = round(Count_ObjGrpSrv_Not_Applied/LEN_OBJ_SVC*100,2) if LEN_OBJ_SVC else 0
 
     # ----- WTF for Unused_Obj_Net ---------------------------------------------------
     Watch_FList = []
@@ -1372,9 +1384,9 @@ def Unused_Object(t_device, Config_Change, log_folder):
         for item in Unused_ObjGrp_Service:
             Watch_FList.append('<li>%s</li>' %item)
             Think_FList.append('show run | i %s' %item)
-            if item in OBJ_GRP_SVC_Dic_2.keys():
+            if item in OBJ_GRP_SVC_Dic_2:
                 Fix_FList.append('no object-group service %s' %item)
-            elif item in OBJ_GRP_PRT_Dic.keys():
+            elif item in OBJ_GRP_PRT_Dic:
                 Fix_FList.append('no object-group protocol %s' %item)
             else:
                 print('WTF!!!! @ unused object')
@@ -1424,10 +1436,9 @@ def Unused_Object(t_device, Config_Change, log_folder):
 def ObjGrpNet_With1Entry(t_device, Config_Change, log_folder):
     re10 = re.compile(r'line \d+ ')
 
-    import shelve
     hostname___ = t_device.replace('/','___')
 
-    text = ('object-group network with one entry @ %s' %hostname___)
+    text = f'object-group network with one entry @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
     FW_log_folder = log_folder + '/' + hostname___
@@ -1443,7 +1454,7 @@ def ObjGrpNet_With1Entry(t_device, Config_Change, log_folder):
     Old_to_New = {}
     TEMP_Config_Change = []
 
-    for t_key in OBJ_GRP_NET_Dic.keys():
+    for t_key in OBJ_GRP_NET_Dic:
         if len(OBJ_GRP_NET_Dic[t_key]) == 1:
             TEMP_Config_Change.append('\n!object-group network %s' %(t_key))
             TEMP_Config_Change.append('!%s' %(OBJ_GRP_NET_Dic[t_key][0]))
@@ -1487,7 +1498,7 @@ def ObjGrpNet_With1Entry(t_device, Config_Change, log_folder):
     TEMP_Config_Change.append('')
     for t_key in OBJ_GRP_NET_Dic:
         for t_item in OBJ_GRP_NET_Dic[t_key]:
-            for tt_key in Old_to_New.keys():
+            for tt_key in Old_to_New:
                 if 'group-object ' in t_item:
                     if tt_key == t_item.split()[1]:
                         TEMP_Config_Change.append('object-group network %s' %t_key)
@@ -1534,10 +1545,6 @@ def ObjGrpNet_With1Entry(t_device, Config_Change, log_folder):
 
 def Duplicated_Objects(t_device, Config_Change, log_folder):
 
-    import shelve
-    import time
-    import sqlalchemy as db
-
     hostname___ = t_device.replace('/','___')
     FW_log_folder  = log_folder + '/' + hostname___
     html_folder = FW_log_folder
@@ -1557,7 +1564,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
         Config_Change.append('DB not connected, some feature is unavailable\n')
         DB_Available = False
 
-    text = ('Duplicated Objects @ %s' %hostname___)
+    text = f'Duplicated Objects @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
     tf_name = f"{FW_log_folder}/VAR_{hostname___}___Undeclared_NetObj_List"
@@ -1580,13 +1587,13 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     Dup_OBJ_NET_List = []
     N_of_Duplicated_OBJ_NET = 0
     N_of_unique_Duplicated_OBJ_NET = 0
-    for t_key in Obejct_by_value_Dict.keys():
+    for t_key in Obejct_by_value_Dict:
         if len(Obejct_by_value_Dict[t_key]) > 1:
             N_of_Duplicated_OBJ_NET += 1
             N_of_unique_Duplicated_OBJ_NET += len(Obejct_by_value_Dict[t_key])
             Dup_OBJ_NET_List.append([t_key, Obejct_by_value_Dict[t_key]])
 
-    Prcnt_N_of_unique_Dup_OBJ_NET = round(100*N_of_unique_Duplicated_OBJ_NET/len(Declared_OBJ_NET),1) if (len(Declared_OBJ_NET)!=0) else 0
+    #Prcnt_N_of_unique_Dup_OBJ_NET = round(100*N_of_unique_Duplicated_OBJ_NET/len(Declared_OBJ_NET),1) if (len(Declared_OBJ_NET)!=0) else 0
 
     Watch_Flist = []
     Watch_Flist.append('<div class="card-body">\n')
@@ -1622,24 +1629,20 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     OBJ_GRP_NET_Dic_explode = {}
 ##    Duplicated_Object_List = []
     Duplicated_Object_Dic = {}
-    for t_key in OBJ_GRP_NET_Dic.keys():
-        if 'DB_PAAS_AZURE_10.164.24.8' in t_key:
-            print('stop')
+    for t_key in OBJ_GRP_NET_Dic:
         t_vals = []
         for t_item in OBJ_GRP_NET_Dic[t_key]:
-            if 'DB_PAAS_AZURE_10.164.24.8' in t_item:
-                print('stop')
             if 'network-object host ' in t_item:
 ##                if t_item.split()[-1] in t_vals:
 ##                    print(f'Duplicated Object in {t_key}: {t_item.split()[-1]}')
 ##                    Duplicated_Object_List.append(f'{t_key}: {t_item.split()[-1]}')
                 t_vals.append(t_item.split()[-1])
-                if f'{t_key}|{t_item.split()[-1]}' not in Duplicated_Object_Dic.keys():
+                if f'{t_key}|{t_item.split()[-1]}' not in Duplicated_Object_Dic:
                     Duplicated_Object_Dic[f'{t_key}|{t_item.split()[-1]}'] = [f'{t_key} => {t_item}']
                 else:
                     Duplicated_Object_Dic[f'{t_key}|{t_item.split()[-1]}'].append(f'{t_key} => {t_item}')
             elif 'network-object object ' in t_item:
-                if (t_item.split()[-1]) in Obj_Net_Dic:
+                if t_item.split()[-1] in Obj_Net_Dic:
                     temp = Obj_Net_Dic[t_item.split()[-1]]
                     temp = temp.replace('host ','')
                     temp = temp.replace('range ','')
@@ -1654,98 +1657,107 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
                     Config_Change.append(f"Key not found: {t_item.split()[-1]}\n")
                     Config_Change.append(f"network-object object {t_item} # can be safely removed from {t_key}\n")
                 t_vals.append(temp)
-                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                     Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {t_item}']
                 else:
                     Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {t_item}')
             elif 'group-object ' in t_item:
                 tt_key = t_item.split()[-1]
-                for tt_item in OBJ_GRP_NET_Dic[tt_key]:
-                    if 'network-object host ' in tt_item:
-##                        if tt_item.split()[-1] in t_vals:
-##                            print(f'Duplicated Object in {t_key}: {tt_item.split()[-1]}')
-##                            Duplicated_Object_List.append(f'{t_key}: {tt_item.split()[-1]}')
-                        t_vals.append(tt_item.split()[-1])
-                        if f'{t_key}|{tt_item.split()[-1]}' not in Duplicated_Object_Dic.keys():
-                            Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {tt_item}']
-                        else:
-                            Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {tt_item}')
-                    elif 'network-object object ' in tt_item:
-                        if (tt_item.split()[-1]) in Obj_Net_Dic:
-                            temp = Obj_Net_Dic[tt_item.split()[-1]]
-                            temp = temp.replace('host ','')
-                            temp = temp.replace('range ','')
-                            temp = temp.replace('subnet ','')
-                            temp = temp.replace('fqdn ','')
-                        else:
-                            print(f"Key not found: {tt_item.split()[-1]}")
-                            print(f"network-object object {tt_item} # can be safely removed from {tt_key}")
-                            Config_Change.append(f"Key not found: {tt_item.split()[-1]}\n")
-                            Config_Change.append(f"network-object object {tt_item} # can be safely removed from {tt_key}\n")
-##                        if temp in t_vals:
-##                            print(f'Duplicated Object in {t_key}: {temp}')
-##                            Duplicated_Object_List.append(f'{t_key}: {temp}')
-                        t_vals.append(temp)
-                        if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
-                            Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {tt_item}']
-                        else:
-                            Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {tt_key} => {tt_item}')
-                    elif 'group-object ' in tt_item:
-                        ttt_key = tt_item.split()[-1]
-                        for ttt_item in OBJ_GRP_NET_Dic[ttt_key]:
-                            if 'network-object host ' in ttt_item:
-##                                if ttt_item.split()[-1] in t_vals:
-##                                    print(f'Duplicated Object in {t_key}: {ttt_item.split()[-1]}')
-##                                    Duplicated_Object_List.append(f'{t_key}: {ttt_item.split()[-1]}')
-                                t_vals.append(ttt_item.split()[-1])
-                                if f'{t_key}|{ttt_item.split()[-1]}' not in Duplicated_Object_Dic.keys():
-                                    Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
-                                else:
-                                    Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}')
-                            elif 'network-object object ' in ttt_item:
-                                if (ttt_item.split()[-1]) in Obj_Net_Dic:
-                                    temp = Obj_Net_Dic[ttt_item.split()[-1]]
-                                    temp = temp.replace('host ','')
-                                    temp = temp.replace('range ','')
-                                    temp = temp.replace('subnet ','')
-                                    temp = temp.replace('fqdn ','')
-                                else:
-                                    print(f"Key not found: {ttt_item.split()[-1]}")
-                                    print(f"network-object object {ttt_item} # can be safely removed from {ttt_key}")
-                                    Config_Change.append(f"Key not found: {ttt_item.split()[-1]}\n")
-                                    Config_Change.append(f"network-object object {ttt_item} # can be safely removed from {ttt_key}\n")
-##                                if temp in t_vals:
-##                                    print(f'Duplicated Object in {t_key}: {temp}')
-##                                    Duplicated_Object_List.append(f'{t_key}: {temp}')
-                                t_vals.append(temp)
-                                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
-                                    Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
-                                else:
-                                    Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}')
-                            elif 'group-object ' in ttt_item:
-                                ttt_key = ttt_item.split()[-1]
+                if tt_key in OBJ_GRP_NET_Dic:
+                    for tt_item in OBJ_GRP_NET_Dic[tt_key]:
+                        if 'network-object host ' in tt_item:
+    ##                        if tt_item.split()[-1] in t_vals:
+    ##                            print(f'Duplicated Object in {t_key}: {tt_item.split()[-1]}')
+    ##                            Duplicated_Object_List.append(f'{t_key}: {tt_item.split()[-1]}')
+                            t_vals.append(tt_item.split()[-1])
+                            if f'{t_key}|{tt_item.split()[-1]}' not in Duplicated_Object_Dic:
+                                Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {tt_item}']
                             else:
-                                # network-object 10.10.100.0 255.255.254.0
-##                                if (ttt_item.replace('network-object ','')) in t_vals:
-##                                    print(f"Duplicated Object in {t_key}: {ttt_item.replace('network-object ','')}")
-##                                    Duplicated_Object_List.append(f"{t_key}: {ttt_item.replace('network-object ','')}")
-                                t_vals.append(ttt_item.replace('network-object ',''))
-                                temp = ttt_item.replace('network-object ','')
-                                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
-                                    Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {ttt_key} => {temp}"]
-                                else:
-                                    Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {tt_key} => {ttt_key} => {temp}")
-                    else:
-                        # network-object 10.10.100.0 255.255.254.0
-##                        if (tt_item.replace('network-object ','')) in t_vals:
-##                            print(f"Duplicated Object in {t_key}: {tt_item.replace('network-object ','')}")
-##                            Duplicated_Object_List.append(f"{t_key}: {tt_item.replace('network-object ','')}")
-                        t_vals.append(tt_item.replace('network-object ',''))
-                        temp = tt_item.replace('network-object ','')
-                        if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
-                            Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {temp}"]
+                                Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {tt_item}')
+                        elif 'network-object object ' in tt_item:
+                            if tt_item.split()[-1] in Obj_Net_Dic:
+                                temp = Obj_Net_Dic[tt_item.split()[-1]]
+                                temp = temp.replace('host ','')
+                                temp = temp.replace('range ','')
+                                temp = temp.replace('subnet ','')
+                                temp = temp.replace('fqdn ','')
+                            else:
+                                print(f"Key not found: {tt_item.split()[-1]}")
+                                print(f"network-object object {tt_item} # can be safely removed from {tt_key}")
+                                Config_Change.append(f"Key not found: {tt_item.split()[-1]}\n")
+                                Config_Change.append(f"network-object object {tt_item} # can be safely removed from {tt_key}\n")
+    ##                        if temp in t_vals:
+    ##                            print(f'Duplicated Object in {t_key}: {temp}')
+    ##                            Duplicated_Object_List.append(f'{t_key}: {temp}')
+                            t_vals.append(temp)
+                            if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
+                                Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {tt_item}']
+                            else:
+                                Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {tt_key} => {tt_item}')
+                        elif 'group-object ' in tt_item:
+                            ttt_key = tt_item.split()[-1]
+                            if ttt_key in OBJ_GRP_NET_Dic:
+                                for ttt_item in OBJ_GRP_NET_Dic[ttt_key]:
+                                    if 'network-object host ' in ttt_item:
+        ##                                if ttt_item.split()[-1] in t_vals:
+        ##                                    print(f'Duplicated Object in {t_key}: {ttt_item.split()[-1]}')
+        ##                                    Duplicated_Object_List.append(f'{t_key}: {ttt_item.split()[-1]}')
+                                        t_vals.append(ttt_item.split()[-1])
+                                        if f'{t_key}|{ttt_item.split()[-1]}' not in Duplicated_Object_Dic:
+                                            Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
+                                        else:
+                                            Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'].append(f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}')
+                                    elif 'network-object object ' in ttt_item:
+                                        if ttt_item.split()[-1] in Obj_Net_Dic:
+                                            temp = Obj_Net_Dic[ttt_item.split()[-1]]
+                                            temp = temp.replace('host ','')
+                                            temp = temp.replace('range ','')
+                                            temp = temp.replace('subnet ','')
+                                            temp = temp.replace('fqdn ','')
+                                        else:
+                                            print(f"Key not found: {ttt_item.split()[-1]}")
+                                            print(f"network-object object {ttt_item} # can be safely removed from {ttt_key}")
+                                            Config_Change.append(f"Key not found: {ttt_item.split()[-1]}\n")
+                                            Config_Change.append(f"network-object object {ttt_item} # can be safely removed from {ttt_key}\n")
+        ##                                if temp in t_vals:
+        ##                                    print(f'Duplicated Object in {t_key}: {temp}')
+        ##                                    Duplicated_Object_List.append(f'{t_key}: {temp}')
+                                        t_vals.append(temp)
+                                        if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
+                                            Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
+                                        else:
+                                            Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}')
+                                    elif 'group-object ' in ttt_item:
+                                        ttt_key = ttt_item.split()[-1]
+                                    else:
+                                        # network-object 10.10.100.0 255.255.254.0
+        ##                                if (ttt_item.replace('network-object ','')) in t_vals:
+        ##                                    print(f"Duplicated Object in {t_key}: {ttt_item.replace('network-object ','')}")
+        ##                                    Duplicated_Object_List.append(f"{t_key}: {ttt_item.replace('network-object ','')}")
+                                        t_vals.append(ttt_item.replace('network-object ',''))
+                                        temp = ttt_item.replace('network-object ','')
+                                        if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
+                                            Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {ttt_key} => {temp}"]
+                                        else:
+                                            Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {tt_key} => {ttt_key} => {temp}")
+                            else:
+                                print(f"Undeclared object '{ttt_key}' used in '{t_key}': REMOVE IT!")
+                                Config_Change.append(f"Undeclared object '{ttt_key}' used in '{t_key}': REMOVE IT!\n")
                         else:
-                            Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {tt_key} => {temp}")
+                            # network-object 10.10.100.0 255.255.254.0
+    ##                        if (tt_item.replace('network-object ','')) in t_vals:
+    ##                            print(f"Duplicated Object in {t_key}: {tt_item.replace('network-object ','')}")
+    ##                            Duplicated_Object_List.append(f"{t_key}: {tt_item.replace('network-object ','')}")
+                            t_vals.append(tt_item.replace('network-object ',''))
+                            temp = tt_item.replace('network-object ','')
+                            if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
+                                Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {temp}"]
+                            else:
+                                Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {tt_key} => {temp}")
+                else:
+                    print(f"Undeclared object '{tt_key}' used in '{t_key}': REMOVE IT!")
+                    Config_Change.append(f"Undeclared object '{tt_key}' used in '{t_key}': REMOVE IT!\n")
+
             else:
                 # network-object 10.10.100.0 255.255.254.0
 ##                if (t_item.replace('network-object ','')) in t_vals:
@@ -1753,7 +1765,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 ##                    Duplicated_Object_List.append(f"{t_key}: {t_item.replace('network-object ','')}")
                 t_vals.append(t_item.replace('network-object ',''))
                 temp = t_item.replace('network-object ','')
-                if f'{t_key}|{temp}' not in Duplicated_Object_Dic.keys():
+                if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                     Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {temp}"]
                 else:
                     Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {temp}")
@@ -1761,7 +1773,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 
     Dup_OBJGRP_NET_List = []
     Found_keys = []
-    t_key_List = list(OBJ_GRP_NET_Dic_explode.keys())
+    t_key_List = list(OBJ_GRP_NET_Dic_explode)
     for n1 in range(0,len(t_key_List)):
         if t_key_List[n1] in Found_keys:
             continue
@@ -1813,7 +1825,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 ##        Watch_Flist.append(f'   <li>{t_line}</li>\n')
 ##    Watch_Flist.append('   </ul>\n')
     Watch_Flist.append('   <br>\n')
-    for t_key in Duplicated_Object_Dic.keys():
+    for t_key in Duplicated_Object_Dic:
         if len(Duplicated_Object_Dic[t_key]) > 1:
             Watch_Flist.append(f'   <ul><li>{t_key}\n')
             Watch_Flist.append('   <ul>\n')
@@ -1839,22 +1851,22 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     tf_name = f"{FW_log_folder}/VAR_{hostname___}___OBJ_SVC_Dic"
     OBJ_SVC_Dic = utils_v2.Shelve_Read_Try(tf_name,'')
 
-    for m in range(0,len(OBJ_SVC_Dic.keys())):
-        tm_key = list(OBJ_SVC_Dic.keys())[m]
+    for m in range(0,len(OBJ_SVC_Dic)):
+        tm_key = list(OBJ_SVC_Dic)[m]
         tm_item = OBJ_SVC_Dic[tm_key]
-        for mm in range(m+1,len(OBJ_SVC_Dic.keys())):
-            tmm_key = list(OBJ_SVC_Dic.keys())[mm]
+        for mm in range(m+1,len(OBJ_SVC_Dic)):
+            tmm_key = list(OBJ_SVC_Dic)[mm]
             tmm_item = OBJ_SVC_Dic[tmm_key]
             if tmm_item == tm_item:
                 Duplicated_OBJ_SVC[tm_item] = [tm_key]
                 if tmm_key not in Duplicated_OBJ_SVC[tm_item]:
                     Duplicated_OBJ_SVC[tm_item].append(tmm_key)
     if len(Duplicated_OBJ_SVC)>0:
-        for t_key in Duplicated_OBJ_SVC.keys():
+        for t_key in Duplicated_OBJ_SVC:
             temp = '|'.join(Duplicated_OBJ_SVC[t_key])
 
     N_of_Duplicated_OBJ_SVC = sum(len(sublist) for sublist in list(Duplicated_OBJ_SVC.values()))
-    Prcnt_N_of_Duplicated_OBJ_SVC = round(100*N_of_Duplicated_OBJ_SVC/len(OBJ_SVC_Dic.keys()),1) if (len(OBJ_SVC_Dic.keys())!=0) else 0
+    #Prcnt_N_of_Duplicated_OBJ_SVC = round(100*N_of_Duplicated_OBJ_SVC/len(OBJ_SVC_Dic),1) if (len(OBJ_SVC_Dic)!=0) else 0
 
     Watch_Flist = []
     Watch_Flist.append('<div class="card-body">\n')
@@ -1864,7 +1876,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     Watch_Flist.append('           <th class="px-2">Service Name</th>\n')
     Watch_Flist.append('       </tr></thead>\n')
     Watch_Flist.append('       <tbody>\n')
-    for t_key in Duplicated_OBJ_SVC.keys():
+    for t_key in Duplicated_OBJ_SVC:
         Watch_Flist.append('       <tr>\n')
         Watch_Flist.append('           <td class="font-weight-bold text-nowrap px-2">%s</td>\n' %t_key)
         Watch_Flist.append('       <td class="px-2">\n')
@@ -1888,7 +1900,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     Think_Flist.append('           <th>Object Service</th>\n')
     Think_Flist.append('       </tr></thead>\n')
     Think_Flist.append('       <tbody>\n')
-    for t_key in Duplicated_OBJ_SVC.keys():
+    for t_key in Duplicated_OBJ_SVC:
         Think_Flist.append('       <tr><td class="text-nowrap mr-2">\n')
         Think_Flist.append('<ul>\n')
         Think_Flist.append('      <br><li>\n')
@@ -1916,7 +1928,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
         if t_line.split()[0] == '<_CODE_>':
             t_line = ' '.join(t_line.split()[1:])
             t_line = utils_v2.Color_Line(t_line)
-            Think_Flist[i] = ('%s\n' %t_line)
+            Think_Flist[i] = f'{t_line}\n'
         elif t_line.split()[0] == '<_L1_TEXT_>':
             Think_Flist[i] = ('%s\n' %' '.join(t_line.split()[1:]))
         elif t_line.split()[0] == '<_L2_TEXT_>':
@@ -1949,12 +1961,12 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 ##  port-object   Configure a port object
 
     OBJ_GRP_SVC_Dic_2 = OBJ_GRP_SVC_Dic.copy()
-    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic.keys():
+    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic:
         if len(t_OBJ_GRP_SVC_Dic_key.split()) == 2:
             OBJ_GRP_SVC_Dic_2[t_OBJ_GRP_SVC_Dic_key.split()[0]] = OBJ_GRP_SVC_Dic_2.pop(t_OBJ_GRP_SVC_Dic_key)
 
     OBJ_GRP_SVC_Dic_explode = {}
-    for t_key in OBJ_GRP_SVC_Dic_2.keys():
+    for t_key in OBJ_GRP_SVC_Dic_2:
         t_vals = []
         for t_item in OBJ_GRP_SVC_Dic_2[t_key]:
             if 'port-object ' in t_item:
@@ -1963,24 +1975,38 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
                 t_vals.append(t_item.strip().replace('service-object ',''))
             elif 'group-object ' in t_item:
                 tt_key = t_item.strip().replace('group-object ','')
-                for tt_item in OBJ_GRP_SVC_Dic_2[tt_key]:
-                    if 'port-object ' in tt_item:
-                        t_vals.append(tt_item.strip().replace('port-object ',''))
-                    elif 'service-object ' in tt_item:
-                        t_vals.append(tt_item.strip().replace('service-object ',''))
-                    elif 'group-object ' in tt_item:
-                        ttt_key = tt_item.strip().replace('group-object ','')
-                        for ttt_item in OBJ_GRP_SVC_Dic_2[ttt_key]:
-                            if 'port-object ' in ttt_item:
-                                t_vals.append(ttt_item.strip().replace('port-object ',''))
-                            elif 'service-object ' in ttt_item:
-                                t_vals.append(ttt_item.strip().replace('service-object ',''))
-                            elif 'group-object ' in ttt_item:
-                                ttt_key = ttt_item.strip().replace('group-object ','')
+                if tt_key in OBJ_GRP_SVC_Dic_2:
+                    for tt_item in OBJ_GRP_SVC_Dic_2[tt_key]:
+                        if 'port-object ' in tt_item:
+                            t_vals.append(tt_item.strip().replace('port-object ',''))
+                        elif 'service-object ' in tt_item:
+                            t_vals.append(tt_item.strip().replace('service-object ',''))
+                        elif 'group-object ' in tt_item:
+                            ttt_key = tt_item.strip().replace('group-object ','')
+                            if ttt_key in OBJ_GRP_SVC_Dic_2:
+                                if ttt_key == 'ephemeral_port':
+                                    print('stop')
+                                for ttt_item in OBJ_GRP_SVC_Dic_2[ttt_key]:
+                                    if 'port-object ' in ttt_item:
+                                        t_vals.append(ttt_item.strip().replace('port-object ',''))
+                                    elif 'service-object ' in ttt_item:
+                                        t_vals.append(ttt_item.strip().replace('service-object ',''))
+                                    elif 'group-object ' in ttt_item:
+                                        ttt_key = ttt_item.strip().replace('group-object ','')
+                                    else:
+                                        print('... there is some problem here')
                             else:
-                                print('... there is some problem here')
-                    else:
-                        print('... there is some problem here')
+                                print(f"Key not found: {ttt_key}")
+                                print(f"group-object {ttt_key} # can be safely removed from {tt_key}")
+                                Config_Change.append(f"Key not found: {ttt_key}\n")
+                                Config_Change.append(f"group-object {ttt_key} # can be safely removed from {tt_key}\n")
+                        else:
+                            print('... there is some problem here')
+                else:
+                    print(f"Key not found: {tt_key}")
+                    print(f"group-object {tt_key} # can be safely removed from {t_key}")
+                    Config_Change.append(f"Key not found: {tt_key}\n")
+                    Config_Change.append(f"group-object {tt_key} # can be safely removed from {t_key}\n")
 
             else:
                 print('... there is some problem here')
@@ -1988,7 +2014,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 
     Dup_OBJGRP_SVC_List = []
     Found_keys = []
-    t_key_List = list(OBJ_GRP_SVC_Dic_explode.keys())
+    t_key_List = list(OBJ_GRP_SVC_Dic_explode)
     for n1 in range(0,len(t_key_List)):
         if t_key_List[n1] in Found_keys:
             continue
@@ -2044,7 +2070,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     netobjusedList = []
     Undeclared_NetObj_Used_List = []
     for n in Undeclared_NetObj_List:
-        if n in Obejct_by_value_Dict.keys():
+        if n in Obejct_by_value_Dict:
             netobjusedList.append('object <b>%s</b> declared as network-object but object network %s exists' %(n,Obejct_by_value_Dict[n]))
             Undeclared_NetObj_Used_List.append(n)
 
@@ -2057,12 +2083,12 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     retries = utils_v2.Shelve_Write_Try(tf_name,Undeclared_NetObj_Used_List)
 
     #Config_Change.append('')
-    for t_key in OBJ_GRP_NET_Dic.keys():
+    for t_key in OBJ_GRP_NET_Dic:
         Printed_Header = False
         for t_item in OBJ_GRP_NET_Dic[t_key]:
             if t_item.startswith(' network-object host '):
                 temp = t_item.split()[2]
-                if temp in Obejct_by_value_Dict.keys():
+                if temp in Obejct_by_value_Dict:
                     if Printed_Header == False:
                         Config_Change.append('!\nobject-group network %s' %t_key)
                         Printed_Header = True
@@ -2071,7 +2097,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
             elif t_item.startswith(' network-object '):
                 if len(t_item.replace(' ','.').split('.')) == 10:
                     temp = t_item.split()[1] + ' ' + t_item.split()[2]
-                    if temp in Obejct_by_value_Dict.keys():
+                    if temp in Obejct_by_value_Dict:
                         if Printed_Header == False:
                             Config_Change.append('!\nobject-group network %s' %t_key)
                             Printed_Header = True
@@ -2102,13 +2128,6 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 ##(__)(__)\___)(____)  (___/(_____)(______)(_)\_) \___)(____)    \/  (___/  (_)\_)(_____)(______) (__) (____)(_)\_)\___/   (__)(__)(__)(____/(____)(____)
 
 def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
-
-    from Network_Calc import Sub_Mask_2
-    from tabulate import tabulate
-    import shelve
-    import ipaddress
-    import pandas as pd
-    import sqlalchemy as db
 
     hostname___ = t_device.replace('/','___')
     Err_folder = log_folder
@@ -2145,43 +2164,30 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
     Printed_Lines = set()
     NoActive_NoRoute_Root_ACL = []
-    SiActive_NoRoute_Root_ACL = []
-    NoActive_NoRoute_Child_ACL = []
-    SiActive_NoRoute_Child_ACL = []
-    NoActive_Noroute_Hash_ACL_Dic = {}
+    #SiActive_NoRoute_Root_ACL = []
+    #NoActive_NoRoute_Child_ACL = []
+    #SiActive_NoRoute_Child_ACL = []
+    #NoActive_Noroute_Hash_ACL_Dic = {}
     SiActive_Noroute_Hash_ACL_Dic = {}
 
     Double_NO_Active_Hash = []
     Double_SI_Active_Hash = []
     Totally_Wrong_Routing_Active_ACL = []
-    Partlly_Wrong_Routing_Active_ACL = []
+    #Partlly_Wrong_Routing_Active_ACL = []
     Partlly_Wrong_Routing_Active_ACL_Dic = {}
     Totally_Wrong_Routing_Active_ACL_Counting = []
 
-    text = ('Check Acl Source Vs Routing Table @ %s' %hostname___)
+    text = f'Check Acl Source Vs Routing Table @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
     Config_Change.append('Check if URPF (Unicast Reverse Path Forwarding) is enabled\n')
 
+    Obj_vs_Route_Lookup = {}
+    Obj_vs_Iface_Lookup = {}
     ROUTE_IP_DF = ROUTE_DF.copy()
-    for row in ROUTE_IP_DF.itertuples():
-        try:
-            ROUTE_IP_DF.at[row.Index, 'Network'] = ipaddress.IPv4Network(row.Network)
-        except:
-            Config_Change.append('ERROR 1106 while converting %s to ipaddress\n' %row.Network)
-            print('ERROR 1106 while converting %s to ipaddress\n' %row.Network)
-            ROUTE_IP_DF = ROUTE_IP_DF.drop(row.Index)
-            row = { 'TimeStamp' : datetime.datetime.now().astimezone(),
-                    'Level'     : 'WARNING',
-                    'Message'   : (f'Error While Converting "{row.Network}" to ipaddress in {t_device}')}
-            with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
-            continue
-
-
-    ROUTE_IP_DF["PrefixLength"] = ROUTE_IP_DF["Network"].apply(lambda x: (x).prefixlen)
 
     ACL_WiderThanRouting = {}
-    BINS = 0; LOOP_INDEX = -1; STEPS = 10; ITEMS = len(ACL_List_Dict.keys())
-    #for t_key in list(ACL_List_Dict.keys()):
+    BINS = 0; LOOP_INDEX = -1; STEPS = 10; ITEMS = len(ACL_List_Dict)
+    #for t_key in list(ACL_List_Dict):
     for t_key, acl in ACL_List_Dict.items():
         t_Root__Hash = t_key.split()[-1]
         t_Child_Hash = []
@@ -2204,15 +2210,21 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
             continue
 
         for row in t_ACL_Lines_DF.itertuples():
+            #print(f'row = {row}')
             this_Src_Obj = utils_v2.ASA_ACL_Obj_to_Net(row.Source)
             if this_Src_Obj == []: # ipv6 to be done
                 continue
             for t_this_Src_Obj in this_Src_Obj:
+##                if '10.10.10.6' in t_this_Src_Obj:
+##                    print('row')
+##                else:
+##                    break
+                #print(f't_this_Src_Obj = {t_this_Src_Obj}')
                 temp = t_this_Src_Obj.split()
                 try:
                     t_this_Src_Obj = temp[0] + Sub_Mask_2[temp[1]]
                 except:
-                    text_line = ('>>>   ERROR... non conventional subnet mask for "%s"' %t_this_Src_Obj)
+                    text_line = f'>>>   ERROR... non conventional subnet mask for "{t_this_Src_Obj}"'
                     if text_line not in Printed_Lines:
                         #print(text_line)
                         Config_Change.append(text_line)
@@ -2231,32 +2243,27 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
                 #Wider_Object_Found = False
                 BEST_ROUTE_IF = ''
                 BEST_ROUTE_IP = ''
-                BEST_ROUTE_DF = pd.Series(
-                                    data=['-'] * 5,
-                                    index=['HostName', 'Type', 'Network', 'Interface', 'NextHop'],
-                                    dtype='object'
-                                    )
 
-                for _, this_route in ROUTE_IP_DF.iterrows():
-                    # Check if this_Src_Obj_IP is a subnet of this_route['Network']
-                    if this_Src_Obj_IP.subnet_of(this_route['Network']):
-                        # Update BEST_ROUTE_IP and BEST_ROUTE_DF if necessary
-                        if BEST_ROUTE_IP == '':
+                if this_Src_Obj_IP in Obj_vs_Route_Lookup:
+                    BEST_ROUTE_IP = Obj_vs_Route_Lookup[this_Src_Obj_IP]
+                    BEST_ROUTE_IF = Obj_vs_Iface_Lookup[this_Src_Obj_IP]
+                else:
+                    for _, this_route in ROUTE_IP_DF.iterrows():
+                        # Check if this_Src_Obj_IP is a subnet of this_route['Network']
+                        if this_Src_Obj_IP.subnet_of(this_route['Network']):
                             BEST_ROUTE_IP = this_route['Network']
-                            BEST_ROUTE_DF = this_route
-                        elif this_route['Network'].subnet_of(BEST_ROUTE_IP):  # Swap routes
-                            BEST_ROUTE_IP = this_route['Network']
-                            BEST_ROUTE_DF = this_route
-                        if this_route['Interface'] == t_ACL_If_Name:
-                            # Update BEST_ROUTE_IF if necessary
-                            if BEST_ROUTE_IF == '':
-                                BEST_ROUTE_IF = this_route['Network']
-                            elif this_route['Network'].subnet_of(BEST_ROUTE_IF):  # Swap routes
-                                BEST_ROUTE_IF = this_route['Network']
+                            Obj_vs_Route_Lookup[this_Src_Obj_IP] = BEST_ROUTE_IP
+                            BEST_ROUTE_IF = this_route['Interface']
+                            Obj_vs_Iface_Lookup[this_Src_Obj_IP] = BEST_ROUTE_IF
+                            break
 
                 WIDE_ROUTE_List = []
+                if isinstance(BEST_ROUTE_IP, (ipaddress.IPv4Network, ipaddress.IPv6Network)):
+                    best_prefixlen = BEST_ROUTE_IP.prefixlen
+                else:
+                    best_prefixlen = -1
                 Bool_check = ('Interface == "%s"') %(t_ACL_If_Name)
-                if BEST_ROUTE_IF == '': #no best route found
+                if (best_prefixlen == 0) or (BEST_ROUTE_IF == ''): #no best route found
                     if t_this_Src_Obj != '0.0.0.0/0':
                         t_ROUTE_IP_DF = ROUTE_IP_DF.loc[ROUTE_IP_DF['Interface'] == t_ACL_If_Name]
                         ROUTE_IP_DF_Hi = t_ROUTE_IP_DF.loc[t_ROUTE_IP_DF['PrefixLength'] > this_Src_Obj_IP.prefixlen]
@@ -2266,14 +2273,14 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
                                 if this_route.subnet_of(this_Src_Obj_IP):
                                     WIDE_ROUTE_List.append(str(this_route))
                             except:
-                                print('Error at line 1702:')
+                                print('Error at line 2333:')
                                 print('this_route = %s' %this_route)
                                 print('this_Src_Obj_IP = %s' %this_Src_Obj_IP)
                                 exit()
 
                 if WIDE_ROUTE_List != []:
                     ACL_WiderThanRouting[t_key] = []
-                    text_line = (' - Surce_Object is <b>%s</b>, interface is <b>%s</b>, routing is:' %(t_this_Src_Obj, t_ACL_If_Name))
+                    text_line = f' - Surce_Object is <b>{t_this_Src_Obj}</b>, interface is <b>{t_ACL_If_Name}</b>, routing is:'
                     ACL_WiderThanRouting[t_key].append(text_line)
                     temp = []
                     for n in WIDE_ROUTE_List:
@@ -2281,22 +2288,16 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
                     ACL_WiderThanRouting[t_key].append(temp)
 
                 if t_this_Src_Obj != '0.0.0.0/0':
-                    if ((BEST_ROUTE_IF=='') and (WIDE_ROUTE_List==[])) or ((BEST_ROUTE_DF['Interface']!='-') & (BEST_ROUTE_DF['Interface']!=t_ACL_If_Name)):
+                    #if ((BEST_ROUTE_IF=='') and (WIDE_ROUTE_List==[])) or ((BEST_ROUTE_DF.Interface!='-') and (BEST_ROUTE_DF.Interface!=t_ACL_If_Name)):
+                    if ((BEST_ROUTE_IF!=t_ACL_If_Name) and (WIDE_ROUTE_List==[])) or ((BEST_ROUTE_IF!='-') and (BEST_ROUTE_IF!=t_ACL_If_Name)):
                         temp1 = [row.ACL, row.Name, row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Inactive, row.Hitcnt, row.Hash]
                         if 'inactive' in row.Inactive:
-                            if t_key not in NoActive_NoRoute_Root_ACL:
-                                NoActive_NoRoute_Root_ACL.append(t_key)
-                            NoActive_NoRoute_Child_ACL.append(re_space.sub(' ',' '.join(temp1)))
                             if row.Hash not in t_Child_Hash:
                                 t_Child_Hash.append(row.Hash)
                             else:
                                 if 'range' not in row.Source:
                                     Double_NO_Active_Hash.append(re_space.sub(' ',' '.join(temp1)))
-                            NoActive_Noroute_Hash_ACL_Dic[t_Root__Hash] = t_Child_Hash
                         else:
-                            if t_key not in SiActive_NoRoute_Root_ACL:
-                                SiActive_NoRoute_Root_ACL.append(t_key)
-                            SiActive_NoRoute_Child_ACL.append(re_space.sub(' ',' '.join(temp1)))
                             if row.Hash not in t_Child_Hash:
                                 t_Child_Hash.append(row.Hash)
                             else:
@@ -2326,7 +2327,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
     re_space = re.compile(r'  +') # two or more spaces
     ACL_Lines_DF = utils_v2.ASA_ACL_to_DF(ACL_List_Dict.keys())
-    for t_key in list(SiActive_Noroute_Hash_ACL_Dic.keys()):
+    for t_key in list(SiActive_Noroute_Hash_ACL_Dic):
         Bool_check = ('Hash == "%s"') %(t_key)
         for row in ACL_Lines_DF.query(Bool_check).itertuples(): # one item
             if row.Inactive == 'inactive':
@@ -2413,7 +2414,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
     t_html_file = []
     if len(ACL_WiderThanRouting) > 0:
         t_html_file.append('<ul>')
-        for t_key in ACL_WiderThanRouting.keys():
+        for t_key in ACL_WiderThanRouting:
             t_html_file.append('<li> %s<br>' %utils_v2.Color_Line(t_key))
             t_html_file.append('%s' %ACL_WiderThanRouting[t_key][0])
             t_html_file.append('<p class="text-dark small">')
@@ -2455,7 +2456,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
     Show_ACL_Lines_DF = utils_v2.Shelve_Read_Try(tf_name,'')
     Processed_line = []
     Processed_ACL_line = []
-    for t_key in Partlly_Wrong_Routing_Active_ACL_Dic.keys():
+    for t_key in Partlly_Wrong_Routing_Active_ACL_Dic:
         Root_ACL_df  = utils_v2.ASA_ACL_to_DF_light([t_key])
         check_point = Root_ACL_df['Name'][0] + ' ' + Root_ACL_df['Source'][0]
         if check_point not in Processed_ACL_line:
@@ -2478,12 +2479,11 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
                     PartlyWrongRouteACL[t_key].append('Object "%s" not used as destination' %t_OBJ_Src)
                     #print('Object can be removed...')
 
-                    if  (t_OBJ_Src.split()[0]) == 'object':
+                    if (t_OBJ_Src.split()[0]) == 'object':
                         this_src_OBJ = t_OBJ_Src.split()[1]
                         print(".. object... WTF???? Dovrebbe essere un totally wrong routing.... ")
                         print('t_OBJ_Src = %s' %t_OBJ_Src)
                         print('t_key = %s' %t_key)
-                        print('row = %s' %row)
                     elif(t_OBJ_Src.split()[0]) == 'object-group':
                         this_src_OBJ = t_OBJ_Src.split()[1]
                         PartlyWrongRouteACL[t_key].append('object-group network %s' %this_src_OBJ)
@@ -2549,7 +2549,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
                     elif(t_OBJ_Src.split()[0]) == 'host':
                         this_src_OBJ = t_OBJ_Src.split()[1]
                         print(".. host... WTF???? should be a totally wrong routing.... ")
-                    elif('.' in t_OBJ_Src.split()[0]):
+                    elif '.' in t_OBJ_Src.split()[0]:
                         try:
                             t_this_Src_ip = t_OBJ_Src.split()[0] + Sub_Mask_2[t_OBJ_Src.split()[1]]
                             ipaddress.IPv4Network(t_this_Src_ip, strict=False)
@@ -2599,7 +2599,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
     t_html_file = []
     if len(PartlyWrongRouteACL) > 0:
         t_html_file.append('<ul>')
-        for t_key in PartlyWrongRouteACL.keys():
+        for t_key in PartlyWrongRouteACL:
             t_html_file.append('<li> %s<br>' %utils_v2.Color_Line(t_key))
             t_html_file.append('<p class="text-dark small" style="overflow-x: auto; overflow-y: hidden; white-space: nowrap;">')
             for t_line in PartlyWrongRouteACL[t_key]:
@@ -2630,14 +2630,6 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
     # reorder ACL per SRC_IF VS DST_IF
 
 def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
-
-    from Network_Calc import Sub_Mask_2,Sub_Mask_1,IPv4_to_DecList,Is_Dec_Overlapping,Port_Converter
-    from tabulate import tabulate
-    import shelve
-    import ipaddress
-    import pandas as pd
-    import sqlalchemy as db
-    from utils_v2 import File_Save_Try
 
     hostname___ = t_device.replace('/','___')
     Err_folder = log_folder
@@ -2673,23 +2665,10 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
     Nameif_List = utils_v2.Shelve_Read_Try(tf_name,'')
 
     Printed_Lines = []
-    NoActive_NoRoute_Root_ACL = []
-    SiActive_NoRoute_Root_ACL = []
-    NoActive_NoRoute_Child_ACL = []
-    SiActive_NoRoute_Child_ACL = []
-    NoActive_Noroute_Hash_ACL_Dic = {}
-    SiActive_Noroute_Hash_ACL_Dic = {}
-
-    Double_NO_Active_Hash = []
-    Double_SI_Active_Hash = []
-    Totally_Wrong_Routing_Active_ACL = []
-    Partlly_Wrong_Routing_Active_ACL = []
-    Partlly_Wrong_Routing_Active_ACL_Dic = {}
-
     Redundant_Routes = []
     Redundant_Routes_Warnign = []
 
-    text = ('Check Acl Destination Vs Routing Table @ %s' %hostname___)
+    text = f'Check Acl Destination Vs Routing Table @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
     ACL_OUT_IF_COUNTER_dic = {}
@@ -2704,31 +2683,52 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
         ACL_OUT_IF_ACLs_dic[(t_IN_ifName,'Null0')] = []
 
     # add column "IPv4_Network" to ROUTE_IP_DF
-    ROUTE_IP_DF = ROUTE_DF.copy()
+    #ROUTE_IP_DF = ROUTE_DF.copy()
+    ROUTE_IP_DF = ROUTE_DF
     ROUTE_IP_DF['IPv4_Network'] = ''
 
     t_N_Total_Routes = ROUTE_IP_DF.shape[0]
     t_N_Redun_Routes = 0
-    for row in ROUTE_IP_DF.itertuples():
+
+    def safe_ipv4network(net):
         try:
-            ROUTE_IP_DF.at[row.Index, 'IPv4_Network'] = ipaddress.IPv4Network(row.Network)
+            return ipaddress.IPv4Network(net)
         except:
             try:
-                t_routename = row.Network.split('/')[0]
-                t_routeip = Name_dic[t_routename] +'/'+ row.Network.split('/')[1]
-                ROUTE_IP_DF.at[row.Index, 'IPv4_Network'] = ipaddress.IPv4Network(t_routeip)
+                t_ip_name, t_sm = net.split('/')
+                t_ip = Name_dic.get(t_ip_name)
+                if t_ip:
+                    return ipaddress.IPv4Network(f"{t_ip}/{t_sm}", strict=False)
             except:
-                Config_Change.append('ERROR 2600 while converting %s to ipaddress\n' %row.Network)
-                print('ERROR 2600 while converting %s to ipaddress\n' %row.Network)
-                ROUTE_IP_DF = ROUTE_IP_DF.drop(row.Index)
-                continue
+                return None
+
+    ROUTE_IP_DF["IPv4_Network"] = ROUTE_IP_DF["Network"].apply(safe_ipv4network)
+    ROUTE_IP_DF["IPv4_Network"]
+    bad_rows = ROUTE_IP_DF[ROUTE_IP_DF["IPv4_Network"].isna()]
+
+    if not bad_rows.empty:
+        for _, row in bad_rows.iterrows():
+            msg = f'ERROR 2794 while converting {row.IPv4_Network} to ipaddress in {t_device}\n'
+            Config_Change.append(msg)
+            print(msg)
+
+            log_entry = {
+                'TimeStamp': datetime.datetime.now().astimezone(),
+                'Level': 'WARNING',
+                'Message': msg
+            }
+            with engine.begin() as connection:
+                connection.execute(WTF_Log.insert().values(**log_entry))
+
+        ROUTE_IP_DF = ROUTE_IP_DF.drop(bad_rows.index)
+
     ROUTE_IP_DF_copy = ROUTE_IP_DF.copy()
 
     Routing_Space_IN = {}
     for t_IN_ifName in list(ROUTE_IP_DF.Interface.unique()):
         Routing_Space_IN[t_IN_ifName] = 0
     for t_IN_ifName in Nameif_List:
-        if t_IN_ifName not in Routing_Space_IN.keys():
+        if t_IN_ifName not in Routing_Space_IN:
             Routing_Space_IN[t_IN_ifName] = 0
     Routing_Space_IN['Null0'] = 0
     Routing_Space_OUT = Routing_Space_IN.copy()
@@ -2746,29 +2746,29 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                 continue
             Interface2 = row2.Interface
             if row1.IPv4_Network.subnet_of(row2.IPv4_Network):
-                if row1.Interface != row2.Interface:
-                    Routing_Space_IN[row2.Interface] -= row1.IPv4_Network.num_addresses
+                if Interface1 != Interface2:
+                    Routing_Space_IN[Interface2] -= row1.IPv4_Network.num_addresses
             if row2.Network == '0.0.0.0/0':
                 continue
             if (row1.IPv4_Network).subnet_of(row2.IPv4_Network):
                 if BEST_ROUTE == []:
-                    BEST_ROUTE = [row2.IPv4_Network, row2.Interface, row2.NextHop]
+                    BEST_ROUTE = [row2.IPv4_Network, Interface2, row2.NextHop]
                 elif row2.IPv4_Network.subnet_of(BEST_ROUTE[0]): # swap routes
                     if row1.NextHop == row2.NextHop:
-                        BEST_ROUTE = [row2.IPv4_Network, row2.Interface, row2.NextHop]
+                        BEST_ROUTE = [row2.IPv4_Network, Interface2, row2.NextHop]
                     else:
                         Redundant_Routes_Warnign.append('\n')
-                        Redundant_Routes_Warnign.append('route %s %s %s\n' %(row2.Interface, row2.IPv4_Network, row2.NextHop))
-                        Redundant_Routes_Warnign.append('route %s %s %s\n' %(row1.Interface, row1.IPv4_Network, row1.NextHop))
+                        Redundant_Routes_Warnign.append('route %s %s %s\n' %(Interface2, row2.IPv4_Network, row2.NextHop))
+                        Redundant_Routes_Warnign.append('route %s %s %s\n' %(Interface1, row1.IPv4_Network, row1.NextHop))
 
         if BEST_ROUTE != []:
             if Interface1 == BEST_ROUTE[1]:
                 if row1.Type == 'C':
                     #print('CONNECTED!!!')
                     Redundant_Routes.append('\n CONNECTED!!!')
-                    Redundant_Routes.append('! %s @ %s ==> %s' %(row1.IPv4_Network, row1.Interface, BEST_ROUTE[0]))
+                    Redundant_Routes.append('! %s @ %s ==> %s' %(row1.IPv4_Network, Interface1, BEST_ROUTE[0]))
                 else:
-                    Redundant_Routes.append('\n! %s @ %s ==> %s' %(row1.IPv4_Network, row1.Interface, BEST_ROUTE[0]))
+                    Redundant_Routes.append('\n! %s @ %s ==> %s' %(row1.IPv4_Network, Interface1, BEST_ROUTE[0]))
                     Redundant_Routes.append('no route %s %s %s %s ' %((row1.Interface), str(row1.IPv4_Network.network_address), str(row1.IPv4_Network.netmask), row1.NextHop))
                 ROUTE_IP_DF = ROUTE_IP_DF.drop(row1.Index)
                 t_N_Redun_Routes += 1
@@ -2793,9 +2793,9 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
     Prc_N_Redun_Routes = round(100*t_N_Redun_Routes/t_N_Total_Routes,1) if not (t_N_Total_Routes==0) else 0
     print ('Prc_N_Redun_Routes = %s' %Prc_N_Redun_Routes)
 
-    for t_key1 in Routing_Space_IN.keys():
+    for t_key1 in Routing_Space_IN:
         sum_delta = 0
-        for t_key2 in Routing_Space_IN.keys():
+        for t_key2 in Routing_Space_IN:
             if t_key1 != t_key2:
                 sum_delta += Routing_Space_IN[t_key2]
         Routing_Space_OUT[t_key1] = Routing_Space_IN[t_key1]*sum_delta
@@ -2804,7 +2804,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
     t_html_file = ['<ul>']
     Founded_Routes = {}
     acl_too_open = []
-    BINS = 0; LOOP_INDEX = -1; STEPS = 10; ITEMS = len(ACL_List_Dict.keys())
+    BINS = 0; LOOP_INDEX = -1; STEPS = 10; ITEMS = len(ACL_List_Dict)
     ACL_Space_ICMP_Detail = {}
     ACL_Space_TCP__Detail = {}
     ACL_Space_UDP__Detail = {}
@@ -2904,7 +2904,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                 ACL_Space_TCP__Detail[t_key] += SRC*DST*N_of_Ports
                 ACL_Space_IP___Detail[t_key] += SRC*DST*N_of_Ports*2
 
-            if this_Dst_Obj[0] in list(Founded_Routes.keys()):
+            if this_Dst_Obj[0] in list(Founded_Routes):
                 if this_Dst_Obj[0] != '0.0.0.0 0.0.0.0':
                     Out_Interface = Founded_Routes[this_Dst_Obj[0]]
                     ACL_OUT_IF_COUNTER_dic[(t_If_Name,Out_Interface)] += 1
@@ -2916,7 +2916,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                 try:
                     t_this_Dst_Obj = temp[0] + Sub_Mask_2[temp[1]]
                 except:
-                    text_line = ('>>>   ERROR... non conventional subnet mask for "%s"' %t_this_Dst_Obj)
+                    text_line = f'>>>   ERROR... non conventional subnet mask for "{t_this_Dst_Obj}"'
                     if text_line not in Printed_Lines:
                         Config_Change.append(text_line)
                         Printed_Lines.append(text_line)
@@ -2949,7 +2949,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                             continue
                         ACL_OUT_IF_COUNTER_dic[(t_If_Name,Out_Interface)] += 1
                         ACL_OUT_IF_ACLs_dic[(t_If_Name,Out_Interface)].append(ACL_text)
-                        if this_Dst_Obj[0] not in list(Founded_Routes.keys()):
+                        if this_Dst_Obj[0] not in list(Founded_Routes):
                             Founded_Routes[this_Dst_Obj[0]] = Out_Interface
 
                         ROUTE_IP_DF_bis = ROUTE_IP_DF_copy.copy()
@@ -2970,13 +2970,13 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                         ACL_OUT_IF_ACLs_dic[(t_If_Name,t_OUT_ifName)].append(ACL_text)
 
                 if WIDE_ROUTE_List != []:
-                    text_line = ('<li> %s' %t_key)
+                    text_line = f'<li> {t_key}'
                     t_html_file.append(text_line)
                     t_this_Dst_Obj = this_Dst_Obj[0].split()
                     try:
-                        text_line = (' - Dest_Object is "%s%s", interface IN is "%s"\n' %(t_this_Dst_Obj[0], Sub_Mask_2[t_this_Dst_Obj[1]], t_If_Name))
+                        text_line = f' - Dest_Object is "{t_this_Dst_Obj[0]}{Sub_Mask_2[t_this_Dst_Obj[1]]}", interface IN is "{t_If_Name}"\n'
                     except:
-                        text_line = (' - Dest_Object is "%s", interface IN is "%s"\n' %(this_Dst_Obj[0], t_If_Name))
+                        text_line = f' - Dest_Object is "{this_Dst_Obj[0]}", interface IN is "{t_If_Name}"\n'
                     BEST_ROUTE = ''
                     OUT_IF = ''
                     for row_1 in ROUTE_IP_DF_copy.itertuples():
@@ -2993,7 +2993,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                     t_html_file.append(text_line)
                     t_html_file.append('<p class="text-dark small">')
                     for n in WIDE_ROUTE_List:
-                        temp = (f"{n[0]:<20} {n[1]:<5}")
+                        temp = f"{n[0]:<20} {n[1]:<5}"
                         t_html_file.append(temp.replace(' ','&nbsp;'))
                     t_html_file.append('</p></li>')
 
@@ -3104,7 +3104,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
         DB_Available = False
 
     if DB_Available:
-        for t_key in ACL_Space_ICMP.keys():
+        for t_key in ACL_Space_ICMP:
             if Routing_Space_OUT[t_key] != 0:
                 if round(100*ACL_Space_ICMP[t_key]/Routing_Space_OUT[t_key],2) > 100:
                     ACL_Space_ICMP_Percent = 100
@@ -3158,10 +3158,10 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
         print('ERROR in ACL_Dest_Vs_Routing_Table: DB NOT Available!')
 
     ACL_OUT_IF_COUNTER_list = []
-    for t_key in ACL_OUT_IF_COUNTER_dic.keys():
+    for t_key in ACL_OUT_IF_COUNTER_dic:
         if ACL_OUT_IF_COUNTER_dic[t_key] != 0:
             ACL_OUT_IF_COUNTER_list.append([t_key[0], t_key[1], ACL_OUT_IF_COUNTER_dic[t_key]])
-    ACL_OUT_IF_COUNTER_df = pd.DataFrame(ACL_OUT_IF_COUNTER_list, columns = ['IF_in' , 'IF_Out', 'Count'])
+    #ACL_OUT_IF_COUNTER_df = pd.DataFrame(ACL_OUT_IF_COUNTER_list, columns = ['IF_in' , 'IF_Out', 'Count'])
 
     # OUTPUT HTML FILE 'acl_too_open-Watch.html' ------------------------------------------
     if not os.path.exists(html_folder):
@@ -3236,7 +3236,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
     t_html_file.append('    <select class="form-control form-control-sm">\n')
     t_html_file.append('      <option value="">Filter IF_IN</option>\n')
     done_if = []
-    for t_key in ACL_OUT_IF_ACLs_dic.keys():
+    for t_key in ACL_OUT_IF_ACLs_dic:
         if len(ACL_OUT_IF_ACLs_dic[t_key]) != 0:
             if t_key[0] not in done_if:
                 t_html_file.append('      <option value="%s">%s</option>\n' %(t_key[0],t_key[0]))
@@ -3249,7 +3249,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
     t_html_file.append('    <th><input type="text" class="form-control form-control-sm" placeholder="Filter Hash"></th>\n')
     t_html_file.append('  </tr></tfoot>\n')
     t_html_file.append('  <tbody>\n')
-    for t_key in ACL_OUT_IF_ACLs_dic.keys():
+    for t_key in ACL_OUT_IF_ACLs_dic:
         if len(ACL_OUT_IF_ACLs_dic[t_key]) != 0:
             for t_ACL in ACL_OUT_IF_ACLs_dic[t_key]:
                 t_html_file.append('  <tr>\n')
@@ -3317,11 +3317,11 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                 temp = temp + "['"+m[0]+"','"+m[1]+"_',"+str(m[2])+"],\n"
             l[n] = temp
         elif "_HEIGHT_GOES_HERE_" in l[n]:
-            if len(ACL_OUT_IF_COUNTER_dic.keys()) < 600:
-                CONST_Height_Scale_Factor = round(600 / len(ACL_OUT_IF_COUNTER_dic.keys()))
-                if_number = len(ACL_OUT_IF_COUNTER_dic.keys())*CONST_Height_Scale_Factor
+            if len(ACL_OUT_IF_COUNTER_dic) < 600:
+                CONST_Height_Scale_Factor = round(600 / len(ACL_OUT_IF_COUNTER_dic))
+                if_number = len(ACL_OUT_IF_COUNTER_dic)*CONST_Height_Scale_Factor
             else:
-                if_number = len(ACL_OUT_IF_COUNTER_dic.keys())
+                if_number = len(ACL_OUT_IF_COUNTER_dic)
             l[n] = '    height: %s\n,' %if_number
             #    height: window.innerHeight*2,
 
@@ -3342,13 +3342,6 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
 def F_Active_Capture(t_device, Config_Change, log_folder):
 
-    import sqlalchemy as db
-    import pandas as pd
-    from tabulate import tabulate
-    import re
-    import shelve
-    import ipaddress
-
     t_N_Capture = 0
     t_N_Capture_CircBuff = 0
     t_N_Capture_Active = 0
@@ -3361,6 +3354,7 @@ def F_Active_Capture(t_device, Config_Change, log_folder):
             Active_Capture = db.Table('Active_Capture', db.MetaData(), autoload_with=engine)
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             Global_Settings = db.Table('Global_Settings', db.MetaData(), autoload_with=engine)
+            WTF_Log = db.Table('WTF_Log', db.MetaData(), autoload_with=engine)
     except Exception as e:
         print(f"error is: {e}")
         print('=================[ Warning ]==================')
@@ -3572,9 +3566,6 @@ def F_Active_Capture(t_device, Config_Change, log_folder):
 ##(______)(___/(____)  (____/(____)\___)(____)(__)(__)(_)\_)(____)(____/   (_____)(____/\____) (____)\___) (__) (___/
 
 def Use_Declared_Objects(t_device, Config_Change, log_folder):
-#    from Network_Calc import Sub_Mask_2
-    import shelve
-#    import ipaddress
 
     hostname___ = t_device.replace('/','___')
     FW_log_folder = log_folder + '/' + hostname___
@@ -3633,8 +3624,6 @@ def Use_Declared_Objects(t_device, Config_Change, log_folder):
 ##(____)(_/\_)(__)  (____)(____)\___)(____) (__)   (____/(____)(_)\_) (__)   (____)(__)    (__)(__)(_)\_) (__)   (__)(__)(_)\_) (__)
 
 def Explicit_Deny_IP_Any_Any(t_device, Config_Change, log_folder):
-    from tabulate import tabulate
-    import shelve
 
     hostname___ = t_device.replace('/','___')
     FW_log_folder = log_folder + '/' + hostname___
@@ -3652,8 +3641,8 @@ def Explicit_Deny_IP_Any_Any(t_device, Config_Change, log_folder):
     temp = Show_ACL_Lines_DF.query(Bool_check)
 
     # check it only for ACL in "access-group"
-    for n in range(0,len(Accessgroup_Dic_by_ACL.keys())):
-        t_ACL = list(Accessgroup_Dic_by_ACL.keys())[n]
+    for n in range(0,len(Accessgroup_Dic_by_ACL)):
+        t_ACL = list(Accessgroup_Dic_by_ACL)[n]
         if t_ACL not in temp.Name.tolist():
             if t_ACL not in Unused_ACL_List:
                 Config_Change.append('! --- WARNING ---')
@@ -3687,17 +3676,10 @@ def Explicit_Deny_IP_Any_Any(t_device, Config_Change, log_folder):
 ##(____/(____/  (__)  (_____)(_)\_)  (__)(__)\___)(____)
 
 def DB_For_ACL(t_device, Config_Change, log_folder):
-    from tabulate import tabulate
-    #from Network_Calc import Sub_Mask_2
-    import shelve
-    import time
-    import re
-    import pandas as pd
-    import sqlalchemy as db
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices         = db.Table('My_Devices',        db.MetaData(), autoload_with=engine)
             ACL_GROSS          = db.Table('ACL_GROSS',         db.MetaData(), autoload_with=engine)
@@ -3729,9 +3711,9 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
         query = db.select(Global_Settings).where(Global_Settings.c.Name=='Global_Settings')
         with engine.connect() as connection:
             Global_Settings_df = pd.DataFrame(connection.execute(query).fetchall())
-        query = db.select(My_Devices).where(My_Devices.c.HostName=="%s" %hostname___)
+        query = db.select(ACL_GROSS).where(ACL_GROSS.columns.HostName=="%s" %hostname___)
         with engine.connect() as connection:
-            Device_to_Check_df = pd.DataFrame(connection.execute(query).fetchall())
+            ACL_GROSS_db = pd.DataFrame(connection.execute(query).fetchall())
     else:
         print('@ DB_For_ACL: DB_Available=False')
 
@@ -3776,36 +3758,33 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
             ACL_Lines_DF = ACL_Lines_DF.drop(row.Index)
 
     today = datetime.datetime.now().strftime('%Y-%m-%d')
-    if DB_Available:
-        query = db.select(ACL_GROSS).where(ACL_GROSS.columns.HostName=="%s" %hostname___)
-        with engine.connect() as connection:
-            ACL_GROSS_db = pd.DataFrame(connection.execute(query).fetchall())
+
 
     if len(ACL_GROSS_db) == 0: # New Device
         print('Device not in DB... writing %s lines' %len(ACL_Lines_DF))
         Config_Change.append('Device not in DB... writing %s lines' %len(ACL_Lines_DF))
-        for row in ACL_Lines_DF.itertuples():
-            N_of_ACL_NEW += 1
-            New_Vals = dict(
-                            HostName    =hostname___,
-                            First_Seen  =today,
-                            Name        =row.Name,
-                            Line        =row.Line,
-                            Type        =row.Type,
-                            Action      =row.Action,
-                            Service     =row.Service,
-                            Source      =row.Source,
-                            S_Port      =row.S_Port,
-                            Dest        =row.Dest,
-                            D_Port      =row.D_Port,
-                            Rest        =row.Rest,
-                            Inactive    =row.Inactive,
-                            Hitcnt      =row.Hitcnt,
-                            Hash        =row.Hash,
-                            Delta_HitCnt=0
-            )
-            insert_stmt = ACL_GROSS.insert().values(**New_Vals)
-            with engine.begin() as connection:
+        with engine.begin() as connection:
+            for row in ACL_Lines_DF.itertuples():
+                N_of_ACL_NEW += 1
+                New_Vals = dict(
+                                HostName    =hostname___,
+                                First_Seen  =today,
+                                Name        =row.Name,
+                                Line        =row.Line,
+                                Type        =row.Type,
+                                Action      =row.Action,
+                                Service     =row.Service,
+                                Source      =row.Source,
+                                S_Port      =row.S_Port,
+                                Dest        =row.Dest,
+                                D_Port      =row.D_Port,
+                                Rest        =row.Rest,
+                                Inactive    =row.Inactive,
+                                Hitcnt      =row.Hitcnt,
+                                Hash        =row.Hash,
+                                Delta_HitCnt=0
+                )
+                insert_stmt = ACL_GROSS.insert().values(**New_Vals)
                 result = connection.execute(insert_stmt)
 
         # make empty report files:
@@ -3831,188 +3810,223 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
 
         N_ACL_Lines = ACL_Lines_DF.shape[0]
         BINS = 0; LOOP_INDEX = -1; STEPS = 10; ITEMS = N_ACL_Lines
-        for row in ACL_Lines_DF.itertuples():
-            LOOP_INDEX = LOOP_INDEX + 1
-            if LOOP_INDEX > (ITEMS/STEPS)*BINS:
-                print ('...%s%%' %int(BINS*100/STEPS)); BINS = BINS + 1
-            t_hash = row.Hash
-            Bool_check = (('Name=="%s" & Action=="%s" & Service=="%s"& Source=="%s" & Dest=="%s" & D_Port=="%s" & Hash=="%s"') %(row.Name, row.Action, row.Service, row.Source, row.Dest, row.D_Port, row.Hash))
-            t_ACL_GROSS_db = (ACL_GROSS_db.query(Bool_check))
+        with engine.begin() as connection:
+            #for row in ACL_Lines_DF.itertuples():
+            for t_iteration, row in enumerate(ACL_Lines_DF.itertuples(), start=1):
+                LOOP_INDEX = LOOP_INDEX + 1
+                if LOOP_INDEX > (ITEMS/STEPS)*BINS:
+                    print ('...%s%%' %int(BINS*100/STEPS)); BINS = BINS + 1
+                #t_hash = row.Hash
+                Bool_check = (('Name=="%s" & Action=="%s" & Service=="%s"& Source=="%s" & Dest=="%s" & D_Port=="%s" & Hash=="%s"') %(row.Name, row.Action, row.Service, row.Source, row.Dest, row.D_Port, row.Hash))
+                t_ACL_GROSS_db = (ACL_GROSS_db.query(Bool_check))
 
-            # there can not be two identical ACL lines
-            if len(t_ACL_GROSS_db) > 1:
-                Log_Message = (f'@ ACL_GROSS for {hostname} has to be cleaned'); print(Log_Message); Config_Change.append(Log_Message)
-                Log_row = {'TimeStamp':datetime.datetime.now().astimezone(), 'Level':'ERROR', 'Message':Log_Message}
-                with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**Log_row))
-                Log_Message = (f'@ ACL = access-list {row.Name} {row.Action} {row.Service} {row.Source} {row.Dest} {row.D_Port} {row.Hash}'); print(Log_Message); Config_Change.append(Log_Message)
-                Log_row = {'TimeStamp':datetime.datetime.now().astimezone(), 'Level':'ERROR', 'Message':Log_Message}
-                with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**Log_row))
-                exit()
+                # there can not be two identical ACL lines
+                if len(t_ACL_GROSS_db) > 1:
+                    Log_Message = (f'@ ACL_GROSS for {hostname} has to be cleaned'); print(Log_Message); Config_Change.append(Log_Message)
+                    Log_row = {'TimeStamp':datetime.datetime.now().astimezone(), 'Level':'ERROR', 'Message':Log_Message}
+                    connection.execute(WTF_Log.insert().values(**Log_row))
+                    Log_Message = (f'@ ACL = access-list {row.Name} {row.Action} {row.Service} {row.Source} {row.Dest} {row.D_Port} {row.Hash}'); print(Log_Message); Config_Change.append(Log_Message)
+                    Log_row = {'TimeStamp':datetime.datetime.now().astimezone(), 'Level':'ERROR', 'Message':Log_Message}
+                    connection.execute(WTF_Log.insert().values(**Log_row))
+                    exit()
 
-            if len(t_ACL_GROSS_db) == 0: # ACL LINE is new
-                N_of_ACL_NEW += 1
-                t_line = 'access-list %s %s %s %s %s %s %s %s %s %s %s %s %s' %(row.Name,row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest,row.Inactive, row.Hitcnt, row.Hash)
-                t_line = re_space.sub(' ',t_line)
-                Config_Change.append(t_line)
-                Config_Change.append('ACL LINE is new... writing to DB')
-
-                New_Vals = dict(
-                                HostName    =hostname___,
-                                First_Seen  =today,
-                                Name        =row.Name,
-                                Line        =row.Line,
-                                Type        =row.Type,
-                                Action      =row.Action,
-                                Service     =row.Service,
-                                Source      =row.Source,
-                                S_Port      =row.S_Port,
-                                Dest        =row.Dest,
-                                D_Port      =row.D_Port,
-                                Rest        =row.Rest,
-                                Inactive    =row.Inactive,
-                                Hitcnt      =row.Hitcnt,
-                                Hash        =row.Hash,
-                                Delta_HitCnt=0
-                )
-                insert_stmt = ACL_GROSS.insert().values(**New_Vals)
-                with engine.begin() as connection:
-                    result = connection.execute(insert_stmt)
-            else:
-                # check if Hitcnt incremented
-                try:
-                    if int(row.Hitcnt) > int(t_ACL_GROSS_db.Hitcnt):
-                        pass
-                except:
-                    print('ERROR Triggered in DB_For_ACL ...int(t_ACL_GROSS_db.Hitcnt)... ----------------------------------------------------------------------------')
-                    for n in t_ACL_GROSS_db:
-                        print(n)
-
-                if int(row.Hitcnt) > int(t_ACL_GROSS_db.Hitcnt):
-                    if int(row.Hitcnt)-int(t_ACL_GROSS_db.Hitcnt) <= Min_Hitcnt_Threshold:
-                        temp_few_hitcnt.append('\n%s Hitcount in %s days' %(int(row.Hitcnt)-int(t_ACL_GROSS_db.Hitcnt), (t_today-t_ACL_GROSS_db.First_Seen.item()).days))
-                        t_line = 'access-list %s %s %s %s %s %s %s %s %s %s %s' %(row.Name, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Hitcnt, row.Hash)
-                        t_line = re_space.sub(' ',t_line)
-                        temp_few_hitcnt.append(t_line)
-
-                    N_of_ACL_Incremented += 1
-                    Delta = int(row.Hitcnt) - int(t_ACL_GROSS_db.Hitcnt)
-                    Updated_Vals = dict(
-                                        First_Seen  = today,
-                                        Line        = row.Line,
-                                        Hitcnt      = row.Hitcnt,
-                                        Delta_HitCnt= Delta,
-                                        Inactive    = row.Inactive,
-                                        Rest        = row.Rest
-                                        )
-                    query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
-                                                                ACL_GROSS.c.Name==row.Name,
-                                                                ACL_GROSS.c.Action==row.Action,
-                                                                ACL_GROSS.c.Service==row.Service,
-                                                                ACL_GROSS.c.Source==row.Source,
-                                                                ACL_GROSS.c.Dest==row.Dest,
-                                                                ACL_GROSS.c.D_Port==row.D_Port,
-                                                                ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
-                    with engine.begin() as connection:
-                        results = connection.execute(query)
-
-                elif int(row.Hitcnt) == int(t_ACL_GROSS_db.Hitcnt):
-                    t_Days = (t_today-t_ACL_GROSS_db.First_Seen.item()).days
-                    t_line = 'access-list %s %s %s %s %s %s %s %s %s %s %s (hitcnt=%s) %s' %(row.Name, row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Inactive, row.Hitcnt, row.Hash)
-                    t_line = re_space.sub(' ',t_line)
-                    t_line_clean = 'access-list %s %s %s %s %s %s %s %s %s inactive' %(row.Name, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest)
-                    t_line_clean = re_space.sub(' ',t_line_clean)
-
-                    if 'inactive' in row.Inactive:
-                        # check if to be deleted
-                        if t_Days >= Max_ACL_Inactive_Age:
-                            # --- Max_ACL_Inactive_Age expired => delete it ---
-                            # Check line before if is a remark
-                            tmp_line = 'access-list %s line %s remark ' %(row.Name, str(int(row.Line.split()[1])-1))
-                            for t_ACL_remark_Lines in ACL_remark_Lines:
-                                if t_ACL_remark_Lines.startswith(tmp_line):
-                                    temp_no_inactive.append(['',t_ACL_remark_Lines])
-                                    Fix_FList_Inactive.append('no %s' %(t_ACL_remark_Lines))
-                            temp_no_inactive.append([t_Days, t_line])
-                            Fix_FList_Inactive.append('no %s' %(t_line_clean))
-                            N_temp_no_inactive += 1
-                        else:
-                            # Max_ACL_Inactive_Age not expired => Report it
-                            #temp_inactive_below.append(['%s' %(t_Days), '%s' %(t_line)])
-                            temp_inactive_below.append([t_Days, t_line])
-                            N_temp_inactive_below += 1
-                    else:
-                        # check if to make inactive
-                        if row.Action.lower() == 'deny':
-                            continue
-                        elif t_Days >= Max_ACL_HitCnt0_Age:
-                            # Max_ACL_HitCnt0_Age expired => turn it to inactive
-                            #temp_yo_inactive.append(['%s' %(t_Days), '%s (hitcnt=%s)' %(t_line.replace(' inactive',''), t_ACL_GROSS_db.Hitcnt.item())])
-                            temp_yo_inactive.append([t_Days, '%s' %(t_line)])
-                            Fix_FList_DeltaHit0.append(t_line_clean)
-                            N_temp_yo_inactive += 1
-                        else:
-                            # Max_ACL_HitCnt0_Age not expired => Report it
-                            t_line = t_line.replace(' inactive', '')
-                            #temp_yo_inactive_below.append(['%s' %(t_Days), '%s' %(t_line)])
-                            temp_yo_inactive_below.append([t_Days, t_line])
-                            N_temp_yo_inactive_below += 1
-
-                    Delta = 0
-                    Updated_Vals = {
-                                    'Line'        : row.Line,
-                                    'Inactive'    : row.Inactive,
-                                    'Delta_HitCnt': Delta,
-                                    'Rest'        : row.Rest
-                                    }
-                    query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
-                                                                ACL_GROSS.c.Name==row.Name,
-                                                                ACL_GROSS.c.Action==row.Action,
-                                                                ACL_GROSS.c.Service==row.Service,
-                                                                ACL_GROSS.c.Source==row.Source,
-                                                                ACL_GROSS.c.Dest==row.Dest,
-                                                                ACL_GROSS.c.D_Port==row.D_Port,
-                                                                ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
-                    with engine.begin() as connection:
-                        results = connection.execute(query)
-                else:
-                    # resetted counters, update db
-                    N_of_ACL_Resetted += 1
-                    t_line = ['access-list',row.Name,row.Line,row.Type,row.Action,row.Service,row.Source,row.S_Port,row.Dest,row.D_Port,row.Rest,row.Inactive,row.Hitcnt,row.Hash]
-                    t_line = ' '.join(t_line)
+                if len(t_ACL_GROSS_db) == 0: # ACL LINE is new
+                    N_of_ACL_NEW += 1
+                    t_line = 'access-list %s %s %s %s %s %s %s %s %s %s %s %s %s' %(row.Name,row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest,row.Inactive, row.Hitcnt, row.Hash)
                     t_line = re_space.sub(' ',t_line)
                     Config_Change.append(t_line)
-                    Config_Change.append('Hitcount resetted for ACL, updating DB...')
-                    # update date
-                    Updated_Vals = dict(
-                                        First_Seen  = today,
-                                        Line        = row.Line,
-                                        Hitcnt      = row.Hitcnt,
-                                        Delta_HitCnt= 0,
-                                        Inactive    = row.Inactive,
-                                        Rest        = row.Rest
-                                        )
-                    query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
-                                                                ACL_GROSS.c.Name==row.Name,
-                                                                ACL_GROSS.c.Action==row.Action,
-                                                                ACL_GROSS.c.Service==row.Service,
-                                                                ACL_GROSS.c.Source==row.Source,
-                                                                ACL_GROSS.c.Dest==row.Dest,
-                                                                ACL_GROSS.c.D_Port==row.D_Port,
-                                                                ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
-                    with engine.begin() as connection:
+                    Config_Change.append('ACL LINE is new... writing to DB')
+
+                    New_Vals = dict(
+                                    HostName    =hostname___,
+                                    First_Seen  =today,
+                                    Name        =row.Name,
+                                    Line        =row.Line,
+                                    Type        =row.Type,
+                                    Action      =row.Action,
+                                    Service     =row.Service,
+                                    Source      =row.Source,
+                                    S_Port      =row.S_Port,
+                                    Dest        =row.Dest,
+                                    D_Port      =row.D_Port,
+                                    Rest        =row.Rest,
+                                    Inactive    =row.Inactive,
+                                    Hitcnt      =row.Hitcnt,
+                                    Hash        =row.Hash,
+                                    Delta_HitCnt=0
+                    )
+                    insert_stmt = ACL_GROSS.insert().values(**New_Vals)
+                    result = connection.execute(insert_stmt)
+                else:
+                    # check if Hitcnt incremented
+                    try:
+                        if int(row.Hitcnt) > int(t_ACL_GROSS_db.Hitcnt.item()):
+                            pass
+                    except:
+                        print('ERROR Triggered in DB_For_ACL ...int(t_ACL_GROSS_db.Hitcnt)... ----------------------------------------------------------------------------')
+                        for n in t_ACL_GROSS_db:
+                            print(n)
+
+                    t_row_HitCnt = int(row.Hitcnt)
+                    t_ACL_GROSS_db_Hitcnt = int(t_ACL_GROSS_db.Hitcnt.item())
+
+                    if t_row_HitCnt > t_ACL_GROSS_db_Hitcnt:
+                        if t_row_HitCnt-t_ACL_GROSS_db_Hitcnt <= Min_Hitcnt_Threshold:
+                            temp_few_hitcnt.append('\n%s Hitcount in %s days' %(t_row_HitCnt-t_ACL_GROSS_db_Hitcnt, (t_today-t_ACL_GROSS_db.First_Seen.item()).days))
+                            t_line = 'access-list %s %s %s %s %s %s %s %s %s %s %s' %(row.Name, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Hitcnt, row.Hash)
+                            t_line = re_space.sub(' ',t_line)
+                            temp_few_hitcnt.append(t_line)
+
+                        N_of_ACL_Incremented += 1
+                        Delta = t_row_HitCnt - t_ACL_GROSS_db_Hitcnt
+                        Updated_Vals = dict(
+                                            First_Seen  = today,
+                                            Line        = row.Line,
+                                            Hitcnt      = row.Hitcnt,
+                                            Delta_HitCnt= Delta,
+                                            Inactive    = row.Inactive,
+                                            Rest        = row.Rest
+                                            )
+                        query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
+                                                                    ACL_GROSS.c.Name==row.Name,
+                                                                    ACL_GROSS.c.Action==row.Action,
+                                                                    ACL_GROSS.c.Service==row.Service,
+                                                                    ACL_GROSS.c.Source==row.Source,
+                                                                    ACL_GROSS.c.Dest==row.Dest,
+                                                                    ACL_GROSS.c.D_Port==row.D_Port,
+                                                                    ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
                         results = connection.execute(query)
 
-        N_ACL_Inactive = N_temp_no_inactive + N_temp_inactive_below
-        N_active_ACL_Lines = N_ACL_Lines - N_ACL_Inactive
-        Watch_FList = []
-        Watch_FName   = hostname___ + '-Inactive_ACL-Watch.html'
-        Watch_FName_2 = hostname___ + '-Inactive_ACL-Watch_2.html'
-        Fix_FName   = FW_log_folder + '/' + hostname___ + '-Inactive_ACL-Fix.html'
+                    # turn inactive
+                    elif t_row_HitCnt == t_ACL_GROSS_db_Hitcnt:
+                        #First_Seen = t_ACL_GROSS_db.First_Seen.item()
+                        t_Days = (t_today-t_ACL_GROSS_db.First_Seen.item()).days
+                        t_line = 'access-list %s %s %s %s %s %s %s %s %s %s %s (hitcnt=%s) %s' %(row.Name, row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Inactive, row.Hitcnt, row.Hash)
+                        t_line = re_space.sub(' ',t_line)
+                        t_line_clean = 'access-list %s %s %s %s %s %s %s %s %s inactive' %(row.Name, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest)
+                        t_line_clean = re_space.sub(' ',t_line_clean)
 
-        percent = round(len(temp_no_inactive)/N_ACL_Lines*100,2) if N_ACL_Lines else 0
-        t_line = ('--- %s ACL over %s can be removed (%s%%) ---' %(N_temp_no_inactive, N_ACL_Lines, percent))
-        temp_no_inactive_DF = pd.DataFrame(temp_no_inactive, columns = ['Days', 'Line'])
-        Watch_FList.append(tabulate(temp_no_inactive_DF,temp_no_inactive_DF,tablefmt='psql',showindex=False))
+                        if 'inactive' in row.Inactive:
+                            # check if it is the first time we see it as inactive
+                            # if yes, reset First_Seen
+                            if 'inactive' not in t_ACL_GROSS_db.Inactive.item(): # --- was not inactive
+                                Updated_Vals = dict(
+                                                    First_Seen  = today,
+                                                    Line        = row.Line,
+                                                    Hitcnt      = row.Hitcnt,
+                                                    Delta_HitCnt= 0,
+                                                    Inactive    = row.Inactive,
+                                                    Rest        = row.Rest
+                                                    )
+                                query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
+                                                                            ACL_GROSS.c.Name==row.Name,
+                                                                            ACL_GROSS.c.Action==row.Action,
+                                                                            ACL_GROSS.c.Service==row.Service,
+                                                                            ACL_GROSS.c.Source==row.Source,
+                                                                            ACL_GROSS.c.Dest==row.Dest,
+                                                                            ACL_GROSS.c.D_Port==row.D_Port,
+                                                                            ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
+                                results = connection.execute(query)
+                            else:
+                                # check if to be deleted
+                                if t_Days >= Max_ACL_Inactive_Age:
+                                    # --- Max_ACL_Inactive_Age expired => delete it ---
+                                    # Check line before if is a remark
+                                    tmp_line = 'access-list %s line %s remark ' %(row.Name, str(int(row.Line.split()[1])-1))
+                                    for t_ACL_remark_Lines in ACL_remark_Lines:
+                                        if t_ACL_remark_Lines.startswith(tmp_line):
+                                            #temp_no_inactive.append(['',t_ACL_remark_Lines])
+                                            temp_no_inactive.append([t_iteration, '', t_ACL_remark_Lines])
+                                            #Fix_FList_Inactive.append('no %s' %(t_ACL_remark_Lines))
+                                            cleaned = re.sub(r'\bline\s+\d+\s*', '', t_ACL_remark_Lines)
+                                            Fix_FList_Inactive.append([t_iteration, t_Days, f'no {cleaned}'])
+                                    #temp_no_inactive.append([t_Days, t_line])
+                                    temp_no_inactive.append([t_iteration, t_Days, t_line])
+                                    #Fix_FList_Inactive.append('no %s' %(t_line_clean))
+                                    Fix_FList_Inactive.append([t_iteration, t_Days, f'no {t_line_clean}'])
+                                    N_temp_no_inactive += 1
+                                else:
+                                    # Max_ACL_Inactive_Age not expired => Report it
+                                    #temp_inactive_below.append([t_Days, t_line])
+                                    temp_inactive_below.append([t_iteration, t_Days, t_line])
+                                    N_temp_inactive_below += 1
+                        else:
+                            if 'inactive' in t_ACL_GROSS_db.Inactive.item(): # --- was inactive and has been activated
+                                Updated_Vals = dict(
+                                                    First_Seen  = today,
+                                                    Line        = row.Line,
+                                                    Hitcnt      = row.Hitcnt,
+                                                    Delta_HitCnt= 0,
+                                                    Inactive    = row.Inactive,
+                                                    Rest        = row.Rest
+                                                    )
+                                query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
+                                                                            ACL_GROSS.c.Name==row.Name,
+                                                                            ACL_GROSS.c.Action==row.Action,
+                                                                            ACL_GROSS.c.Service==row.Service,
+                                                                            ACL_GROSS.c.Source==row.Source,
+                                                                            ACL_GROSS.c.Dest==row.Dest,
+                                                                            ACL_GROSS.c.D_Port==row.D_Port,
+                                                                            ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
+                                results = connection.execute(query)
+                            else:
+                                # check if to make inactive
+                                if row.Action.lower() == 'deny':
+                                    continue
+                                elif t_Days >= Max_ACL_HitCnt0_Age:
+                                    # Max_ACL_HitCnt0_Age expired => turn it to inactive
+                                    temp_yo_inactive.append([t_iteration, t_Days, t_line])
+                                    Fix_FList_DeltaHit0.append([t_iteration, t_Days, t_line_clean])
+                                    N_temp_yo_inactive += 1
+                                else:
+                                    # Max_ACL_HitCnt0_Age not expired => Report it
+                                    t_line = t_line.replace(' inactive', '')
+                                    temp_yo_inactive_below.append([t_iteration, t_Days, t_line])
+                                    N_temp_yo_inactive_below += 1
+
+                        Delta = 0
+                        Updated_Vals = {
+                                        'Line'        : row.Line,
+                                        'Inactive'    : row.Inactive,
+                                        'Delta_HitCnt': Delta,
+                                        'Rest'        : row.Rest
+                                        }
+                        query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
+                                                                    ACL_GROSS.c.Name==row.Name,
+                                                                    ACL_GROSS.c.Action==row.Action,
+                                                                    ACL_GROSS.c.Service==row.Service,
+                                                                    ACL_GROSS.c.Source==row.Source,
+                                                                    ACL_GROSS.c.Dest==row.Dest,
+                                                                    ACL_GROSS.c.D_Port==row.D_Port,
+                                                                    ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
+                        results = connection.execute(query)
+
+                    else:
+                        # resetted counters, update db
+                        N_of_ACL_Resetted += 1
+                        t_line = ['access-list',row.Name,row.Line,row.Type,row.Action,row.Service,row.Source,row.S_Port,row.Dest,row.D_Port,row.Rest,row.Inactive,row.Hitcnt,row.Hash]
+                        t_line = ' '.join(t_line)
+                        t_line = re_space.sub(' ',t_line)
+                        Config_Change.append(t_line)
+                        Config_Change.append('Hitcount resetted for ACL, updating DB...')
+                        # update date
+                        Updated_Vals = dict(
+                                            First_Seen  = today,
+                                            Line        = row.Line,
+                                            Hitcnt      = row.Hitcnt,
+                                            Delta_HitCnt= 0,
+                                            Inactive    = row.Inactive,
+                                            Rest        = row.Rest
+                                            )
+                        query = db.update(ACL_GROSS).where(db.and_( ACL_GROSS.c.HostName==hostname___,
+                                                                    ACL_GROSS.c.Name==row.Name,
+                                                                    ACL_GROSS.c.Action==row.Action,
+                                                                    ACL_GROSS.c.Service==row.Service,
+                                                                    ACL_GROSS.c.Source==row.Source,
+                                                                    ACL_GROSS.c.Dest==row.Dest,
+                                                                    ACL_GROSS.c.D_Port==row.D_Port,
+                                                                    ACL_GROSS.c.Hash==row.Hash)).values(**Updated_Vals)
+                        results = connection.execute(query)
 
         if not os.path.exists(html_folder):
             try:
@@ -4021,14 +4035,23 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                 Config_Change.append("Can't create destination directory (%s)!" % (html_folder))
                 raise OSError("Can't create destination directory (%s)!" % (html_folder))
 
+        # writing f"{html_folder}/{hostname___}-Inactive_ACL-Watch.html" ---------------------------------
+        temp_no_inactive_DF = pd.DataFrame(temp_no_inactive, columns = ['#', 'Days', 'Line'])
+
         t_html_file = []
         t_html_file.append('<div class="card-body">\n')
-        t_html_file.append('<table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-page-length="50" >\n')
-        my_index = 0
+        t_html_file.append("""
+                    <table class="table-bordered table-condensed table-striped"
+                           id="dataTable1"
+                           width="100%"
+                           cellspacing="0"
+                           data-page-length="100"
+                           data-order='[[ 0, "asc" ]]'>
+                    """)
         N_Cols = temp_no_inactive_DF.shape[1]
         t_html_file.append('       <thead><tr>\n')
         for t_col_index in range(0,N_Cols):
-            t_html_file.append('           <th>%s</th>\n' %temp_no_inactive_DF.columns[t_col_index])
+            t_html_file.append('           <th class="px-2 text-nowrap">%s</th>\n' %temp_no_inactive_DF.columns[t_col_index])
         t_html_file.append('       </tr></thead>\n')
         t_html_file.append('       <tbody>\n')
         for row in temp_no_inactive_DF.itertuples():
@@ -4037,9 +4060,9 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                 t_line = temp_no_inactive_DF.iloc[row.Index][t_col_index]
                 if t_col_index == N_Cols-1:
                     t_line = utils_v2.Color_Line(t_line)
-                    t_html_file.append('           <td>%s</td>\n' %t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
                 else:
-                    t_html_file.append('           <td>%s</td>\n' %t_col_index)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
             t_html_file.append('       </tr>\n')
         t_html_file.append('       </tbody>\n')
         t_html_file.append('   </table>\n')
@@ -4049,22 +4072,26 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
         log_msg = File_Save_Try2(Watch_FName, t_html_file, t_ErrFileFullName, Config_Change)
         if log_msg:
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
+        # ----------------------------------------------------------------------------------------------
 
-        Write_Think_File(Fix_FName, Fix_FList_Inactive)
 
-        #if len(temp_inactive_below) > 0:
-        percent = round(len(temp_inactive_below)/N_ACL_Lines*100,2) if N_ACL_Lines else 0
-        t_line = ('--- %s ACL over %s Still aging (%s%%) ---' %(len(temp_inactive_below), N_ACL_Lines, percent))
-        temp_inactive_below_DF = pd.DataFrame(temp_inactive_below, columns = ['Days', 'Line'])
+        # writing f"{html_folder}/{hostname___}-Inactive_ACL-Watch_2.html" ---------------------------------
+        temp_inactive_below_DF = pd.DataFrame(temp_inactive_below, columns = ['#', 'Days', 'Line'])
 
         t_html_file = []
         t_html_file.append('<div class="card-body">\n')
-        t_html_file.append('<table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-page-length="50" >\n')
-        my_index = 0
+        t_html_file.append("""
+                    <table class="table-bordered table-condensed table-striped"
+                           id="dataTable2"
+                           width="100%"
+                           cellspacing="0"
+                           data-page-length="100"
+                           data-order='[[ 0, "asc" ]]'>
+                    """)
         N_Cols = temp_inactive_below_DF.shape[1]
         t_html_file.append('       <thead><tr>\n')
         for t_col_index in range(0,N_Cols):
-            t_html_file.append('           <th>%s</th>\n' %temp_inactive_below_DF.columns[t_col_index])
+            t_html_file.append('           <th class="px-2 text-nowrap">%s</th>\n' %temp_inactive_below_DF.columns[t_col_index])
         t_html_file.append('       </tr></thead>\n')
         t_html_file.append('       <tbody>\n')
         for row in temp_inactive_below_DF.itertuples():
@@ -4073,29 +4100,59 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                 t_line = temp_inactive_below_DF.iloc[row.Index][t_col_index]
                 if t_col_index == N_Cols-1:
                     t_line = utils_v2.Color_Line(t_line)
-                    t_html_file.append('           <td>%s</td>\n' %t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
                 else:
-                    t_html_file.append('           <td>%s</td>\n' %t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
             t_html_file.append('       </tr>\n')
         t_html_file.append('       </tbody>\n')
         t_html_file.append('   </table>\n')
         t_html_file.append('</div>\n')
 
-
         Watch_FName_2 = f"{html_folder}/{hostname___}-Inactive_ACL-Watch_2.html"
         log_msg = File_Save_Try2(Watch_FName_2, t_html_file, t_ErrFileFullName, Config_Change)
         if log_msg:
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
+        # ----------------------------------------------------------------------------------------------
 
-        Watch_FList = []
-        Watch_FName   = hostname___ + '-Deltahitcnt0_ACL-Watch.html'
-        Watch_FName_2 = hostname___ + '-Deltahitcnt0_ACL-Watch_2.html'
-        Fix_FName   = FW_log_folder + '/' + hostname___ + '-Deltahitcnt0_ACL-Fix.html'
 
-        #if len(temp_yo_inactive) > 0:
-        percent = round(len(temp_yo_inactive)/N_active_ACL_Lines*100,2) if N_active_ACL_Lines else 0
-        temp_yo_inactive_DF = pd.DataFrame(temp_yo_inactive, columns = ['Days', 'Line'])
-        Watch_FList.append(tabulate(temp_yo_inactive_DF,temp_yo_inactive_DF,tablefmt='psql',showindex=False))
+        # writing f"{html_folder}/{hostname___}-Inactive_ACL-Fix.html" ---------------------------------
+        Fix_FList_Inactive_DF = pd.DataFrame(Fix_FList_Inactive, columns = ['#', 'Days', 'Line'])
+
+        t_html_file = []
+        t_html_file.append('<div class="card-body">\n')
+        t_html_file.append("""
+                    <table class="table-bordered table-condensed table-striped"
+                           id="dataTable3"
+                           width="100%"
+                           cellspacing="0"
+                           data-page-length="100"
+                           data-order='[[ 0, "asc" ]]'>
+                    """)
+        N_Cols = Fix_FList_Inactive_DF.shape[1]
+        t_html_file.append('       <thead><tr>\n')
+        for t_col_index in range(0,N_Cols):
+            t_html_file.append('           <th class="px-2 text-nowrap">%s</th>\n' %Fix_FList_Inactive_DF.columns[t_col_index])
+        t_html_file.append('       </tr></thead>\n')
+        t_html_file.append('       <tbody>\n')
+        for row in Fix_FList_Inactive_DF.itertuples():
+            t_html_file.append('       <tr>\n')
+            for t_col_index in range(0,N_Cols):
+                t_line = Fix_FList_Inactive_DF.iloc[row.Index][t_col_index]
+                if t_col_index == N_Cols-1:
+                    t_line = utils_v2.Color_Line(t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
+                else:
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
+            t_html_file.append('       </tr>\n')
+        t_html_file.append('       </tbody>\n')
+        t_html_file.append('   </table>\n')
+        t_html_file.append('</div>\n')
+
+        Watch_FName_2 = f"{html_folder}/{hostname___}-Inactive_ACL-Fix.html"
+        log_msg = File_Save_Try2(Watch_FName_2, t_html_file, t_ErrFileFullName, Config_Change)
+        if log_msg:
+            with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
+        # ----------------------------------------------------------------------------------------------
 
         if not os.path.exists(html_folder):
             try:
@@ -4104,14 +4161,23 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                 Config_Change.append("Can't create destination directory (%s)!" % (html_folder))
                 raise OSError("Can't create destination directory (%s)!" % (html_folder))
 
+        # writing f"{html_folder}/{hostname___}-Deltahitcnt0_ACL-Watch.html" ---------------------------------
+        temp_yo_inactive_DF = pd.DataFrame(temp_yo_inactive, columns = ['#', 'Days', 'Line'])
+
         t_html_file = []
         t_html_file.append('<div class="card-body">\n')
-        t_html_file.append('<table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-page-length="50" >\n')
-        my_index = 0
+        t_html_file.append("""
+                            <table class="table-bordered table-condensed table-striped"
+                                   id="dataTable1"
+                                   width="100%"
+                                   cellspacing="0"
+                                   data-page-length="100"
+                                   data-order='[[ 0, "asc" ]]'>
+                            """)
         N_Cols = temp_yo_inactive_DF.shape[1]
         t_html_file.append('       <thead><tr>\n')
         for t_col_index in range(0,N_Cols):
-            t_html_file.append('           <th>%s</th>\n' %temp_yo_inactive_DF.columns[t_col_index])
+            t_html_file.append('           <th class="px-2 text-nowrap">%s</th>\n' %temp_yo_inactive_DF.columns[t_col_index])
         t_html_file.append('       </tr></thead>\n')
         t_html_file.append('       <tbody>\n')
         for row in temp_yo_inactive_DF.itertuples():
@@ -4120,9 +4186,9 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                 t_line = temp_yo_inactive_DF.iloc[row.Index][t_col_index]
                 if t_col_index == N_Cols-1:
                     t_line = utils_v2.Color_Line(t_line)
-                    t_html_file.append('           <td>%s</td>\n' %t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
                 else:
-                    t_html_file.append('           <td>%s</td>\n' %t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
             t_html_file.append('       </tr>\n')
         t_html_file.append('       </tbody>\n')
         t_html_file.append('   </table>\n')
@@ -4132,21 +4198,26 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
         log_msg = File_Save_Try2(Watch_FName, t_html_file, t_ErrFileFullName, Config_Change)
         if log_msg:
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
-        Write_Think_File(Fix_FName, Fix_FList_DeltaHit0)
+        # ----------------------------------------------------------------------------------------------
 
-        #if len(temp_yo_inactive_below) > 0:
-        percent = round(len(temp_yo_inactive_below)/N_active_ACL_Lines*100,2) if N_active_ACL_Lines else 0
-        temp_yo_inactive_below_DF = pd.DataFrame(temp_yo_inactive_below, columns = ['Days', 'Line'])
 
+        # writing f"{html_folder}/{hostname___}-Deltahitcnt0_ACL-Watch_2.html" ---------------------------------
+        temp_yo_inactive_below_DF = pd.DataFrame(temp_yo_inactive_below, columns = ['#', 'Days', 'Line'])
 
         t_html_file = []
         t_html_file.append('<div class="card-body">\n')
-        t_html_file.append('<table class="table-bordered table-condensed table-striped" id="dataTable" width="100%" cellspacing="0" data-page-length="50" >\n')
-        my_index = 0
+        t_html_file.append("""
+                            <table class="table-bordered table-condensed table-striped"
+                                   id="dataTable2"
+                                   width="100%"
+                                   cellspacing="0"
+                                   data-page-length="100"
+                                   data-order='[[ 0, "asc" ]]'>
+                            """)
         N_Cols = temp_yo_inactive_below_DF.shape[1]
         t_html_file.append('       <thead><tr>\n')
         for t_col_index in range(0,N_Cols):
-            t_html_file.append('           <th>%s</th>\n' %temp_yo_inactive_below_DF.columns[t_col_index])
+            t_html_file.append('           <th class="px-2 text-nowrap">%s</th>\n' %temp_yo_inactive_below_DF.columns[t_col_index])
         t_html_file.append('       </tr></thead>\n')
         t_html_file.append('       <tbody>\n')
         for row in temp_yo_inactive_below_DF.itertuples():
@@ -4155,9 +4226,9 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                 t_line = temp_yo_inactive_below_DF.iloc[row.Index][t_col_index]
                 if t_col_index == N_Cols-1:
                     t_line = utils_v2.Color_Line(t_line)
-                    t_html_file.append('           <td>%s</td>\n' %t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
                 else:
-                    t_html_file.append('           <td>%s</td>\n' %t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
             t_html_file.append('       </tr>\n')
         t_html_file.append('       </tbody>\n')
         t_html_file.append('   </table>\n')
@@ -4167,6 +4238,47 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
         log_msg = File_Save_Try2(Watch_FName_2, t_html_file, t_ErrFileFullName, Config_Change)
         if log_msg:
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
+        # ----------------------------------------------------------------------------------------------
+
+
+        # writing f"{html_folder}/{hostname___}-Deltahitcnt0_ACL-Fix.html" ---------------------------------
+        Fix_FList_DeltaHit0_DF = pd.DataFrame(Fix_FList_DeltaHit0, columns = ['#', 'Days', 'Line'])
+
+        t_html_file = []
+        t_html_file.append('<div class="card-body">\n')
+        t_html_file.append("""
+                            <table class="table-bordered table-condensed table-striped"
+                                   id="dataTable3"
+                                   width="100%"
+                                   cellspacing="0"
+                                   data-page-length="100"
+                                   data-order='[[ 0, "asc" ]]'>
+                            """)
+        N_Cols = Fix_FList_DeltaHit0_DF.shape[1]
+        t_html_file.append('       <thead><tr>\n')
+        for t_col_index in range(0,N_Cols):
+            t_html_file.append('           <th class="px-2 text-nowrap">%s</th>\n' %Fix_FList_DeltaHit0_DF.columns[t_col_index])
+        t_html_file.append('       </tr></thead>\n')
+        t_html_file.append('       <tbody>\n')
+        for row in Fix_FList_DeltaHit0_DF.itertuples():
+            t_html_file.append('       <tr>\n')
+            for t_col_index in range(0,N_Cols):
+                t_line = Fix_FList_DeltaHit0_DF.iloc[row.Index][t_col_index]
+                if t_col_index == N_Cols-1:
+                    t_line = utils_v2.Color_Line(t_line)
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
+                else:
+                    t_html_file.append('           <td class="px-2 text-nowrap">%s</td>\n' %t_line)
+            t_html_file.append('       </tr>\n')
+        t_html_file.append('       </tbody>\n')
+        t_html_file.append('   </table>\n')
+        t_html_file.append('</div>\n')
+
+        Watch_FName = f"{html_folder}/{hostname___}-Deltahitcnt0_ACL-Fix.html"
+        log_msg = File_Save_Try2(Watch_FName, t_html_file, t_ErrFileFullName, Config_Change)
+        if log_msg:
+            with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**log_msg))
+        # ----------------------------------------------------------------------------------------------
 
         if len(temp_few_hitcnt) > 0:
             Config_Change.append('\n\n!--- Too Few Hitcount for the following ACL (threshold at %s) ---' %Min_Hitcnt_Threshold)
@@ -4175,30 +4287,30 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
 
         # remove deleted ines from DB -------------------------------
         Header_Printed = False
-        for row in ACL_GROSS_db.itertuples():
-            t_hash = row.Hash
-            Bool_check = (('Name=="%s" & Action=="%s" & Service=="%s"& Source=="%s" & Dest=="%s" & D_Port=="%s" & Hash=="%s"') %(row.Name, row.Action, row.Service, row.Source, row.Dest, row.D_Port, row.Hash))
-            t_ACL_Lines_DF = ACL_Lines_DF.query(Bool_check)
-            if len(t_ACL_Lines_DF) == 0: # ACL LINE is no longer in config
-                N_of_ACL_Deleted += 1
-                if Header_Printed == False:
-                    Config_Change.append('\n!--- ACL removed from DB ---')
-                    print('\n!--- ACL removed from DB ---')
-                    Header_Printed = True
-                #delete_stmt = db.delete(ACL_GROSS).where(db.and_(ACL_GROSS.c.HostName==hostname___, ACL_GROSS.c.Hash==row.Hash))
-                delete_stmt = db.delete(ACL_GROSS).where(db.and_(ACL_GROSS.c.HostName==hostname___,
-                                                                 ACL_GROSS.c.Name==row.Name,
-                                                                 ACL_GROSS.c.Action==row.Action,
-                                                                 ACL_GROSS.c.Service==row.Service,
-                                                                 ACL_GROSS.c.Source==row.Source,
-                                                                 ACL_GROSS.c.Dest==row.Dest,
-                                                                 ACL_GROSS.c.D_Port==row.D_Port,
-                                                                 ACL_GROSS.c.Hash==row.Hash))
-                with engine.begin() as connection:
+        with engine.begin() as connection:
+            for row in ACL_GROSS_db.itertuples():
+                t_hash = row.Hash
+                Bool_check = (('Name=="%s" & Action=="%s" & Service=="%s"& Source=="%s" & Dest=="%s" & D_Port=="%s" & Hash=="%s"') %(row.Name, row.Action, row.Service, row.Source, row.Dest, row.D_Port, row.Hash))
+                t_ACL_Lines_DF = ACL_Lines_DF.query(Bool_check)
+                if len(t_ACL_Lines_DF) == 0: # ACL LINE is no longer in config
+                    N_of_ACL_Deleted += 1
+                    if Header_Printed == False:
+                        Config_Change.append('\n!--- ACL removed from DB ---')
+                        print('\n!--- ACL removed from DB ---')
+                        Header_Printed = True
+                    delete_stmt = db.delete(ACL_GROSS).where(db.and_(ACL_GROSS.c.HostName==hostname___,
+                                                                     ACL_GROSS.c.Name==row.Name,
+                                                                     ACL_GROSS.c.Action==row.Action,
+                                                                     ACL_GROSS.c.Service==row.Service,
+                                                                     ACL_GROSS.c.Source==row.Source,
+                                                                     ACL_GROSS.c.Dest==row.Dest,
+                                                                     ACL_GROSS.c.D_Port==row.D_Port,
+                                                                     ACL_GROSS.c.Hash==row.Hash))
+
                     result = connection.execute(delete_stmt)
-                print(f"{result.rowcount} row(s) deleted.")
-                t_line = ['access-list',row.Name,row.Line,row.Type,row.Action,row.Service,row.Source,row.S_Port,row.Dest,row.D_Port,row.Rest,row.Inactive,row.Hitcnt,row.Hash]
-                ACL_Deleted_List.append(' '.join(t_line))
+                    print(f"{result.rowcount} row(s) deleted.")
+                    t_line = ['access-list',row.Name,row.Line,row.Type,row.Action,row.Service,row.Source,row.S_Port,row.Dest,row.D_Port,row.Rest,row.Inactive,row.Hitcnt,row.Hash]
+                    ACL_Deleted_List.append(' '.join(t_line))
 
     # check unmatched entry in db
     # salva valore del numero di linee nel db con Delta_HitCnt=0 (solo per le ACL associate a interfaces)
@@ -4337,7 +4449,7 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
     t_html_file = ['\n']
     if ACL_GROSS_db.shape[0] > 0:
         t_all_zero = []
-        for t_key in Most_Hitted_ACL.keys():
+        for t_key in Most_Hitted_ACL:
             if len(Most_Hitted_ACL[t_key]) > 0:
                 t_html_file.append('''\n
                 <div class="card shadow mb-4">\n
@@ -4378,8 +4490,8 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
                 t_all_zero.append(1)
 
     if ACL_GROSS_db.shape[0] > 0:
-        if sum(t_all_zero) == len(Most_Hitted_ACL.keys()):
-                t_html_file.append('\n This is based on the Delta HitCnt from the previous run.<br> It needs a second run to be populated.<br>')
+        if sum(t_all_zero) == len(Most_Hitted_ACL):
+            t_html_file.append('\n This is based on the Delta HitCnt from the previous run.<br> It needs a second run to be populated.<br>')
 
     Watch_FName = f"{html_folder}/{hostname___}-Most_Hitted_ACL-Watch.html"
     log_msg = File_Save_Try2(Watch_FName, t_html_file, t_ErrFileFullName, Config_Change)
@@ -4389,7 +4501,7 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
     # OUTPUT HTML FILE for Most_Hitted_ACL-Think
     t_html_file = ['\n']
     if ACL_GROSS_db.shape[0] > 0:
-        for t_key in Most_Hitted_ACL.keys():
+        for t_key in Most_Hitted_ACL:
             if len(Most_Hitted_ACL[t_key]) > 0:
                 t_html_file.append('<div class="card shadow mb-4">\n')
                 t_html_file.append('<div class="card-header py-3">\n')
@@ -4555,10 +4667,7 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
 # if the ACL is partially shadowed stop the processing after "MAX_Partially_Shadowed_Lines" lines found
 
 def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
-    from Network_Calc import Proto_Map
-    import shelve
-    import pandas as pd
-    from Network_Calc import Is_Dec_Overlapping, PRTOTOCOLS
+
     MAX_Partially_Shadowed_Lines = 15
 
     ACL_Line_DF = utils_v2.ASA_ACL_to_DF([ACL_Line])
@@ -4570,11 +4679,22 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
     Temp_Config_Change = []
     Temp_Overlapped = {}
 
+    def restore_json(x):
+        if pd.isna(x) or x in ('', 'None', None):
+            return None
+        try:
+            return json.loads(x)
+        except (json.JSONDecodeError, TypeError):
+            return x
+
     tf_name = f"{log_folder}/VAR_{hostname___}___ACL_Expanded_DF"
-    ACL_Expanded_DF = utils_v2.Shelve_Read_Try(tf_name,'')
+    ACL_Expanded_DF2 = pd.read_feather(f"{tf_name}.feather")
+    for c in ["S_Port", "D_Port", "Source", "Dest"]:
+        if c in ACL_Expanded_DF2.columns:
+            ACL_Expanded_DF2[c] = ACL_Expanded_DF2[c].apply(restore_json)
 
     Bool_check = ('Name == "%s" & Line == "%s"') %(t_ACL_Name, t_ACL_Line)
-    ACL_Line_Expanded_DF = ACL_Expanded_DF.query(Bool_check)
+    ACL_Line_Expanded_DF = ACL_Expanded_DF2.query(Bool_check)
     t_ACL_ndex = ACL_Line_Expanded_DF.index[0]
     ACL_Line_Expanded_DF.reset_index(inplace=True, drop=True)
     ACL_Line_Expanded_DF_Print = pd.DataFrame(ACL_Line_Expanded_DF.Print)
@@ -4588,7 +4708,7 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
         return([-1, ('--- access-list %s %s' %(t_ACL_Name,t_ACL_Line))])
 
     Bool_check = ('Name == "%s"') %(t_ACL_Name)
-    ACL_Slice_Expanded_DF = ACL_Expanded_DF.query(Bool_check)
+    ACL_Slice_Expanded_DF = ACL_Expanded_DF2.query(Bool_check)
     ACL_Slice_Expanded_DF = ACL_Slice_Expanded_DF[ACL_Slice_Expanded_DF.index < t_ACL_ndex]
     ACL_Slice_Expanded_DF.reset_index(inplace=True, drop=True)
 
@@ -4596,16 +4716,13 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
     for index_1 in range(len(ACL_Line_Expanded_DF)-1,-1,-1):
         Header_Printed = False
         row1 = ACL_Line_Expanded_DF.loc[index_1]
-        item1_Action = row1.Action
         item1_Servic = row1.Service
         item1_Source = row1.Source
-        item1_S_Port = row1.S_Port
         item1_Destin = row1.Dest
         item1_D_Port = row1.D_Port
         Temp_Overlapped[row1.Print] = []
 
         if (item1_Source == [[0,0]] and item1_Destin == [[0,0]]):
-            #Temp_Config_Change.append('Line can not be moved...')
             Last_Hitted_Line.append(int(row1.Line.split()[1])-1)
             continue
 
@@ -4615,10 +4732,8 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
             if Break_Flag == True:
                 break
             row2 = ACL_Slice_Expanded_DF.loc[index_2]
-            item2_Action = row2.Action
             item2_Servic = row2.Service
             item2_Source = row2.Source
-            item2_S_Port = row2.S_Port
             item2_Destin = row2.Dest
             item2_D_Port = row2.D_Port
             if item2_Servic not in PRTOTOCOLS:
@@ -4685,7 +4800,7 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
                                     Flag_Ship[2] = 2
                                 elif Proto_Check in [4,16]:         # check port to understand better
                                     Flag_Ship[2] = 1
-                                    Port_Found_List = [0]
+                                    #Port_Found_List = [0]
 
                                     if len(item1_D_Port) == 1:
                                         if item1_D_Port[0] == '':
@@ -4773,12 +4888,6 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
 ##N_ACL_Most_Triggered   = 10
 
 def Check_NAT(t_device, Config_Change, log_folder):
-
-    import shelve
-    import sqlalchemy as db
-    import pandas as pd
-    from tabulate import tabulate
-    import ipaddress
 
     List_of_NAT_to_Remove = []
     List_of_NAT_aging_to_Remove = []
@@ -5418,10 +5527,16 @@ def Check_NAT(t_device, Config_Change, log_folder):
         try:
             ROUTE_IP_DF.at[row_index, 'Network'] = ipaddress.IPv4Network(row.Network)
         except:
-            Moved_NAT_Think.append('ERROR 5184 while converting %s to ipaddress\n' %row.Network)
-            print('ERROR 5184 while converting %s to ipaddress\n' %row.Network)
-            ROUTE_IP_DF = ROUTE_IP_DF.drop(row_index)
-            continue
+            try:
+                t_ip_name = row.Network.split('/')[0]
+                t_ip = Name_dic[t_ip_name]
+                t_sm = row.Network.split('/')[1]
+                ROUTE_IP_DF.at[row_index, 'Network'] = ipaddress.IPv4Network(t_ip + '/' + t_sm, strict=False)
+            except:
+                Moved_NAT_Think.append('ERROR 5433 while converting %s to ipaddress\n' %row.Network)
+                print('ERROR 5433 while converting %s to ipaddress\n' %row.Network)
+                ROUTE_IP_DF = ROUTE_IP_DF.drop(row_index)
+                continue
 
     Show_Crypto_RemoteNet_IP_List = []
     for n in Show_Crypto_RemoteNet_List:
@@ -5436,8 +5551,14 @@ def Check_NAT(t_device, Config_Change, log_folder):
             try:
                 t_SRC_Origin_IP = ipaddress.IPv4Network(t_SRC_Origin, strict=False)
             except:
-                print('can not translate to IP this "%s" @ "%s"' %(t_SRC_Origin, row.Nat_Line))
-                continue
+                try:
+                    t_ip_name = t_SRC_Origin.split('/')[0]
+                    t_ip = Name_dic[t_ip_name]
+                    t_sm = t_SRC_Origin.split('/')[1]
+                    t_SRC_Origin_IP = ipaddress.IPv4Network(t_ip + '/' + t_sm, strict=False)
+                except:
+                    print('can not translate to IP this "%s" @ "%s"' %(t_SRC_Origin, row.Nat_Line))
+                    continue
 
             Bool_check = ('Interface == "%s"') %(t_IF_IN)
             BEST_ROUTE = ''
@@ -5724,14 +5845,7 @@ def Check_NAT(t_device, Config_Change, log_folder):
 
 def Check_Range(t_device, Config_Change, log_folder):
 
-    import shelve
-    import sqlalchemy as db
-    import pandas as pd
-    from tabulate import tabulate
-    import ipaddress
-    from Network_Calc import IPv4_to_DecList, Port_Converter
-
-    html_file_list = []
+    #html_file_list = []
     t_html_file = []
     t_Config_Change = []
 
@@ -5741,7 +5855,7 @@ def Check_Range(t_device, Config_Change, log_folder):
     html_folder = FW_log_folder
 
     hostname = t_device
-    config_range_html = hostname___ + '-Config_Range.html'
+    #config_range_html = hostname___ + '-Config_Range.html'
 
     text = ('Check_Range @ %s' %hostname___)
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
@@ -5787,7 +5901,7 @@ def Check_Range(t_device, Config_Change, log_folder):
     OBJ_GRP_SVC_Dic = utils_v2.Shelve_Read_Try(tf_name,'')
 
     OBJ_GRP_SVC_Dic_2 = OBJ_GRP_SVC_Dic.copy()
-    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic.keys():
+    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic:
         if len(t_OBJ_GRP_SVC_Dic_key.split()) == 2:
             OBJ_GRP_SVC_Dic_2[t_OBJ_GRP_SVC_Dic_key.split()[0]] = [t_OBJ_GRP_SVC_Dic_key.split()[1], OBJ_GRP_SVC_Dic_2.pop(t_OBJ_GRP_SVC_Dic_key)]
         else:
@@ -5796,12 +5910,12 @@ def Check_Range(t_device, Config_Change, log_folder):
     tf_name = f"{FW_log_folder}/VAR_{hostname___}___Show_ACL_Lines"
     Show_ACL_Lines = utils_v2.Shelve_Read_Try(tf_name,'')
 
-    remove_tags = re.compile('<.*?>')
+    #remove_tags = re.compile('<.*?>')
 
     N_Range_IP_Obj = 0
     N_Max_Range_IP = 0
     IP_Ranges_for_DB = {}
-    for t_obj_key in Obj_Net_Dic.keys():
+    for t_obj_key in Obj_Net_Dic:
         t_value = Obj_Net_Dic[t_obj_key]
         if t_value.startswith('range '):
             IP_1_dec = IPv4_to_DecList(t_value.split()[1], '0.0.0.0')
@@ -5810,7 +5924,7 @@ def Check_Range(t_device, Config_Change, log_folder):
             if N_of_IPs > Max_IPv4_Range:
                 N_Range_IP_Obj += 1
                 if (N_of_IPs > N_Max_Range_IP): N_Max_Range_IP = N_of_IPs
-                text_line = 'object network %s\n  %s\n' %(t_obj_key,t_value)
+                #text_line = 'object network %s\n  %s\n' %(t_obj_key,t_value)
                 t_html_file.append('<tr><td class="text-nowrap"><ul>\n')
                 t_html_file.append('<_L1_TEXT_> '+'<br><li>IPs Range: %s</li>\n' %(N_of_IPs))
                 t_html_file.append('<_CODE_> '+'object network %s<br>\n &nbsp;&nbsp; %s<br><br>\n' %(t_obj_key,t_value))
@@ -5824,7 +5938,7 @@ def Check_Range(t_device, Config_Change, log_folder):
 
     N_Range_Port_Obj = 0
     N_Max_Range_Port = 0
-    for t_obj_key in OBJ_SVC_Dic.keys():
+    for t_obj_key in OBJ_SVC_Dic:
         t_value = OBJ_SVC_Dic[t_obj_key]
         if ' range 'in t_value:
             Port1 = t_value.split('range')[1].split()[0]
@@ -5847,7 +5961,7 @@ def Check_Range(t_device, Config_Change, log_folder):
             if N_of_Ports > Max_Port_Range:
                 N_Range_Port_Obj += 1
                 if (N_of_Ports > N_Max_Range_Port): N_Max_Range_Port = N_of_Ports
-                text_line = 'object service %s\n %s\n' %(t_obj_key,t_value)
+                #text_line = 'object service %s\n %s\n' %(t_obj_key,t_value)
                 t_html_file.append('<tr><td class="text-nowrap"><ul>\n')
                 t_html_file.append('<_L1_TEXT_> '+'<br><li>Port Range: %s</li>\n' %(N_of_Ports))
                 t_html_file.append('<_CODE_> '+'object service %s<br>\n &nbsp;&nbsp; %s<br><br>\n' %(t_obj_key,t_value))
@@ -5858,7 +5972,7 @@ def Check_Range(t_device, Config_Change, log_folder):
                         t_html_file.append(line+'<br>')
                 t_html_file.append('</ul></td></tr>\n')
 
-    for t_obj_key in OBJ_GRP_SVC_Dic_2.keys():
+    for t_obj_key in OBJ_GRP_SVC_Dic_2:
         t_value = OBJ_GRP_SVC_Dic_2[t_obj_key][1]
         t_proto = OBJ_GRP_SVC_Dic_2[t_obj_key][0]
         for tt_item in t_value:
@@ -5884,7 +5998,7 @@ def Check_Range(t_device, Config_Change, log_folder):
                 if N_of_Ports > Max_Port_Range:
                     N_Range_Port_Obj += 1
                     if (N_of_Ports > N_Max_Range_Port): N_Max_Range_Port = N_of_Ports
-                    text_line = 'object-group service %s %s\n %s\n' %(t_obj_key,t_proto,tt_item)
+                    #text_line = 'object-group service %s %s\n %s\n' %(t_obj_key,t_proto,tt_item)
                     t_html_file.append('<tr><td class="text-nowrap"><ul>\n')
                     t_html_file.append('<_L1_TEXT_> '+'<br><li>Port Range: %s</li>\n' %(N_of_Ports))
                     t_html_file.append('<_CODE_> '+'object-group service %s %s<br>\n &nbsp;&nbsp; %s<br><br>\n' %(t_obj_key,t_proto,tt_item))
@@ -5917,7 +6031,7 @@ def Check_Range(t_device, Config_Change, log_folder):
             if N_of_Ports > Max_Port_Range:
                 N_Range_Port_Obj += 1
                 if (N_of_Ports > N_Max_Range_Port): N_Max_Range_Port = N_of_Ports
-                text_line = '\n\n==> spans %s Ports\n%s\n' %(N_of_Ports,t_item)
+                #text_line = '\n\n==> spans %s Ports\n%s\n' %(N_of_Ports,t_item)
                 t_html_file.append('<tr><td class="text-nowrap"><ul>\n')
                 t_html_file.append('<_L1_TEXT_> '+'<br><li>Port Range: %s</li><br>\n' %(N_of_Ports))
                 t_html_file.append('<_CODE_> '+'%s\n' %(t_item))
@@ -5945,7 +6059,7 @@ def Check_Range(t_device, Config_Change, log_folder):
             result = connection.execute(delete_stmt)
 
         # IP_Ranges_for_DB[t_obj_key] = [t_value, N_of_IPs]
-        for t_key in IP_Ranges_for_DB.keys():
+        for t_key in IP_Ranges_for_DB:
             Insert_Vals = dict(
                             HostName = hostname___,
                             Obj_Name = t_key,
@@ -5975,7 +6089,7 @@ def Check_Range(t_device, Config_Change, log_folder):
         try:
             os.mkdir(html_folder)
         except:
-             raise OSError("Can't create destination directory (%s)!" % (html_folder))
+            raise OSError("Can't create destination directory (%s)!" % (html_folder))
 
     Watch_FName = f"{html_folder}/{hostname___}-Config_Range.html"
     log_msg = File_Save_Try2(Watch_FName, t_html_file, t_ErrFileFullName, Config_Change)
@@ -5998,7 +6112,6 @@ def Check_Range(t_device, Config_Change, log_folder):
 
 
 def Where_Used(t_device, t_Object_Name, log_folder, Out):
-    import shelve
 
     hostname___ = t_device.replace('/','___')
     #log_folder = log_folder + '/' + hostname___
@@ -6017,7 +6130,7 @@ def Where_Used(t_device, t_Object_Name, log_folder, Out):
     OBJ_GRP_SVC_Dic = utils_v2.Shelve_Read_Try(tf_name,'')
 
     OBJ_GRP_SVC_Dic_2 = OBJ_GRP_SVC_Dic.copy()
-    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic.keys():
+    for t_OBJ_GRP_SVC_Dic_key in OBJ_GRP_SVC_Dic:
         if len(t_OBJ_GRP_SVC_Dic_key.split()) == 2:
             OBJ_GRP_SVC_Dic_2[t_OBJ_GRP_SVC_Dic_key.split()[0]] = OBJ_GRP_SVC_Dic_2.pop(t_OBJ_GRP_SVC_Dic_key)
 
@@ -6027,10 +6140,10 @@ def Where_Used(t_device, t_Object_Name, log_folder, Out):
     tf_name = f"{log_folder}/VAR_{hostname___}___Show_NAT_DF"
     Show_NAT_DF = utils_v2.Shelve_Read_Try(tf_name,'')
 
-    if  ( (t_Object_Name in Obj_Net_Dic.keys()) or
-        (t_Object_Name in OBJ_GRP_NET_Dic.keys()) or
-        (t_Object_Name in OBJ_SVC_Dic.keys()) or
-        (t_Object_Name in OBJ_GRP_SVC_Dic_2.keys()) ):
+    if  ( (t_Object_Name in Obj_Net_Dic) or
+        (t_Object_Name in OBJ_GRP_NET_Dic) or
+        (t_Object_Name in OBJ_SVC_Dic) or
+        (t_Object_Name in OBJ_GRP_SVC_Dic_2) ):
         # find in access-list
         Printed_Lines = []
         for t_acl_line in Show_ACL_Lines:
@@ -6046,13 +6159,13 @@ def Where_Used(t_device, t_Object_Name, log_folder, Out):
                 Out.append('<_CODE_> '+'%s\n' %row.Nat_Line)
                 Printed_Lines.append(t_Object_Name)
 
-    for t_OBJ_GRP_KEY in OBJ_GRP_NET_Dic.keys():
+    for t_OBJ_GRP_KEY in OBJ_GRP_NET_Dic:
         for t_OBJ_GRP_VALS in OBJ_GRP_NET_Dic[t_OBJ_GRP_KEY]:
             if t_Object_Name in t_OBJ_GRP_VALS.strip().split():
                 Out.append('<_L2_TEXT_> '+'<b>"%s"</b> nested found as object in <b>"%s"</b>\n' %(t_Object_Name, t_OBJ_GRP_KEY))
                 Where_Used(t_device, t_OBJ_GRP_KEY, log_folder, Out)
 
-    for t_OBJ_GRP_KEY in OBJ_GRP_SVC_Dic_2.keys():
+    for t_OBJ_GRP_KEY in OBJ_GRP_SVC_Dic_2:
         for t_OBJ_GRP_VALS in OBJ_GRP_SVC_Dic_2[t_OBJ_GRP_KEY]:
             if t_Object_Name in t_OBJ_GRP_VALS.strip().split():
                 Out.append('<_L2_TEXT_> '+'<b>"%s"</b> nested found as object in <b>"%s"</b>\n' %(t_Object_Name, t_OBJ_GRP_KEY))

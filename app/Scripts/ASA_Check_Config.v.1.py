@@ -41,7 +41,6 @@ import datetime
 ##import threading
 import utils_v2
 import re
-import shelve
 import shutil
 import ipaddress
 ##import io
@@ -55,7 +54,6 @@ from ASA_Check_Config_FNC import *
 from ASA_Check_Config_VAR import *
 from ASA_Check_Config_PARAM import *
 from tabulate import tabulate
-##import shelve
 
 #----------------------------------------------------------------------------------------
 # ALL                           = 0
@@ -88,11 +86,11 @@ TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,      12,         16,17,18]
 ### debug params -------
 ##DEBUG_LEVEL           = 1      #[0 = verbose]
 ##ARGS_SEE_ELAPSED      = True   #[                                                (-e default = True)]
-##ARGS_FETCH_CONFIG     = False   #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
-##ARGS_REBUILD_VARS     = False   #[True=Rebuild Variables, False=Skip this session (-r default = True)]
+##ARGS_FETCH_CONFIG     = False  #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
+##ARGS_REBUILD_VARS     = True  #[True=Rebuild Variables, False=Skip this session (-r default = True)]
 ##ARGS_PARRALEL_PROCESS = False  #[                                                (-p default = False)]
 ##DELETE_VAR_FILES      = False
-##TEST_THIS_ONLY   = [2]
+##TEST_THIS_ONLY   = [12]
 #----------------------------------------------------------------------------------------
 start_time = time.time()
 pd.set_option('display.max_rows', 500)
@@ -151,7 +149,7 @@ if len(TEST_THIS_ONLY)>=1:
 
 DB_Available = True
 try:
-    engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+    engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
     with engine.connect() as connection:
         My_Devices      = db.Table('My_Devices',      db.MetaData(), autoload_with=engine)
         Global_Settings = db.Table('Global_Settings', db.MetaData(), autoload_with=engine)
@@ -333,9 +331,9 @@ if not os.path.exists(log_folder):
     try:
         os.mkdir(log_folder)
     except:
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f:
-            f.write("Can't create destination directory (%s)\n" % (log_folder))
-        raise OSError("Can't create destination directory (%s)!" % (log_folder))
+        with open(f"{Err_folder}/{WTF_Error_FName}","a+") as f:
+            f.write(f"Can't create destination directory ({log_folder})\n")
+        raise OSError(f"Can't create destination directory ({log_folder})!")
 
 if ARGS_DEVICE:
     if DB_Available:
@@ -419,12 +417,12 @@ else:
                 OLD_TimeStamp_t0 = Device_to_Check_df.TimeStamp_t0[0]
                 counter +=1
     except Exception as e:
-        Log_Message = (f"Device_List.txt file not found"); print(Log_Message)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f: f.write(Log_Message)
+        Log_Message = "Device_List.txt file not found"; print(Log_Message)
+        with open(f"{Err_folder}/{WTF_Error_FName}","a+") as f: f.write(Log_Message)
         row = {'TimeStamp':datetime.datetime.now().astimezone(), 'Level':'ERROR', 'Message':Log_Message}
         with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
         Log_Message = (f"An error occurred: {e}"); print(Log_Message)
-        with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f: f.write(Log_Message)
+        with open(f"{Err_folder}/{WTF_Error_FName}","a+") as f: f.write(Log_Message)
         row = {'TimeStamp':datetime.datetime.now().astimezone(), 'Level':'ERROR', 'Message':Log_Message}
         with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
         exit()
@@ -448,7 +446,7 @@ if ARGS_FETCH_CONFIG == True:
     # connnect to device and give commands
 
     if len(Devices2) != 0:
-        print("Running commands on %s devices" %len(Devices2))
+        print(f"Running commands on {len(Devices2)} devices")
         if ARGS_PARRALEL_PROCESS == True:
         #if True:
             with concurrent.futures.ThreadPoolExecutor(max_workers=VAR_max_workers) as executor:
@@ -535,9 +533,6 @@ def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VAR
 
     if len(TEST_THIS_ONLY)>=1:
         if DB_Available:
-            #engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
-            #with engine.connect() as connection:
-            #    My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             Updated_Vals = {'Processing_Conf_Spinner' : True}
             query = db.update(My_Devices).where(My_Devices.c.HostName == hostname___).values(**Updated_Vals)
             try:
@@ -553,7 +548,8 @@ def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VAR
         else:
             print('My_Devices DB NOT AVAILABLE... Can not update "Processing_Conf_Spinner=True" status for %s.\n' %hostname___)
 
-    if (ARGS_FETCH_CONFIG == True or ARGS_REBUILD_VARS == True):
+    #if (ARGS_FETCH_CONFIG == True or ARGS_REBUILD_VARS == True):
+    if (ARGS_FETCH_CONFIG == True):
         start = datetime.datetime.now()
         Split_Show_run(t_device, Config_Change_Dic[t_device], 'show running-config', log_folder)
         Split_Show_run(t_device, Config_Change_Dic[t_device], 'show ver', log_folder)
@@ -726,9 +722,9 @@ def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VAR
     if DELETE_VAR_FILES:
         #delete all local variable files
         DEL_Dir_Path = Path(log_folder_new)
-        extensions_to_delete = {'.bak', '.dat', '.dir', '.log'}
+        extensions_to_delete = {'.bak', '.dat', '.dir', '.log', '.feather'}
         #excluded_file = "Diff_Only_DF"
-        excluded_file = ""
+        excluded_file = "None"
 
         # Iterate through all files in the directory and subdirectories
         Deleted_Flag = False
@@ -810,7 +806,7 @@ if DB_Available:
 # i numeri di ACL in NoLogForAcl e in DB for acl non sono gli stessi... come mai?
 ## perche' db4acl tiene in pancia anche la acl not applied to any interface...
 
-# nella tabella "Check Acl Destination Vs Routing Table" aggoingere una colonna con l'hit count cumulativo della riga
+# nella tabella "Check Acl Destination Vs Routing Table" aggiungere una colonna con l'hit count cumulativo della riga
 
 # Move to the end the top most wide ACL
 
