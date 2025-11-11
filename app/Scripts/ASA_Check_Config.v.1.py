@@ -87,10 +87,10 @@ TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,      12,         16,17,18]
 ##DEBUG_LEVEL           = 1      #[0 = verbose]
 ##ARGS_SEE_ELAPSED      = True   #[                                                (-e default = True)]
 ##ARGS_FETCH_CONFIG     = False  #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
-##ARGS_REBUILD_VARS     = True  #[True=Rebuild Variables, False=Skip this session (-r default = True)]
+##ARGS_REBUILD_VARS     = False  #[True=Rebuild Variables, False=Skip this session (-r default = True)]
 ##ARGS_PARRALEL_PROCESS = False  #[                                                (-p default = False)]
 ##DELETE_VAR_FILES      = False
-##TEST_THIS_ONLY   = [12]
+##TEST_THIS_ONLY   = [3]
 #----------------------------------------------------------------------------------------
 start_time = time.time()
 pd.set_option('display.max_rows', 500)
@@ -798,7 +798,6 @@ if DB_Available:
     #mettere questo "OBJ_NAME_REPO_DF = pd.read_excel(my_file, sheet_name='OBJ_Names')" in un DB e fare il check li sopra
 
 # analizzare anchce gli show nat (older than...)
-# fare funzione per ACL self shadowing
 
 #link graph python charts echarts grafici plot
 #https://echarts.apache.org/examples/en/index.html#chart-type-graphGL
@@ -810,5 +809,12 @@ if DB_Available:
 
 # Move to the end the top most wide ACL
 
-
-
+# @ ACL Source vs Routing - Partially Wrong Routing
+# double "network-object" to be removed
+##access-list ACL_INFRA_SVCS line 553 extended permit object-group TCPUDP object-group DM_INLINE_NETWORK_74 object Host_DNS_VIP_10.220.46.3 eq domain log informational interval 300 (hitcnt=2444078496) 0x1dc731fc
+##
+## Object "object-group DM_INLINE_NETWORK_74" used as source in this ACL only
+## Object "object-group DM_INLINE_NETWORK_74" not used as destination
+## object-group network DM_INLINE_NETWORK_74
+## !no routing for 10.1.12.0 255.255.255.0
+## no network-object network-object 10.1.12.0 255.255.255.0

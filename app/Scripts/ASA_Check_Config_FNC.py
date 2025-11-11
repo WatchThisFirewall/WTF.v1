@@ -307,7 +307,7 @@ def Split_Show_run(Device, Config_Change, Show_Line, log_folder):
 
         DB_Available = True
         try:
-            engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+            engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
             with engine.connect() as connection:
                 My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
                 WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
@@ -396,7 +396,7 @@ def Config_Diff(Device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
@@ -573,23 +573,25 @@ def Config_Diff(Device, Config_Change, log_folder):
 
     # --- Check for Bad Words ---
     for line in Diff_Only:
-        Processed_Line = False
-        for t_word in Bad_Words:
-            if t_word in line[1]:
-                if not Processed_Line:
-                    if DB_Available:
-                        row = dict(
-                                  HostName = Device,
-                                  Tmiestamp = datetime.datetime.now().astimezone(),
-                                  Content = line[1],
-                                  Flag = True
-                                  )
-                        insert_stmt = Bad_News.insert().values(**row)
-                        with engine.begin() as connection:
-                            connection.execute(insert_stmt)
-                        Processed_Line = True
-                        print(f'_____ Bad_News @ {line}"')
-                        Config_Change.append(f'_____ Bad_News @ {line}"')
+        if not line[1].startswith('- '):
+            if ' inactive' not in line[1]:
+                Processed_Line = False
+                for t_word in Bad_Words:
+                    if t_word in line[1]:
+                        if not Processed_Line:
+                            if DB_Available:
+                                row = dict(
+                                          HostName = Device,
+                                          Tmiestamp = datetime.datetime.now().astimezone(),
+                                          Content = line[1],
+                                          Flag = True
+                                          )
+                                insert_stmt = Bad_News.insert().values(**row)
+                                with engine.begin() as connection:
+                                    connection.execute(insert_stmt)
+                                Processed_Line = True
+                                print(f'_____ Bad_News @ {line}"')
+                                Config_Change.append(f'_____ Bad_News @ {line}"')
 
 
 
@@ -794,7 +796,7 @@ def ACL_VS_Interface(t_device, Config_Change, log_folder):
     DB_Available = True
 
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             ACL_Summary = db.Table('ACL_Summary', db.MetaData(), autoload_with=engine)
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
@@ -936,7 +938,7 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
     except Exception as e:
@@ -1048,7 +1050,7 @@ def Unused_ACL(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
@@ -1207,7 +1209,7 @@ def Unused_Object(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
     except Exception as e:
@@ -1460,6 +1462,8 @@ def ObjGrpNet_With1Entry(t_device, Config_Change, log_folder):
             TEMP_Config_Change.append('!%s' %(OBJ_GRP_NET_Dic[t_key][0]))
 
             this_item = OBJ_GRP_NET_Dic[t_key][0]
+            if 'Host_WGRVPXCORPPRNT1_10.26.65.42' in this_item:
+                print('stop')
 
             if ' host ' in this_item:
                 OBJ_GRP_NET_ONE.append(t_key)
@@ -1470,22 +1474,27 @@ def ObjGrpNet_With1Entry(t_device, Config_Change, log_folder):
                 TEMP_Config_Change.append('object network %s' %New_Name)
                 TEMP_Config_Change.append(' %s' %(OBJ_GRP_NET_Dic[t_key][0].replace('network-object','')))
             elif 'network-object object' in this_item:
-                OBJ_GRP_NET_ONE.append(t_key)
-                Old_Name = t_key
-                if 'host ' in Obj_Net_Dic[this_item.split()[2]]:
-                    New_Name = ('%s' %t_key.replace('-','_').upper()) if (t_key.replace('-','_').upper().startswith('H_')) else ('H_%s' %t_key.replace('-','_').upper())
-                elif 'subnet ' in Obj_Net_Dic[this_item.split()[2]]:
-                    New_Name = ('%s' %t_key.replace('-','_').upper()) if (t_key.replace('-','_').upper().startswith('N_')) else ('N_%s' %t_key.replace('-','_').upper())
-                elif 'range ' in Obj_Net_Dic[this_item.split()[2]]:
-                    New_Name = ('%s' %t_key.replace('-','_').upper()) if (t_key.replace('-','_').upper().startswith('R_')) else ('R_%s' %t_key.replace('-','_').upper())
+                if this_item.split()[2] in Obj_Net_Dic:
+                    OBJ_GRP_NET_ONE.append(t_key)
+                    Old_Name = t_key
+                    if 'host ' in Obj_Net_Dic[this_item.split()[2]]:
+                        New_Name = ('%s' %t_key.replace('-','_').upper()) if (t_key.replace('-','_').upper().startswith('H_')) else ('H_%s' %t_key.replace('-','_').upper())
+                    elif 'subnet ' in Obj_Net_Dic[this_item.split()[2]]:
+                        New_Name = ('%s' %t_key.replace('-','_').upper()) if (t_key.replace('-','_').upper().startswith('N_')) else ('N_%s' %t_key.replace('-','_').upper())
+                    elif 'range ' in Obj_Net_Dic[this_item.split()[2]]:
+                        New_Name = ('%s' %t_key.replace('-','_').upper()) if (t_key.replace('-','_').upper().startswith('R_')) else ('R_%s' %t_key.replace('-','_').upper())
+                    else:
+                        print('ekkekkazzo!!!!')
+                        exit(763)
+                    Old_to_New[Old_Name] = New_Name
+                    TEMP_Config_Change.append('!object network %s' %New_Name)
+                    TEMP_Config_Change.append('!%s' %(Obj_Net_Dic[this_item.split()[2]]))
+                    TEMP_Config_Change.append('! but object network "%s" will be used' %(this_item.split()[2]))
+                    Old_to_New[Old_Name] = this_item.split()[2]
                 else:
-                    print('ekkekkazzo!!!!')
-                    exit(763)
-                Old_to_New[Old_Name] = New_Name
-                TEMP_Config_Change.append('!object network %s' %New_Name)
-                TEMP_Config_Change.append('!%s' %(Obj_Net_Dic[this_item.split()[2]]))
-                TEMP_Config_Change.append('! but object network "%s" will be used' %(this_item.split()[2]))
-                Old_to_New[Old_Name] = this_item.split()[2]
+                    print(f"\nEmpty Object Network for: {this_item.split()[2]} in object-group network {t_key}")
+                    print(f"object-group network {t_key}")
+                    print(f"  no network-object object {this_item.split()[2]}")
             elif (this_item.count('.') == 6) and (len(this_item.split()) == 3):
                 OBJ_GRP_NET_ONE.append(t_key)
                 Old_Name = t_key
@@ -1552,7 +1561,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)
@@ -1627,16 +1636,19 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     # controlla se ci sono duplicati
 
     OBJ_GRP_NET_Dic_explode = {}
+    OBJ_GRP_NET_Dic_explode_long = {}
 ##    Duplicated_Object_List = []
     Duplicated_Object_Dic = {}
     for t_key in OBJ_GRP_NET_Dic:
         t_vals = []
+        t_vals_long = []
         for t_item in OBJ_GRP_NET_Dic[t_key]:
             if 'network-object host ' in t_item:
 ##                if t_item.split()[-1] in t_vals:
 ##                    print(f'Duplicated Object in {t_key}: {t_item.split()[-1]}')
 ##                    Duplicated_Object_List.append(f'{t_key}: {t_item.split()[-1]}')
                 t_vals.append(t_item.split()[-1])
+                t_vals_long.append([t_item.split()[-1], f'{t_item}'])
                 if f'{t_key}|{t_item.split()[-1]}' not in Duplicated_Object_Dic:
                     Duplicated_Object_Dic[f'{t_key}|{t_item.split()[-1]}'] = [f'{t_key} => {t_item}']
                 else:
@@ -1657,6 +1669,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
                     Config_Change.append(f"Key not found: {t_item.split()[-1]}\n")
                     Config_Change.append(f"network-object object {t_item} # can be safely removed from {t_key}\n")
                 t_vals.append(temp)
+                t_vals_long.append([temp, f'{t_item}'])
                 if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                     Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {t_item}']
                 else:
@@ -1664,12 +1677,14 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
             elif 'group-object ' in t_item:
                 tt_key = t_item.split()[-1]
                 if tt_key in OBJ_GRP_NET_Dic:
+                    # ----- second depth -----
                     for tt_item in OBJ_GRP_NET_Dic[tt_key]:
                         if 'network-object host ' in tt_item:
     ##                        if tt_item.split()[-1] in t_vals:
     ##                            print(f'Duplicated Object in {t_key}: {tt_item.split()[-1]}')
     ##                            Duplicated_Object_List.append(f'{t_key}: {tt_item.split()[-1]}')
                             t_vals.append(tt_item.split()[-1])
+                            t_vals_long.append([tt_item.split()[-1], f'{t_item} => {tt_item}'])
                             if f'{t_key}|{tt_item.split()[-1]}' not in Duplicated_Object_Dic:
                                 Duplicated_Object_Dic[f'{t_key}|{tt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {tt_item}']
                             else:
@@ -1690,6 +1705,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     ##                            print(f'Duplicated Object in {t_key}: {temp}')
     ##                            Duplicated_Object_List.append(f'{t_key}: {temp}')
                             t_vals.append(temp)
+                            t_vals_long.append([temp, f'{t_item} => {tt_item}'])
                             if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                                 Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {tt_item}']
                             else:
@@ -1697,12 +1713,14 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
                         elif 'group-object ' in tt_item:
                             ttt_key = tt_item.split()[-1]
                             if ttt_key in OBJ_GRP_NET_Dic:
+                                # ----- third depth -----
                                 for ttt_item in OBJ_GRP_NET_Dic[ttt_key]:
                                     if 'network-object host ' in ttt_item:
         ##                                if ttt_item.split()[-1] in t_vals:
         ##                                    print(f'Duplicated Object in {t_key}: {ttt_item.split()[-1]}')
         ##                                    Duplicated_Object_List.append(f'{t_key}: {ttt_item.split()[-1]}')
                                         t_vals.append(ttt_item.split()[-1])
+                                        t_vals_long.append([ttt_item.split()[-1], f'{t_item} => {tt_item} => {ttt_item}'])
                                         if f'{t_key}|{ttt_item.split()[-1]}' not in Duplicated_Object_Dic:
                                             Duplicated_Object_Dic[f'{t_key}|{ttt_item.split()[-1]}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
                                         else:
@@ -1723,6 +1741,7 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
         ##                                    print(f'Duplicated Object in {t_key}: {temp}')
         ##                                    Duplicated_Object_List.append(f'{t_key}: {temp}')
                                         t_vals.append(temp)
+                                        t_vals_long.append([temp, f'{t_item} => {tt_item} => {ttt_item}'])
                                         if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                                             Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f'{t_key} => {tt_key} => {ttt_key} => {ttt_item}']
                                         else:
@@ -1734,8 +1753,9 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
         ##                                if (ttt_item.replace('network-object ','')) in t_vals:
         ##                                    print(f"Duplicated Object in {t_key}: {ttt_item.replace('network-object ','')}")
         ##                                    Duplicated_Object_List.append(f"{t_key}: {ttt_item.replace('network-object ','')}")
-                                        t_vals.append(ttt_item.replace('network-object ',''))
                                         temp = ttt_item.replace('network-object ','')
+                                        t_vals.append(temp)
+                                        t_vals_long.append([temp, f'{t_item} => {tt_item} => {ttt_item}'])
                                         if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                                             Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {ttt_key} => {temp}"]
                                         else:
@@ -1748,8 +1768,9 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
     ##                        if (tt_item.replace('network-object ','')) in t_vals:
     ##                            print(f"Duplicated Object in {t_key}: {tt_item.replace('network-object ','')}")
     ##                            Duplicated_Object_List.append(f"{t_key}: {tt_item.replace('network-object ','')}")
-                            t_vals.append(tt_item.replace('network-object ',''))
                             temp = tt_item.replace('network-object ','')
+                            t_vals.append(temp)
+                            t_vals_long.append([temp, f'{t_item} => {tt_item}'])
                             if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                                 Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {tt_key} => {temp}"]
                             else:
@@ -1763,13 +1784,114 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
 ##                if (t_item.replace('network-object ','')) in t_vals:
 ##                    print(f"Duplicated Object in {t_key}: {t_item.replace('network-object ','')}")
 ##                    Duplicated_Object_List.append(f"{t_key}: {t_item.replace('network-object ','')}")
-                t_vals.append(t_item.replace('network-object ',''))
                 temp = t_item.replace('network-object ','')
+                t_vals.append(temp)
+                t_vals_long.append([temp, f'{t_item}'])
                 if f'{t_key}|{temp}' not in Duplicated_Object_Dic:
                     Duplicated_Object_Dic[f'{t_key}|{temp}'] = [f"{t_key} => {temp}"]
                 else:
                     Duplicated_Object_Dic[f'{t_key}|{temp}'].append(f"{t_key} => {temp}")
         OBJ_GRP_NET_Dic_explode[t_key] = t_vals
+        OBJ_GRP_NET_Dic_explode_long[t_key] = t_vals_long
+
+##    def parse_network(entry: str) -> ipaddress.IPv4Network:
+##        """Convert 'IP mask' or 'IP' into an ip_network object."""
+##        parts = entry.split()
+##        if len(parts) == 2:
+##            ip, mask = parts
+##            network = ipaddress.ip_network(f"{ip}/{mask}", strict=False)
+##        else:
+##            ip = parts[0]
+##            network = ipaddress.ip_network(f"{ip}/32", strict=False)
+##        return network
+
+    tf_name = f"{FW_log_folder}/VAR_{hostname___}___Name_dic"
+    Name_dic = utils_v2.Shelve_Read_Try(tf_name,'')
+
+    def parse_network(entry: str) -> ipaddress.IPv4Network:
+        """Convert 'IP mask' or 'IP' into an ip_network object."""
+        try:
+            parts = entry.split()
+            if len(parts) == 1:
+                # Single IP
+                try:
+                    return ipaddress.ip_network(f"{parts[0]}/32", strict=False)
+                except:
+                    t_ip = Name_dic.get(parts[0])
+                    try:
+                        return ipaddress.ip_network(f"{t_ip}/32", strict=False)
+                    except:
+                        return None
+
+            elif len(parts) == 2:
+                # Check if second part is a subnet mask or another IP
+                try:
+                    # Try parsing as mask
+                    return ipaddress.ip_network(f"{parts[0]}/{parts[1]}", strict=False)
+                except ValueError:
+                    #print(f"Not processed object in 'parse_network (2)' for {entry}")
+                    return None
+            else:
+                #print("Not processed object in 'parse_network (0)'")
+                return None
+        except Exception as e:
+            print(f"⚠️ Parse error for entry '{entry}': {e}")
+            return None
+
+    from collections import defaultdict
+
+    def find_shadowed(data_dict):
+        """Find shadowed subnets and return the report and suggested commands as a list of lines."""
+        output_lines = []  # store everything here
+
+        for group, entries in data_dict.items():
+            # Keep both parsed network and original config
+            networks = []
+            for e in entries:
+                net = parse_network(e[0])
+                networks.append((net, e[0], e[1]))  # (network_obj, raw_ip, config_line)
+
+            shadow_map = defaultdict(list)
+            supernet_conf_map = {}  # map supernet string -> its config line
+
+            # Detect shadowing
+            for i, (net1, raw1, conf1) in enumerate(networks):
+                if not isinstance(net1, ipaddress.IPv4Network):
+                    continue
+                supernet_conf_map[str(net1)] = conf1  # store supernet config
+                for j, (net2, raw2, conf2) in enumerate(networks):
+                    if i == j:
+                        continue
+                    if not isinstance(net2, ipaddress.IPv4Network):
+                        continue
+                    if net1.supernet_of(net2) and net1 != net2:
+                        shadow_map[str(net1)].append((str(net2), conf2))
+
+            # Append results to output_lines instead of printing
+            if shadow_map:
+                output_lines.append(f"\n⚠️ Shadow relationships detected in <b>{group}</b>:")
+                for supernet, subnets in shadow_map.items():
+                    output_lines.append(f"<b>{supernet}</b> ({supernet_conf_map.get(supernet, '')}) shadows:")
+                    for subnet, conf in sorted(set(subnets)):
+                        conf = conf.replace("=>"," <b><font color='#ba1e28'>=></font></b> ")
+                        output_lines.append(f"  - {subnet} ({conf})")
+
+                # Suggested cleanup commands
+                output_lines.append("\nSuggested cleanup commands:")
+                output_lines.append(f"object-group network {group}")
+                cmds = []
+                for _, subnets in shadow_map.items():
+                    for _, conf in subnets:
+                        if "network-object" in conf or "group-object" in conf:
+                            obj_type = "network-object" if "network-object" in conf else "group-object"
+                            obj = conf.split(obj_type, 1)[1].strip()
+                            cmds.append(f"  no {obj_type} {obj}")
+                for cmd in sorted(set(cmds)):
+                    output_lines.append(cmd)
+
+        return output_lines
+
+    report_lines = find_shadowed(OBJ_GRP_NET_Dic_explode_long)
 
     Dup_OBJGRP_NET_List = []
     Found_keys = []
@@ -1836,6 +1958,10 @@ def Duplicated_Objects(t_device, Config_Change, log_folder):
             Watch_Flist.append('   </ul>\n')
             Watch_Flist.append('   </li></ul>\n')
     Watch_Flist.append('</div>\n')
+    for line in report_lines:
+        line = line.replace('\n','<br>\n')
+        t_line = utils_v2.Color_Line(line)
+        Watch_Flist.append(f'{t_line}<br>\n')
 
     Watch_FName   = FW_log_folder + '/' + hostname___ + '-ObjGrpNet_Duplicated-Watch.html'
     log_msg = File_Save_Try2(Watch_FName, Watch_Flist, t_ErrFileFullName, Config_Change)
@@ -2138,7 +2264,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             WTF_Log = db.Table('WTF_Log', db.MetaData(), autoload_with=engine)
     except Exception as e:
@@ -2307,7 +2433,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             ACL_GROSS = db.Table('ACL_GROSS', db.MetaData(), autoload_with=engine)
     except Exception as e:
@@ -2638,7 +2764,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             WTF_Log = db.Table('WTF_Log', db.MetaData(), autoload_with=engine)
             Top_ICMP_Open_Detail = db.Table('Top_ICMP_Open_Detail', db.MetaData(), autoload_with=engine)
@@ -3091,7 +3217,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             ACL_Summary = db.Table('ACL_Summary', db.MetaData(), autoload_with=engine)
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
@@ -3349,7 +3475,7 @@ def F_Active_Capture(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             Active_Capture = db.Table('Active_Capture', db.MetaData(), autoload_with=engine)
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
@@ -4916,7 +5042,7 @@ def Check_NAT(t_device, Config_Change, log_folder):
     Show_NAT_DF = utils_v2.Shelve_Read_Try(tf_name,'')
 
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             Show_NAT_DB = db.Table('Show_NAT_DB', db.MetaData(), autoload_with=engine)
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
@@ -5866,7 +5992,7 @@ def Check_Range(t_device, Config_Change, log_folder):
 
     DB_Available = True
     try:
-        engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))
+        engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
             My_Devices = db.Table('My_Devices', db.MetaData(), autoload_with=engine)
             WTF_Log    = db.Table('WTF_Log',    db.MetaData(), autoload_with=engine)

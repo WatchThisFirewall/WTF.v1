@@ -1,5 +1,17 @@
 # pylint: disable=C0103
 
+## VAR_Show_Nameif
+## VAR_Show_Run_ACGR
+## VAR_Show_Run
+## VAR_Show_Access_List
+##     parse_port(val)
+## VAR_Show_Route
+##     safe_ipv4network(net)
+## VAR_Show_Nat
+## VAR_Show_Crypto
+## VAR_Show_Ver
+## Split_Large_ACL
+
 import os
 import sys
 import shelve
