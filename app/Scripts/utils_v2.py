@@ -959,9 +959,12 @@ def Color_Line(IN_Line):
 def Write_Think_File(Think_File_Name, Think_List):
 
     retries = 0
+    last_exception = None
+
     while retries < 3:
         try:
-            with open(Think_File_Name, "w") as f:
+            with open(Think_File_Name, "w", encoding="utf-8") as f:
+            #with open(Think_File_Name, "w") as f:
                 f.write('''
 <style>
     p.small {
@@ -974,17 +977,22 @@ def Write_Think_File(Think_File_Name, Think_List):
 ''')
                 for t_line in Think_List:
                     t_line = t_line.replace('\n','<br>')
-
                     t_line = Color_Line(t_line)
-                    f.write('<br>%s\n'%t_line)
+                    f.write(f'<br>{t_line}\n')
+
                 f.write('</p>\n')
-                print('... saved file "%s"' %Think_File_Name)
+                print(f'... saved file "{Think_File_Name}"')
                 break
-        except:
-            retries +=1
-            time.sleep(retries*2)
+
+        except Exception as e:
+            print("Exception occurred:", e)
+            last_exception = e
+            retries += 1
+            time.sleep(retries * 2)
+
     if retries == 3:
-        print('ERROR!!! Cannot write to file %s' %Think_File_Name)
+        print(f"ERROR! Can't write to destination file {Think_File_Name}")
+        print(f"error is: {last_exception}")
 
 
 #=============================================================================================================================

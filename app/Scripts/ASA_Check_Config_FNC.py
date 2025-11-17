@@ -2890,14 +2890,17 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
         if BEST_ROUTE != []:
             if Interface1 == BEST_ROUTE[1]:
                 if row1.Type == 'C':
-                    #print('CONNECTED!!!')
-                    Redundant_Routes.append('\n CONNECTED!!!')
-                    Redundant_Routes.append('! %s @ %s ==> %s' %(row1.IPv4_Network, Interface1, BEST_ROUTE[0]))
+                    if BEST_ROUTE[0].prefixlen != 0: #skip for default route
+                        #print('CONNECTED!!!')
+                        Redundant_Routes.append('\n CONNECTED!!!')
+                        Redundant_Routes.append(f'! ⚠️ Route for {BEST_ROUTE[0]} @ {Interface1} overlaps connected subnet {row1.IPv4_Network}')
+                    #   Redundant_Routes.append('! %s @ %s ==> %s' %(row1.IPv4_Network, Interface1, BEST_ROUTE[0]))
                 else:
-                    Redundant_Routes.append('\n! %s @ %s ==> %s' %(row1.IPv4_Network, Interface1, BEST_ROUTE[0]))
+                    Redundant_Routes.append(f'\n! ⚠️ route for {BEST_ROUTE[0]} @ {Interface1} shadows route {row1.IPv4_Network}')
+                    #Redundant_Routes.append('\n! %s @ %s ==> %s' %(row1.IPv4_Network, Interface1, BEST_ROUTE[0]))
                     Redundant_Routes.append('no route %s %s %s %s ' %((row1.Interface), str(row1.IPv4_Network.network_address), str(row1.IPv4_Network.netmask), row1.NextHop))
-                ROUTE_IP_DF = ROUTE_IP_DF.drop(row1.Index)
-                t_N_Redun_Routes += 1
+                    t_N_Redun_Routes += 1
+                #ROUTE_IP_DF = ROUTE_IP_DF.drop(row1.Index)
 
     Fix_FName   = FW_log_folder + '/' + hostname___ + '-redundant_routes-Fix.html'
     Write_Think_File(Fix_FName, Redundant_Routes)
