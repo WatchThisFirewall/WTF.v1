@@ -1,9 +1,10 @@
 
-from ASA_Check_Config_PARAM import *
+from Check_Config_PARAM import *
 import utils_v2
 import sqlalchemy as db
 import datetime
 import pandas as pd
+import re
 from netmiko import ConnectHandler, NetmikoTimeoutException, NetmikoAuthenticationException
 from paramiko.ssh_exception import SSHException, BadHostKeyException
 
@@ -25,6 +26,7 @@ try:
         My_Devices          = db.Table('My_Devices',          db.MetaData(), autoload_with=engine)
         Devices_Model       = db.Table('Devices_Model',       db.MetaData(), autoload_with=engine)
         Default_Credentials = db.Table('Default_Credentials', db.MetaData(), autoload_with=engine)
+        WTF_Log             = db.Table('WTF_Log',             db.MetaData(), autoload_with=engine)
 except Exception as e:
     print(f"error is: {e}")
     print("DB not connected, can't Retrive Device informations...\n")
@@ -53,10 +55,14 @@ d_dev_type = Device_to_Check.Type_id[0]
 g_Username = Default_Credentials.Username[0]
 g_Password = Default_Credentials.Password[0]
 t_Device_type = d_dev_type
-t_Device_Vendor = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Vendor'][0]
-t_Device_Model = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Model'][0]
+#t_Device_Vendor = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Vendor'][0]
+t_Device_Vendor = list(Devices_Model_df.query(f'id == {t_Device_type}')['Device_Vendor'])[0]
+#t_Device_Model = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Model'][0]
+t_Device_Model = list(Devices_Model_df.query(f'id == {t_Device_type}')['Device_Model'])[0]
 if ( (t_Device_Vendor == 'Cisco') and (t_Device_Model == 'ASA') ):
     t_dev_type = 'cisco_asa'
+elif ( (t_Device_Vendor == 'Cisco') and (t_Device_Model == 'FTD') ):
+    t_dev_type = 'cisco_ftd'
 else:
     Log_Message = (f'ERROR! Device Type "{t_Device_type}" Unknown'); print(Log_Message)
     with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f: f.write(Log_Message)
@@ -88,6 +94,9 @@ else:
     print('...ERROR!')
     print("Password not provided for device %s" %d_IP_Address)
     Flag_QUIT = True
+
+# regex to match typical Cisco hostname prompt: anything ending with # or >
+prompt_pattern = re.compile(r"^[\w\-\.]+[>#]$")
 
 if Flag_QUIT == False:
 
@@ -136,10 +145,14 @@ if Flag_QUIT == False:
         print(f'FAILED TO CONNECT TO {d_HostName}@{t_IP_Address}')
         Flag_QUIT = True
 
-
     if not Flag_QUIT:
         hostname = ''
-        hostname = device_connection.find_prompt()[:-1]
+        if t_dev_type == 'cisco_ftd':
+            device_connection.send_command_timing("system support diagnostic-cli", read_timeout=30)
+            device_connection.send_command_timing('enable', read_timeout=30)
+            hostname = device_connection.find_prompt()[:-1].split('.')[0]
+        else:
+            hostname = device_connection.find_prompt()[:-1]
         print(hostname)
         if 'act' in hostname:
             hostname=hostname.replace('/act','')
@@ -164,7 +177,6 @@ if Flag_QUIT == False:
 
         hostname___ = hostname.replace('/','___')
         print('... Connecting to %s\n' %hostname)
-
 
         import time
         Commands = []
@@ -192,7 +204,7 @@ if Flag_QUIT == False:
             print('%s \t|\t on %s \t|\t %s' %(datetime.datetime.now().strftime('%Y-%m-%d_%H-%M'), hostname, t_Command.strip()))
             while retries <3:
                 try:
-                    output.append("%s\n%s" %(t_Command, device_connection.send_command(t_Command,max_loops=50000,delay_factor=1,read_timeout=3*retries)))
+                    output.append("%s\n%s" %(t_Command, device_connection.send_command(t_Command,max_loops=50000,delay_factor=1,read_timeout=3*retries, strip_prompt=True, strip_command=True)))
                     break
                 except OSError:
                     retries +=1
@@ -202,6 +214,15 @@ if Flag_QUIT == False:
         device_connection.disconnect()
 
         print('\n!_________________________________________________________\n')
+
+        #output = "\n".join([line for line in output.splitlines() if not prompt_pattern.match(line)])
+        #output = [line for line in ''.join(output).strip().split('\n') if not prompt_pattern.match(line)]
+        new_output=[]
+        for line in ''.join(output).strip().split('\n'):
+            if not (line.endswith('#') or line.endswith('>')):
+                new_output.append(f'{line}\n')
+        output = new_output
+
         for n in output:
             print(n)
 

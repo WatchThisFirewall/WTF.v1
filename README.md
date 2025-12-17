@@ -1,5 +1,5 @@
 # WTF.v1
-WatchThisFirewall is a firewall assessment tool designed to connect to firewalls and perform a comprehensive analysis of their configurations. It checks for misconfigurations, ensures compliance, and optimizes rules. At the moment only Cisco ASA is supported.
+WatchThisFirewall is a firewall assessment tool designed to connect to firewalls and perform a comprehensive analysis of their configurations. It checks for misconfigurations, ensures compliance, and optimizes rules. At the moment only Cisco ASA and Cisco FTD are supported.
 
 <div align="center">
   <img src="IMAGES/login2.jpg" alt="Logo"/>
@@ -19,8 +19,6 @@ The tool is based on Python 3.11 and the package is composed by three containers
 - [How Do I get Started?](#How-Do-I-get-Started)
 - [What Next?](#What-Next)
 - [Supported Network Devices](#Supported-Network-Devices)
-
-
 
 # How Does it Work?
 It connects to a device and retrive the output from the following commands
@@ -163,7 +161,7 @@ typing_extensions==4.12.2
 tzdata==2024.1
 ```
 # Supported Network Devices
-- Cisco ASA
+- Cisco ASA, Cisco FTD
 # License
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
 # Authors

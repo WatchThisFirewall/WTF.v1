@@ -50,9 +50,11 @@ import sqlalchemy as db
 import concurrent.futures
 #from netmiko import ConnectHandler
 from Network_Calc import *
-from ASA_Check_Config_FNC import *
+from Check_Config_PARAM import *
 from ASA_Check_Config_VAR import *
-from ASA_Check_Config_PARAM import *
+from ASA_Check_Config_FNC import *
+from FTD_Check_Config_VAR import *
+#from FTD_Check_Config_FNC import *
 from tabulate import tabulate
 
 #----------------------------------------------------------------------------------------
@@ -86,11 +88,12 @@ TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,      12,         16,17,18]
 ### debug params -------
 ##DEBUG_LEVEL           = 1      #[0 = verbose]
 ##ARGS_SEE_ELAPSED      = True   #[                                                (-e default = True)]
-##ARGS_FETCH_CONFIG     = True  #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
-##ARGS_REBUILD_VARS     = True  #[True=Rebuild Variables, False=Skip this session (-r default = True)]
+##ARGS_FETCH_CONFIG     = False  #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
+##ARGS_REBUILD_VARS     = False  #[True=Rebuild Variables, False=Skip this session (-r default = True)]
 ##ARGS_PARRALEL_PROCESS = False  #[                                                (-p default = False)]
 ##DELETE_VAR_FILES      = False
-##TEST_THIS_ONLY   = [17]
+##TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,      12,         16,17,18]
+##TEST_THIS_ONLY   = [5]
 #----------------------------------------------------------------------------------------
 start_time = time.time()
 pd.set_option('display.max_rows', 500)
@@ -362,10 +365,14 @@ if ARGS_DEVICE:
         if t_Device_password == None:
             t_Device_password = Default_Credentials_df.Password[0]
         t_Device_type = Device_to_Check_df.Type_id[0]
-        t_Device_Vendor = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Vendor'][0]
-        t_Device_Model = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Model'][0]
+        #t_Device_Vendor = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Vendor'][0]
+        t_Device_Vendor = list(Devices_Model_df.query(f'id == {t_Device_type}')['Device_Vendor'])[0]
+        #t_Device_Model = Devices_Model_df.query(f'id == {t_Device_type}')['Device_Model'][0]
+        t_Device_Model = list(Devices_Model_df.query(f'id == {t_Device_type}')['Device_Model'])[0]
         if ( (t_Device_Vendor == 'Cisco') and (t_Device_Model == 'ASA') ):
             t_Device_type = 'cisco_asa'
+        elif ( (t_Device_Vendor == 'Cisco') and (t_Device_Model == 'FTD') ):
+            t_Device_type = 'cisco_ftd'
         else:
             Log_Message = (f'ERROR! Device Type "{t_Device_type}" Unknown'); print(Log_Message)
             with open("%s/%s"%(Err_folder,WTF_Error_FName),"a+") as f: f.write(Log_Message)
@@ -394,6 +401,7 @@ else:
                     line = line.split('#')[0]
                 try:
                     t_Device_Hostname = line.split()[4].strip()
+                    t_Device_type = line.split()[3].strip()
                     Devices2.append(line.strip().split())
                     Device_List_dic[line.split()[0].strip()] = t_Device_Hostname
                 except:
@@ -525,7 +533,7 @@ else:
 # =================== SERIAL PROCESSING
 # =======================================================================================================================
 
-def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VARS, ARGS_SEE_ELAPSED, TEST_THIS_ONLY, DB_Available):
+def wtf(t_device, t_Device_type, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VARS, ARGS_SEE_ELAPSED, TEST_THIS_ONLY, DB_Available):
     Start_Time = datetime.datetime.now()
     start = datetime.datetime.now()
     today = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -569,12 +577,22 @@ def wtf(t_device, Config_Change, log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VAR
         #Config_Diff         (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Ver        (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Nameif     (t_device, Config_Change_Dic[t_device], log_folder)
-        VAR_Show_Run_ACGR   (t_device, Config_Change_Dic[t_device], log_folder)
+        if t_Device_type == 'cisco_asa':
+            VAR_Show_Run_ACGR   (t_device, Config_Change_Dic[t_device], log_folder)
+        elif t_Device_type == 'cisco_ftd':
+            VAR_FTD_Show_Run_ACGR   (t_device, Config_Change_Dic[t_device], log_folder)
+        else:
+            msg = f'Device_type unknown: {t_Device_type}'; print(msg); sys.exit(msg)
         VAR_Show_Route      (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Crypto     (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Run        (t_device, Config_Change_Dic[t_device], log_folder)
         VAR_Show_Nat        (t_device, Config_Change_Dic[t_device], log_folder)
-        VAR_Show_Access_List(t_device, Config_Change_Dic[t_device], log_folder)
+        if t_Device_type == 'cisco_asa':
+            VAR_Show_Access_List(t_device, Config_Change_Dic[t_device], log_folder)
+        elif t_Device_type == 'cisco_ftd':
+            VAR_FTD_Show_Access_List(t_device, Config_Change_Dic[t_device], log_folder)
+        else:
+            msg = f'Device_type unknown: {t_Device_type}'; print(msg); sys.exit(msg)
 
     Config_Diff         (t_device, Config_Change_Dic[t_device], log_folder)
 
@@ -755,7 +773,7 @@ if ARGS_PARRALEL_PROCESS == True:
         futures = []
         for t_device in Device_List_dic.values():
             Start_Time = datetime.datetime.now()
-            future = executor.submit(wtf, t_device, Config_Change_Dic[t_device], log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VARS, ARGS_SEE_ELAPSED, TEST_THIS_ONLY, DB_Available)
+            future = executor.submit(wtf, t_device, t_Device_type, Config_Change_Dic[t_device], log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VARS, ARGS_SEE_ELAPSED, TEST_THIS_ONLY, DB_Available)
             futures.append((future, Start_Time))
 
         for future, Start_Time in futures:
@@ -765,7 +783,7 @@ if ARGS_PARRALEL_PROCESS == True:
 else:
     for t_device in Device_List_dic.values():
         Start_Time_Dic[t_device] = datetime.datetime.now()
-        wtf(t_device, Config_Change_Dic[t_device], log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VARS, ARGS_SEE_ELAPSED, TEST_THIS_ONLY, DB_Available)
+        wtf(t_device, t_Device_type, Config_Change_Dic[t_device], log_folder, ARGS_FETCH_CONFIG, ARGS_REBUILD_VARS, ARGS_SEE_ELAPSED, TEST_THIS_ONLY, DB_Available)
 
 
 end_time = time.time()
@@ -811,10 +829,3 @@ if DB_Available:
 
 # @ ACL Source vs Routing - Partially Wrong Routing
 # double "network-object" to be removed
-##access-list ACL_INFRA_SVCS line 553 extended permit object-group TCPUDP object-group DM_INLINE_NETWORK_74 object Host_DNS_VIP_10.220.46.3 eq domain log informational interval 300 (hitcnt=2444078496) 0x1dc731fc
-##
-## Object "object-group DM_INLINE_NETWORK_74" used as source in this ACL only
-## Object "object-group DM_INLINE_NETWORK_74" not used as destination
-## object-group network DM_INLINE_NETWORK_74
-## !no routing for 10.1.12.0 255.255.255.0
-## no network-object network-object 10.1.12.0 255.255.255.0

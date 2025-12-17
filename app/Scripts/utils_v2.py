@@ -19,6 +19,8 @@
 #def Write_Think_File(Think_File_Name, Think_List)
 #def timedelta_in_months(start_date, end_date)
 
+#def FTD_ACL_to_DF(Show_ACL_Lines_Global
+
 
 import argparse
 import os
@@ -1008,5 +1010,222 @@ def timedelta_in_months(start_date, end_date):
 
     return total_months
 
+
+#=============================================================================================================================
+def FTD_ACL_to_DF(Show_ACL_Lines_Global):
+    """
+    Converts the output from the "show access-list" command lines (list of strings)
+    into a DataFrame with columns:
+    ['ACL','Name','Line','Type','Action','Service','IF_in','Source','S_Port','IF_out','Dest','D_Port','rule-id','Rest','Inactive','Hitcnt','Hash']
+    """
+
+    re_hitcnt = re.compile(r'hitcnt=(\d+)', re.IGNORECASE)
+    re_inactive = re.compile(r'\binactive\b', re.IGNORECASE)
+    re_paren_hitcnt = re.compile(r'\(hitcnt=\d*\)')
+    re_empty_parens = re.compile(r'\(\)')
+    PRTOTOCOLS = set(['ah','eigrp','esp','gre','icmp','icmp6','igmp','igrp','ip','ipinip','ipsec','nos','ospf','pcp','pim','pptp','sctp','snp','tcp','udp'])
+
+    col_names = ['ACL','Name','Line','Type','Action','Service','IF_in','Source','S_Port','IF_out','Dest','D_Port','rule-id','Rest','Inactive','Hitcnt','Hash']
+    rows = []
+    for t_Show_ACL_Line in Show_ACL_Lines_Global:
+
+        if ' fqdn ' in t_Show_ACL_Line:
+            continue
+        if ' remark ' in t_Show_ACL_Line:
+            continue
+        if ' standard ' in t_Show_ACL_Line:
+            continue
+        if ' ethertype ' in t_Show_ACL_Line:
+            continue
+
+        t_item = t_Show_ACL_Line.strip().split()
+        if t_item[0] == 'access-list':
+            t_ACL = 'access-list'
+            t_Name = t_item[1]
+        else:
+            print(f'This is not an access-list: {t_Show_ACL_Line.strip()}')
+            #sys.exit(f'This is not an access-list: {t_Show_ACL_Line.strip()}')
+            continue
+
+        t_Line = f'line {t_item[3]}' if (t_item[2] == 'line') else ''
+
+        t_Type = 'advanced' if (t_item[4] == 'advanced') else print(f'This is not an advanced ACL: {t_Show_ACL_Line.strip()}')
+
+        t_Action = t_item[5] if t_item[5] in ('permit','deny') else print(f'Wrong Action in ACL: {t_Show_ACL_Line.strip()}')
+
+        # ----- SVCS field -----
+        if t_item[6] in ('object','object-group'):  #service-object
+            t_Service = f'{t_item[6]} { t_item[7]}'
+            pos = 8
+        elif t_item[6] in PRTOTOCOLS:
+            t_Service = t_item[6]
+            pos = 7
+        elif 'host' in t_item[6]: #standard ACL ------------------ not considered
+            print(f'standard ACL not considered: {t_Show_ACL_Line.strip()}')
+            continue
+            #sys.exit(f'standard ACL not considered: {t_Show_ACL_Line.strip()}')
+        elif t_item[6].isdigit(): #check if is integer
+            t_Service = t_item[6]
+            pos = 7
+        else:
+            print(f'Unhandled service in ACL: {t_Show_ACL_Line.strip()}')
+            t_Service = ''
+            pos = 6
+            #sys.exit(f'Unhandled service in ACL: {t_Show_ACL_Line.strip()}')
+
+        # ----- IF_in field -----
+        if t_item[pos] == 'ifc':
+            t_IF_in = f'ifc {t_item[pos+1]}'
+            pos = pos+2
+        else:
+            t_IF_in = ''
+
+        # ----- SRC_IP field -----
+        if t_item[pos].count('.') == 3:
+            t_Source = f'{t_item[pos]} {t_item[pos+1]}'
+            pos = pos+2
+        elif 'host' in t_item[pos]:
+            t_Source = f'host {t_item[pos+1]}'
+            pos = pos+2
+        elif ( (t_item[pos]=='object') or (t_item[pos]=='object-group') ):
+            t_Source = f'{t_item[pos]} {t_item[pos+1]}'
+            pos = pos+2
+        elif 'any' in t_item[pos]:
+            t_Source = t_item[pos]
+            pos = pos+1
+        elif t_item[pos] == 'range': # range nel SRC ip
+            if t_item[pos+1].count('.') == 3:
+                t_Source = f'range {t_item[pos+1]} {t_item[pos+2]}'
+                pos = pos+3
+        elif '::' in t_item[pos]: #IPv6
+            t_Source = f'{t_item[pos]}'
+            pos = pos+1
+        else:
+            print(f'--- BAD Unhandled SRC {t_item[pos]} in ACL: {t_Show_ACL_Line.strip()}')
+            t_Source = ''
+            #exit(f'--- BAD Unhandled SRC {t_item[pos]} in ACL: {t_Show_ACL_Line.strip()}')
+
+        # ----- Check S_Port if used -----
+        Skip_Dst_IP = False
+        Skip_IF_out = False
+        if t_item[pos] in ['eq','gt','lt','neq']:
+            t_S_Port = f'{t_item[pos]} {t_item[pos+1]}'
+            pos = pos+2
+        elif t_item[pos] == 'range': # source port range
+            if t_item[pos+1].count('.') == 3:
+                t_Dest = f'range {t_item[pos+1]} {t_item[pos+2]}'
+                t_S_Port = ''
+                pos = pos+3
+                Skip_Dst_IP = True
+                Skip_IF_out = True
+            else:
+                t_S_Port = f'range {t_item[pos+1]} {t_item[pos+2]}'
+                pos = pos+3
+        else:
+            t_S_Port = ''
+
+        # ----- IF_out field -----
+        if Skip_IF_out == True:
+            t_IF_out = ''
+        else:
+            if t_item[pos] == 'ifc':
+                t_IF_out = f'ifc {t_item[pos+1]}'
+                pos = pos+2
+            else:
+                t_IF_out = ''
+
+        # ----- DST_IP field -----
+        if Skip_Dst_IP == True:
+            pass
+        else:
+            if t_item[pos].count('.') == 3:
+                t_Dest = f'{t_item[pos]} {t_item[pos+1]}'
+                pos = pos+2
+            elif 'host' in t_item[pos]:
+                t_Dest = f'host {t_item[pos+1]}'
+                pos = pos+2
+            elif ( (t_item[pos]=='object') or (t_item[pos]=='object-group') ):
+                t_Dest = f'{t_item[pos]} {t_item[pos+1]}'
+                pos = pos+2
+            elif 'any' in t_item[pos]:
+                t_Dest = t_item[pos]
+                pos = pos+1
+            elif t_item[pos] == 'range': # range nel DST ip
+                t_Dest = f'range {t_item[pos+1]} {t_item[pos+2]}'
+                pos = pos+3
+            elif '::' in t_item[pos]: #IPv6
+                t_Dest = f'{t_item[pos]}'
+                pos = pos+1
+            else:
+                print(f't_Dest: Unhandled DST {t_item[pos]} in ACL: {t_Show_ACL_Line.strip()}')
+                t_Dest = ''
+
+        # ----- Check D_Port if used -----
+        if t_item[pos] in ['eq','gt','lt','neq']:
+            t_D_Port = f'{t_item[pos]} {t_item[pos+1]}'
+            pos = pos+2
+        elif t_item[pos] == 'range': # dest port range
+            if t_item[pos].count('.') == 3:
+                print(f'_____This {t_item[pos]} Should Not Happen: {t_Show_ACL_Line.strip()}')
+                continue
+            else:
+                t_D_Port = f'range {t_item[pos+1]} {t_item[pos+2]}'
+                pos = pos+3
+        elif ( (t_item[pos]=='object') or (t_item[pos]=='object-group') ):
+            t_D_Port = f'{t_item[pos]} {t_item[pos+1]}'
+            pos = pos+2
+        else:
+            t_D_Port = ''
+
+        # ----- rule-id field -----
+        if t_item[pos] == 'rule-id':
+            t_rule_id = f'rule-id {t_item[pos+1]}'
+            pos = pos+2
+        else:
+            t_rule_id = ''
+
+        # ----- t_Hash field -----
+        t_Hash = t_item[-1]
+
+
+        t_rest = ' '.join(t_item[pos:-1])
+        try:
+            t_Hitcnt = str(re_hitcnt.search(t_rest)[0].split('=')[1])
+        except:
+            print(f'_____This {t_rest} Should Not Happen: {t_Show_ACL_Line.strip()}')
+            continue
+        try:
+            t_Inactive = re_inactive.search(t_rest)[0]
+        except:
+            t_Inactive = ''
+
+        t_rest = re_paren_hitcnt.sub('', t_rest)
+        t_rest = re_inactive.sub('', t_rest)
+        t_rest = (re_empty_parens.sub('', t_rest)).strip()
+        t_Rest = t_rest
+
+        row = [
+            t_ACL,        # ACL
+            t_Name,       # Name
+            t_Line,       # Line
+            t_Type,       # Type
+            t_Action,     # Action
+            t_Service,    # Service
+            t_IF_in,
+            t_Source,     # Source
+            t_S_Port,     # S_Port
+            t_IF_out,
+            t_Dest,       # Dest
+            t_D_Port,     # D_Port
+            t_rule_id,
+            t_Rest,       # Rest
+            t_Inactive,   # Inactive
+            t_Hitcnt,     # Hitcnt
+            t_Hash        # Hash
+        ]
+        rows.append(row)
+
+    a = pd.DataFrame(rows, columns=col_names)
+    return a
 
 #=============================================================================================================================

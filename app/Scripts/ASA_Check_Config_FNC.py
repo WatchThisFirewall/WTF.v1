@@ -32,7 +32,7 @@ import pyarrow
 import json
 
 from difflib import Differ
-from ASA_Check_Config_PARAM import *
+from Check_Config_PARAM import *
 from utils_v2 import Write_Think_File, File_Save_Try, File_Save_Try2, timedelta_in_months
 
 from netmiko import ConnectHandler, NetmikoTimeoutException, NetmikoAuthenticationException
@@ -60,8 +60,10 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
     Config_Change.append(f'Timestamp = {t_time}\n')
     print (f'Timestamp = {t_time}\n')
 
-    DB_Available = True
+    # regex to match typical Cisco hostname prompt: anything ending with # or >
+    prompt_pattern = re.compile(r"^[\w\-\.]+[>#]$")
 
+    DB_Available = True
     try:
         engine = db.create_engine(f"postgresql://{PostgreSQL_User}:{PostgreSQL_PW}@{PostgreSQL_Host}:{PostgreSQL_Port}/{db_Name}")
         with engine.connect() as connection:
@@ -160,10 +162,11 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
         return False
 
     if Device_Info['device_type'] == 'cisco_ftd':
-        device_connection.send_command('system support diagnostic-cli',max_loops=50000,delay_factor=1)
-        device_connection.send_command('enable\n',max_loops=50000,delay_factor=1)
-
-    hostname = device_connection.find_prompt()[:-1]
+        device_connection.send_command_timing('system support diagnostic-cli',max_loops=50000,delay_factor=1, read_timeout=30)
+        device_connection.send_command_timing('enable\n',max_loops=50000,delay_factor=1, read_timeout=30)
+        hostname = device_connection.find_prompt()[:-1].split('.')[0]
+    else:
+        hostname = device_connection.find_prompt()[:-1]
     if 'act' in hostname:
         hostname=hostname.replace('/act','')
     if 'pri' in hostname:
@@ -230,6 +233,15 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
             row = {'TimeStamp':_now_, 'Level':'ERROR', 'Message':f'UNABLE TO RUN COMMAND {t_Command} on {hostname}'}
             with engine.begin() as connection: connection.execute(WTF_Log.insert().values(**row))
             return False
+
+    new_output=[]
+    for t_block in output:
+        new_block = []
+        for line in ''.join(t_block).strip().split('\n'):
+            if not (line.endswith('#') or line.endswith('>')):
+                new_block.append(f'{line}\n')
+        new_output.append(''.join(new_block))
+    output = new_output
 
     device_connection.disconnect()
 
@@ -980,6 +992,13 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
     tf_name = f"{FW_log_folder}/VAR_{hostname___}___Accessgroup_Dic_by_if"
     Accessgroup_Dic_by_if = utils_v2.Shelve_Read_Try(tf_name,'')
 
+    tf_name = f"{FW_log_folder}/VAR_{hostname___}___Global_ACL_Dic"
+    Global_ACL_Dic = utils_v2.Shelve_Read_Try(tf_name,'')
+
+    LOG_KEYWORDS  = (' log', ' event-log', ' flow-start', ' flow-end')
+    def has_logging(acl_line: str) -> bool:
+        return any(k in acl_line for k in LOG_KEYWORDS)
+
     Show_run_ACL_LogDis_Lst = []
     Show_run_ACL_NoLog_Lst = []
     for n in range(1,len(l)):
@@ -989,7 +1008,7 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
             logging_monitor_line = l[n]
         elif l[n].startswith('access-list '):
             ACL_NAME = l[n].split()[1]
-            if ACL_NAME in list(Accessgroup_Dic_by_if.values()): #sto facendo i controlli solo sulle ACL applicate ad interfacce
+            if (ACL_NAME in list(Accessgroup_Dic_by_if.values()) or ACL_NAME in Global_ACL_Dic.values()): #sto facendo i controlli solo sulle ACL applicate ad interfacce
                 if ' remark ' not in l[n]:
                     if ' standard ' not in l[n]:
                         N_Lines_ACL = N_Lines_ACL +1
@@ -999,7 +1018,8 @@ def NO_Log_For_ACL(t_device, Config_Change, log_folder):
                                 temp = l[n].rstrip().replace(' log disable', ' log')
                                 Show_run_ACL_LogDis_Lst.append(temp)
                                 N_Lines_ACL_LogDis = N_Lines_ACL_LogDis +1
-                            elif ' log ' not in l[n]:
+                            #elif ' log ' not in l[n]:
+                            elif not has_logging(l[n]):
                                 Show_run_ACL_NoLog_Lst.append(l[n].strip() + ' log')
                                 N_Lines_ACL_NoLog = N_Lines_ACL_NoLog +1
                         else:
@@ -2341,7 +2361,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
             if this_Src_Obj == []: # ipv6 to be done
                 continue
             for t_this_Src_Obj in this_Src_Obj:
-##                if '10.10.10.6' in t_this_Src_Obj:
+##                if '10.106.232.0' in t_this_Src_Obj:
 ##                    print('row')
 ##                else:
 ##                    break
@@ -2388,8 +2408,8 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
                     best_prefixlen = BEST_ROUTE_IP.prefixlen
                 else:
                     best_prefixlen = -1
-                Bool_check = ('Interface == "%s"') %(t_ACL_If_Name)
-                if (best_prefixlen == 0) or (BEST_ROUTE_IF == ''): #no best route found
+                #Bool_check = ('Interface == "%s"') %(t_ACL_If_Name)
+                if (best_prefixlen == 0) or (BEST_ROUTE_IF == '') or (BEST_ROUTE_IF!=t_ACL_If_Name): #no best route found
                     if t_this_Src_Obj != '0.0.0.0/0':
                         t_ROUTE_IP_DF = ROUTE_IP_DF.loc[ROUTE_IP_DF['Interface'] == t_ACL_If_Name]
                         ROUTE_IP_DF_Hi = t_ROUTE_IP_DF.loc[t_ROUTE_IP_DF['PrefixLength'] > this_Src_Obj_IP.prefixlen]
@@ -2415,7 +2435,8 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
 
                 if t_this_Src_Obj != '0.0.0.0/0':
                     #if ((BEST_ROUTE_IF=='') and (WIDE_ROUTE_List==[])) or ((BEST_ROUTE_DF.Interface!='-') and (BEST_ROUTE_DF.Interface!=t_ACL_If_Name)):
-                    if ((BEST_ROUTE_IF!=t_ACL_If_Name) and (WIDE_ROUTE_List==[])) or ((BEST_ROUTE_IF!='-') and (BEST_ROUTE_IF!=t_ACL_If_Name)):
+                    #if ((BEST_ROUTE_IF!=t_ACL_If_Name) and (WIDE_ROUTE_List==[])) or ((BEST_ROUTE_IF!='-') and (BEST_ROUTE_IF!=t_ACL_If_Name)):
+                    if ((BEST_ROUTE_IF!=t_ACL_If_Name) and (WIDE_ROUTE_List==[]) and (BEST_ROUTE_IF!='-')):
                         temp1 = [row.ACL, row.Name, row.Line, row.Type, row.Action, row.Service, row.Source, row.S_Port, row.Dest, row.D_Port, row.Rest, row.Inactive, row.Hitcnt, row.Hash]
                         if 'inactive' in row.Inactive:
                             if row.Hash not in t_Child_Hash:
@@ -3087,6 +3108,7 @@ def ACL_Dest_Vs_Routing_Table(t_device, Config_Change, log_folder):
                         ROUTE_IP_DF_bis = ROUTE_IP_DF_bis.drop(Best_Route_Index)
 
                         for this_route in ROUTE_IP_DF_bis['IPv4_Network'].to_list():
+                            #print(this_route)
                             if this_route.subnet_of(this_Dst_Obj_IP):
                                 Out_Interface = ROUTE_IP_DF_bis.loc[ROUTE_IP_DF_bis['IPv4_Network'] == this_route].Interface.to_list()[0]
                                 WIDE_ROUTE_List.append([str(this_route), Out_Interface])
@@ -4823,7 +4845,13 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
             ACL_Expanded_DF2[c] = ACL_Expanded_DF2[c].apply(restore_json)
 
     Bool_check = ('Name == "%s" & Line == "%s"') %(t_ACL_Name, t_ACL_Line)
+    print(Bool_check)
     ACL_Line_Expanded_DF = ACL_Expanded_DF2.query(Bool_check)
+    if not ACL_Line_Expanded_DF.empty:
+        t_ACL_index = ACL_Line_Expanded_DF.index[0]
+    else:   # handle "no match" case
+        t_ACL_index = 0
+
     t_ACL_ndex = ACL_Line_Expanded_DF.index[0]
     ACL_Line_Expanded_DF.reset_index(inplace=True, drop=True)
     ACL_Line_Expanded_DF_Print = pd.DataFrame(ACL_Line_Expanded_DF.Print)
@@ -5669,7 +5697,7 @@ def Check_NAT(t_device, Config_Change, log_folder):
 
     Show_Crypto_RemoteNet_IP_List = []
     for n in Show_Crypto_RemoteNet_List:
-        Show_Crypto_RemoteNet_IP_List.append(ipaddress.IPv4Network(n))
+        Show_Crypto_RemoteNet_IP_List.append(ipaddress.IPv4Network(n, strict=False))
 
     for row_index, row in Show_NAT_DB_df.iterrows():
         t_IF_IN = row.IF_IN

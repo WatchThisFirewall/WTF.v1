@@ -28,6 +28,13 @@ def login_user(request):
             Default_Username='',
             Default_Password=''
         )
+    if not Devices_Model.objects.filter(Device_Vendor='Cisco', Device_Model='FTD').exists():
+        Devices_Model.objects.create(
+            Device_Vendor='Cisco',
+            Device_Model='FTD',
+            Default_Username='',
+            Default_Password=''
+        )
     if not Default_Credentials.objects.exists():
         Default_Credentials.objects.create()  # Default credentials line for connecting to devices
 

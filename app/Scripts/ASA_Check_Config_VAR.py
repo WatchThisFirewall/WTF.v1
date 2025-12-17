@@ -26,7 +26,7 @@ import json
 
 #from tabulate import tabulate
 from Network_Calc import *
-from ASA_Check_Config_PARAM import *
+from Check_Config_PARAM import *
 
 #from utils_v2 import File_Save_Try
 
@@ -41,7 +41,9 @@ re5 = re.compile(r'^\s*$') # empty line
 re2 = re.compile(r'access-list .* element', re.IGNORECASE)
 re12 = re.compile(r'.*access-list .* line \d* extended')
 re_nat = re.compile(r'\(.*\) |nat |after-auto |any |block-allocation |destination |dns |dynamic |extended |flat |inactive |interface |ipv6 |net-to-net |no-proxy-arp |round-robin |route-lookup |service |source |static |unidirectional |description .*')
-
+#----- for FTD -----
+re11_FTD = re.compile(r'^access-list .* line \d* advanced', re.IGNORECASE)
+re12_FTD = re.compile(r'.*access-list .* line \d* advanced')
 
 #=============================================================================================================================
 #  _  ___  ___    _  _  __    ____                 ___  _   _  _____  _    _       _  _    __    __  __  ____  ____  ____    ___  ___  _
@@ -101,6 +103,9 @@ def VAR_Show_Run_ACGR(t_device, Config_Change, log_folder):
     log_folder = log_folder + '/' + hostname___
     global WTF_Error_FName
 
+    text = f'VAR_Show_Run_ACGR @ {hostname___}'
+    utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
+
     file_path = os.path.join(log_folder, f"{hostname___}___Show_Run_Access-Group.log")
     err_path = os.path.join(Err_folder, WTF_Error_FName)
 
@@ -125,10 +130,10 @@ def VAR_Show_Run_ACGR(t_device, Config_Change, log_folder):
     Global_ACL_Dic = {}
     for n in range(1,len(l)):
         if l[n].startswith('access-group'):
-            if l[n].split()[-1] not in ['global','per-user-override','control-plane'] :
+            if l[n].split()[-1] not in ['global','per-user-override','control-plane']:
                 Accessgroup_Dic_by_if[l[n].split()[4]] = l[n].split()[1]
                 Accessgroup_Dic_by_ACL[l[n].split()[1]] = l[n].split()[4]
-            else:
+            elif l[n].strip().endswith('global'):
                 Global_ACL_Dic['global'] = l[n].split()[1]
 
     tf_name = os.path.join(log_folder, f"VAR_{hostname___}___Accessgroup_Dic_by_if")
@@ -925,6 +930,9 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
     tf_name = f"{log_folder}/VAR_{hostname___}___Name_dic"
     Name_dic = utils_v2.Shelve_Read_Try(tf_name,'')
 
+    tf_name = f"{log_folder}/VAR_{hostname___}___Nameif_List"
+    Nameif_List = utils_v2.Shelve_Read_Try(tf_name,'')
+
     text = f'VAR_Show_Route @ {hostname___}'
     utils_v2.Text_in_Frame (text, Config_Change, Print_also=1)
 
@@ -944,20 +952,26 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
     t_ROUTE = []    # local
     #Prefix1 = ['S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   ']
     #Prefix2 = ['S*  ','R*  ','M*  ','B*  ','D*  ','EX*  ','O*  ','IA*  ','N1*  ','N2*  ','E1*  ','E2*  ','V*  ','i*  ','su*  ','L1*  ','L2*  ','ia*  ','U*  ','o*  ','P*  ']
-    Prefix1 = {'S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   '}
+    Prefix1 = {'C   ','S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   '}
     Prefix2 = {p.replace('   ', '*  ') for p in Prefix1}  # auto-build * set
 
     for n in range(1, len(t_file)):
         temp_line = t_file[n].strip()
         #temp_line = re_space.sub(' ', temp_line)
+        #print(temp_line)
         prefix = temp_line[0:4]
         if prefix in Prefix1 or prefix in Prefix2:
+            route_if = temp_line.strip().split()[-1]
+            if route_if not in Nameif_List:
+                print(f'Discarded Route: {temp_line}')
+                continue
             if ' connected by VPN ' in t_file[n]:
                 temp_line = temp_line.replace(' connected by VPN (advertised), ', ' ') + ' -'
                 t_ROUTE.append(temp_line)
                 continue
             elif ' is directly connected, ' in t_file[n]:
                 temp_line = temp_line.replace(' is directly connected, ', ' ') + ' -'
+                temp_line = ' '.join(temp_line.split())
                 t_ROUTE.append(temp_line)
                 #print(temp_line)
                 continue
@@ -983,7 +997,6 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
             #t3 = temp_line
             t3 = temp_line.split('via')[1].split()[0]
             temp_line = t1 + t2 + ' ' + t3
-            #print(temp_line)
             t_ROUTE.append(temp_line)
         elif t_file[n].startswith('C       '):
             if ' is directly connected, ' in t_file[n]:
@@ -1395,32 +1408,34 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
     hardware_model = ''
     asa_version = ''
     for n in l:
-        if n.startswith('%s up ' %Root_hostname):
-            if 'years' in n:
-                N_Years = int(n.split(' years ')[0].split()[-1])
-                try:
-                    N_Days = int(n.split(' days')[0].split()[-1])
-                except Exception as e:
+        #if n.startswith('%s up ' %Root_hostname):
+        if n.startswith(Root_hostname):
+            if ' up ' in n:
+                if 'years' in n:
+                    N_Years = int(n.split(' years ')[0].split()[-1])
                     try:
-                        N_Days = int(n.split(' day')[0].split()[-1])
-                    except ValueError:
-                        print(f'Error while reading uptime: "error is: {e}"')
-                t_UpTime = N_Years*365 + N_Days
-            elif 'year' in n:
-                N_Years = int(n.split(' year ')[0].split()[-1])
-                try:
-                    N_Days = int(n.split(' days')[0].split()[-1])
-                except Exception as e:
+                        N_Days = int(n.split(' days')[0].split()[-1])
+                    except Exception as e:
+                        try:
+                            N_Days = int(n.split(' day')[0].split()[-1])
+                        except ValueError:
+                            print(f'Error while reading uptime: "error is: {e}"')
+                    t_UpTime = N_Years*365 + N_Days
+                elif 'year' in n:
+                    N_Years = int(n.split(' year ')[0].split()[-1])
                     try:
-                        N_Days = int(n.split(' day')[0].split()[-1])
-                    except ValueError:
-                        print(f'Error while reading uptime: "error is: {e}"')
-                t_UpTime = N_Years*365 + N_Days
-            elif 'days' in n:
-                N_Days  = int(n.split(' days')[0].split()[-1])
-                t_UpTime = N_Days
-            else:
-                t_UpTime = 0
+                        N_Days = int(n.split(' days')[0].split()[-1])
+                    except Exception as e:
+                        try:
+                            N_Days = int(n.split(' day')[0].split()[-1])
+                        except ValueError:
+                            print(f'Error while reading uptime: "error is: {e}"')
+                    t_UpTime = N_Years*365 + N_Days
+                elif 'days' in n:
+                    N_Days  = int(n.split(' days')[0].split()[-1])
+                    t_UpTime = N_Days
+                else:
+                    t_UpTime = 0
 
         elif n.startswith('Hardware:'):
             hardware_model = n.split()[1]
@@ -1763,4 +1778,3 @@ def Split_Large_ACL(ACL_List_Dict, ACL_Line, Max_ACL_Expand_Ratio, log_folder, t
 
     return Splitted_ACL
 
-##=============================================================================================================================
