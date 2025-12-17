@@ -161,7 +161,8 @@ typing_extensions==4.12.2
 tzdata==2024.1
 ```
 # Supported Network Devices
-- Cisco ASA, Cisco FTD
+- Cisco ASA
+- Cisco FTD
 # License
 Code released under the [GNU GPLv3](https://github.com/WatchThisFirewall/WTF.v1/blob/main/LICENSE) License
 # Authors
