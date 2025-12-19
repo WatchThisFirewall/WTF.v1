@@ -80,7 +80,7 @@ ARGS_SEE_ELAPSED      = True   #[                                               
 ARGS_FETCH_CONFIG     = True   #[True=Connect_To_Device, False=Read_Local_Files  (-f default = True)]
 ARGS_REBUILD_VARS     = True   #[True=Rebuild Variables, False=Skip this session (-r default = True)]
 ARGS_PARRALEL_PROCESS = False  #[                                                (-p default = False)]
-DELETE_VAR_FILES      = True
+DELETE_VAR_FILES      = False
 
 #TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18]
 TEST_THIS_ONLY   = [1,2,3,4,5,6,7,8,9,      12,         16,17,18]
