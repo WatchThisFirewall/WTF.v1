@@ -1443,6 +1443,9 @@ def VAR_Show_Ver(t_device, Config_Change, log_folder):
         elif 'Software Version' in n:
             asa_version = n.split('Software Version')[1].strip()
 
+##        elif 'System Version' in n:
+##            asa_version = n.split('System Version')[1].strip()
+
     DB_Available = True
     try:
         engine = db.create_engine("postgresql://%s:%s@%s:%s/%s" % (PostgreSQL_User, PostgreSQL_PW, PostgreSQL_Host, PostgreSQL_Port, db_Name))

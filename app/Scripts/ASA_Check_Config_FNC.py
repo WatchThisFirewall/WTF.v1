@@ -78,7 +78,7 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
 
     Commands = []
     Commands.append('term page 0')
-    Commands.append('show ver')
+    Commands.append('\nshow ver\n')
     Commands.append('show run access-group')
     Commands.append('show nameif')
     Commands.append('show capture')
@@ -238,7 +238,9 @@ def Get_ASA_Commands(Device, Config_Change, log_folder, Status_Flag):
     for t_block in output:
         new_block = []
         for line in ''.join(t_block).strip().split('\n'):
-            if not (line.endswith('#') or line.endswith('>')):
+##            if not (line.endswith('#') or line.endswith('>')):
+##                new_block.append(f'{line}\n')
+            if not line.endswith('#'):
                 new_block.append(f'{line}\n')
         new_output.append(''.join(new_block))
     output = new_output
@@ -4819,7 +4821,7 @@ def DB_For_ACL(t_device, Config_Change, log_folder):
 
 def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
 
-    MAX_Partially_Shadowed_Lines = 15
+    MAX_Partially_Shadowed_Lines = 10
 
     ACL_Line_DF = utils_v2.ASA_ACL_to_DF([ACL_Line])
     t_ACL_Name = ACL_Line_DF.Name[0]
@@ -4845,7 +4847,7 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
             ACL_Expanded_DF2[c] = ACL_Expanded_DF2[c].apply(restore_json)
 
     Bool_check = ('Name == "%s" & Line == "%s"') %(t_ACL_Name, t_ACL_Line)
-    print(Bool_check)
+    #print(Bool_check)
     ACL_Line_Expanded_DF = ACL_Expanded_DF2.query(Bool_check)
     if not ACL_Line_Expanded_DF.empty:
         t_ACL_index = ACL_Line_Expanded_DF.index[0]
@@ -4959,44 +4961,59 @@ def Check_Dec_Shadowing(t_device, ACL_Line, log_folder, Max_ACL_Expand_Ratio):
                                     Flag_Ship[2] = 1
                                     #Port_Found_List = [0]
 
-                                    if len(item1_D_Port) == 1:
-                                        if item1_D_Port[0] == '':
-                                            Flag_Ship[3] = 2 # partially shadowed (can not cross the item)
-                                        elif item2_D_Port[0] == '':
-                                            Flag_Ship[3] = 1 # totally shadowed
+##                                    if item1_D_Port[0] == '':
+##                                        if item2_D_Port[0] == '':
+##                                            Flag_Ship[3] = 1 # totally shadowed
+##                                        else:
+##                                            Flag_Ship[3] = 2 # partially shadowed (can not cross the item)
+##                                    elif len(item1_D_Port) == 1:
+##                                        if item2_D_Port[0] == '':
+##                                            Flag_Ship[3] = 1 # totally shadowed
+##                                        elif len(item2_D_Port) == 1:
+##                                            if item1_D_Port[0] == item2_D_Port[0]:
+##                                                Flag_Ship[3] = 1 # totally shadowed
+##                                            else:
+##                                                Flag_Ship[3] = 0 # no shadow
+##                                        elif len(item2_D_Port) == 2:
+##                                            if item2_D_Port[0] <= item1_D_Port[0] <= item2_D_Port[1]:
+##                                                Flag_Ship[3] = 1 # totally shadowed
+##                                            else:
+##                                                Flag_Ship[3] = 0 # no shadow
+##                                    elif len(item1_D_Port) == 2:
+##                                        if item2_D_Port[0] == '':
+##                                            Flag_Ship[3] = 1 # totally shadowed
+##                                        elif len(item2_D_Port) == 1:
+##                                            if item1_D_Port[0] <= item2_D_Port[0] <= item1_D_Port[1]:
+##                                                Flag_Ship[3] = 2 # partially shadowed
+##                                            else:
+##                                                Flag_Ship[3] = 0 # no shadow
+##                                        else:
+##                                            Flag_Ship[3] = 0 # no shadow
+
+                                    ## Same code as before optimized ##
+                                    Flag_Ship[3] = 0  # default
+                                    l1 = len(item1_D_Port)
+                                    l2 = len(item2_D_Port)
+                                    # empty checks first (most decisive, cheapest)
+                                    e1 = (l1 == 0 or item1_D_Port[0] == '')
+                                    e2 = (l2 == 0 or item2_D_Port[0] == '')
+                                    if e1:
+                                        if e2:
+                                            Flag_Ship[3] = 1    # totally shadowed
                                         else:
-                                            if len(item2_D_Port) == 1:
-                                                if item1_D_Port[0] == item2_D_Port[0]:
-                                                    Flag_Ship[3] = 1 # totally shadowed
-                                                else:
-                                                    Flag_Ship[3] = 0 # no shado
-                                            elif len(item2_D_Port) == 2: # range x,y
-                                                if item2_D_Port[0] <= item1_D_Port[0] <= item2_D_Port[1]:
-                                                    Flag_Ship[3] = 1 # totally shadowed
-                                                else:
-                                                    Flag_Ship[3] = 0 # no shadow
-                                            else:
-                                                print('ERROR! This should not be possible!')
-                                    elif len(item1_D_Port) == 2:
-                                        if len(item2_D_Port) == 1:
-                                            if item1_D_Port[0] == '':
-                                                Flag_Ship[3] = 2
-                                            else:
-                                                if item1_D_Port[0] <= item2_D_Port[0] <= item1_D_Port[1]:
-                                                    Flag_Ship[3] = 2 # partially shadowed
-                                                else:
-                                                    Flag_Ship[3] = 0 # no shadow
-                                        elif len(item2_D_Port) == 2: # range x,y
-                                            # if end1 <= start2 or  start1 >= end2
-                                            if ((item1_D_Port[1]<=item2_D_Port[0]) or (item1_D_Port[0]>=item2_D_Port[1])):
-                                                Flag_Ship[3] = 0 # no shadow
-                                            # start1 < start2 and end1 > end2
-                                            elif ((item1_D_Port[0]<item2_D_Port[1]) and (item1_D_Port[1]>item2_D_Port[0])):
-                                                Flag_Ship[3] = 2 # partially shadowed (can not cross the item)
-                                            else:
-                                                Flag_Ship[3] = 1 # is not totally but can cross the item (totally like)
-                                    else:
-                                        print('ERROR! This should not be possible!')
+                                            Flag_Ship[3] = 2    # partially shadowed
+                                    elif e2:
+                                        Flag_Ship[3] = 1        # totally shadowed
+                                    elif l1 == 1:               # both non-empty from here on
+                                        v1 = item1_D_Port[0]
+                                        if l2 == 1:
+                                            Flag_Ship[3] = 1 if v1 == item2_D_Port[0] else 0
+                                        else:  # l2 == 2
+                                            Flag_Ship[3] = 1 if item2_D_Port[0] <= v1 <= item2_D_Port[1] else 0
+
+                                    elif l2 == 1:  # l1 == 2
+                                        v2 = item2_D_Port[0]
+                                        Flag_Ship[3] = 2 if item1_D_Port[0] <= v2 <= item1_D_Port[1] else 0
 
                     if Flag_Ship == [1,1,1,1]: # = [1,1,1,1]
                         # 1 = totally shadowed => can cross item and go up (UNLESS different action)
