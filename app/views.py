@@ -3,7 +3,7 @@ from .models import My_Devices,ACL_GROSS,ACL_Summary,Global_Settings,Active_Capt
 from .models import Top_IP_Range,Top_ICMP_Open_Detail,Top_TCP_Open_Detail,Top_UDP_Open_Detail,Top_IP_Open_Detail,Bad_News
 from django.db.models import Max,Q,Sum
 from django.utils import timezone
-from django.utils.timezone import make_aware, utc
+from django.utils.timezone import make_aware
 from django.http import HttpResponse,JsonResponse,StreamingHttpResponse
 from django.contrib import messages
 import datetime

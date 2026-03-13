@@ -2,12 +2,14 @@
 from background_task import background
 from background_task.models import Task
 from datetime import datetime, timedelta
+from datetime import timezone as dt_timezone
 from django.utils import timezone
-from django.utils.timezone import make_aware, utc, is_naive, now, localtime
+#from django.utils.timezone import make_aware, utc, is_naive, now, localtime
 from app.models import My_Devices
 from pathlib import Path
 import subprocess
 import logging
+utc = dt_timezone.utc
 
 logger = logging.getLogger(__name__)
 
