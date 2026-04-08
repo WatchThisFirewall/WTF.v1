@@ -2363,7 +2363,7 @@ def ACL_Source_Vs_Routing_Table(t_device, Config_Change, log_folder):
             if this_Src_Obj == []: # ipv6 to be done
                 continue
             for t_this_Src_Obj in this_Src_Obj:
-##                if '10.106.232.0' in t_this_Src_Obj:
+##                if 'x.x.x.x' in t_this_Src_Obj:
 ##                    print('row')
 ##                else:
 ##                    break

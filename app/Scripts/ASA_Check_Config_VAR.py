@@ -952,37 +952,41 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
     t_ROUTE = []    # local
     #Prefix1 = ['S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   ']
     #Prefix2 = ['S*  ','R*  ','M*  ','B*  ','D*  ','EX*  ','O*  ','IA*  ','N1*  ','N2*  ','E1*  ','E2*  ','V*  ','i*  ','su*  ','L1*  ','L2*  ','ia*  ','U*  ','o*  ','P*  ']
-    Prefix1 = {'C   ','S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   '}
+    Prefix1 = {'L   ','C   ','S   ','R   ','M   ','B   ','D   ','EX   ','O   ','IA   ','N1   ','N2   ','E1   ','E2   ','V   ','i   ','su   ','L1   ','L2   ','ia   ','U   ','o   ','P   ','+   ','SI   ','BI   '}
     Prefix2 = {p.replace('   ', '*  ') for p in Prefix1}  # auto-build * set
 
     for n in range(1, len(t_file)):
-        temp_line = t_file[n].strip()
+        temp_this_line = t_file[n].strip()
+        if n+1 < len(t_file):
+            temp_next_line = t_file[n+1].strip()
         #temp_line = re_space.sub(' ', temp_line)
-        #print(temp_line)
-        prefix = temp_line[0:4]
+##        print(temp_this_line)
+        prefix = temp_this_line[0:4]
         if prefix in Prefix1 or prefix in Prefix2:
+            next_prefix = temp_next_line[0:4]
+            if not (next_prefix in Prefix1 or next_prefix in Prefix2):
+                temp_line = temp_this_line.strip() + ' ' + temp_next_line.strip()
+            else:
+                temp_line = temp_this_line.strip()
+
             route_if = temp_line.strip().split()[-1]
+            if temp_line.startswith('L   '):
+                continue
             if route_if not in Nameif_List:
                 print(f'Discarded Route: {temp_line}')
                 continue
-            if ' connected by VPN ' in t_file[n]:
+            if ' connected by VPN ' in temp_line:
                 temp_line = temp_line.replace(' connected by VPN (advertised), ', ' ') + ' -'
                 t_ROUTE.append(temp_line)
                 continue
-            elif ' is directly connected, ' in t_file[n]:
+            elif ' is directly connected, ' in temp_line:
                 temp_line = temp_line.replace(' is directly connected, ', ' ') + ' -'
                 temp_line = ' '.join(temp_line.split())
                 t_ROUTE.append(temp_line)
                 #print(temp_line)
                 continue
-            elif ' via ' in t_file[n]:
+            elif ' via ' in temp_line:
                 pass
-            elif ' connected by VPN ' in t_file[n+1]:
-                temp_line = temp_line + ' ' + t_file[n+1].strip().split()[-1] + ' -'
-                t_ROUTE.append(temp_line)
-                continue
-            elif ' via ' in t_file[n+1]:
-                temp_line = temp_line + ' ' + t_file[n+1].strip()
             else:
                 print(f'   =====> Line split to be handled @ line {n}')
                 sys.exit(f'   =====> Line split to be handled @ line {n}')
@@ -997,18 +1001,6 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
             #t3 = temp_line
             t3 = temp_line.split('via')[1].split()[0]
             temp_line = t1 + t2 + ' ' + t3
-            t_ROUTE.append(temp_line)
-        elif t_file[n].startswith('C       '):
-            if ' is directly connected, ' in t_file[n]:
-                temp_line = temp_line + ' -'
-            elif ' is directly connected, ' in t_file[n+1]:
-                temp_line = temp_line + ' ' + t_file[n+1].strip() + ' -'
-            else:
-                print(f'   =====> Line split to be handled @ line {n}')
-                sys.exit(f'   =====> Line split to be handled @ line {n}')
-            #temp_line = temp_line.replace('        ', ' ')
-            temp_line = re_space.sub(' ', temp_line)
-            temp_line = temp_line.replace(' is directly connected, ', ' ')
             t_ROUTE.append(temp_line)
 
     ROUTE = [
@@ -1055,7 +1047,6 @@ def VAR_Show_Route(t_device, Config_Change, log_folder):
     # Vectorized prefix length extraction
     ROUTE_DF["PrefixLength"] = ROUTE_DF["Network"].map(lambda net: net.prefixlen)
     ROUTE_DF = ROUTE_DF.sort_values(by=['PrefixLength'], ascending=[False]).reset_index(drop=True)
-
 
     tf_name = f"{log_folder}/VAR_{hostname___}___ROUTE_DF"
     retries = utils_v2.Shelve_Write_Try(tf_name,ROUTE_DF)
